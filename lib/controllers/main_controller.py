@@ -43,7 +43,7 @@ class MainController(object):
     def control_open_normal_datafile(self):
         
 #        选择文件，可进行多选
-        file_name, ok = QFileDialog.getOpenFileNames(self.mw, 'Open', 'D:/')
+        file_name, ok = QFileDialog.getOpenFileNames(self.mw, 'Open', r'E:\\')
         self.project.open_normal_datafiles(file_name)
         self.mw.mw_paralist_dock.display_file_group(self.project.get_datafile_for_tree())
 

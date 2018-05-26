@@ -38,9 +38,15 @@ class StackedWidget(QStackedWidget):
         self.setFrameShape(QFrame.NoFrame)
         self.setFrameShadow(QFrame.Plain)
         
+#        数据导入界面索引值为0
         self.setup_data_export()
-        self.setup_fig_canvas()
+#        绘图界面索引值为1
+        self.setup_plot()
+#        数学计算界面索引值为2
+        self.setup_mathematics()
+#        数据操作界面索引值为3
         self.setup_data_manipulate()
+#        数据管理界面索引值为4
         self.setup_data_manage()
         
         self.setCurrentIndex(0)
@@ -50,10 +56,15 @@ class StackedWidget(QStackedWidget):
         self.qwidget_data_export.setup()
         self.addWidget(self.qwidget_data_export)
 
-    def setup_fig_canvas(self):
-        self.qwidget_fig_canvas = QWidget(self)
-        self.qwidget_fig_canvas.setObjectName("qwidget_fig_canvas")
-        self.addWidget(self.qwidget_fig_canvas)
+    def setup_plot(self):
+        self.qwidget_plot = QWidget(self)
+        self.qwidget_plot.setObjectName("qwidget_plot")
+        self.addWidget(self.qwidget_plot)
+
+    def setup_mathematics(self):
+        self.qwidget_mathematics = QWidget(self)
+        self.qwidget_mathematics.setObjectName("qwidget_mathematics")
+        self.addWidget(self.qwidget_mathematics)
     
     def setup_data_manipulate(self):
         self.qwidget_data_mani = QWidget(self)
@@ -68,6 +79,7 @@ class StackedWidget(QStackedWidget):
     def show_page(self, pageindex):
         if self.isHidden():
             self.show()
+            self.setCurrentIndex(pageindex)
         else:
             self.setCurrentIndex(pageindex)
         

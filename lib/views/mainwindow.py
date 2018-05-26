@@ -7,7 +7,7 @@
 # 简述：主窗口类
 #
 # =======使用说明
-# 。。。
+# 
 #
 # =======日志
 # 
@@ -17,7 +17,8 @@
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import (QSize, QRect, Qt, QCoreApplication, pyqtSignal)
+from PyQt5.QtCore import (QObject,QSize, QRect, Qt, QCoreApplication,
+                          pyqtSignal)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication,QWidget, QMainWindow, QMenuBar, 
                              QMessageBox, QMenu, QToolBar, 
@@ -40,6 +41,7 @@ class MainWindow(QMainWindow):
     
     def __init__(self):
         QMainWindow.__init__(self)
+#        设置窗口图标
         self.setWindowIcon(QIcon(r"E:\Demo\lib\icon\window.png"))
         
     def setup(self):
@@ -47,6 +49,7 @@ class MainWindow(QMainWindow):
         self.setEnabled(True)
         self.resize(800, 600)
         self.setMinimumSize(QSize(800, 600))
+        self.setWindowState(Qt.WindowMaximized)
 
 #        创建堆叠窗口        
         self.mw_stacked_widget = StackedWidget()
@@ -86,16 +89,6 @@ class MainWindow(QMainWindow):
         self.menu_window.setObjectName("menu_window")
         self.menu_help = QMenu(self.menubar)
         self.menu_help.setObjectName("menu_help")
-        self.menu_analysis = QMenu(self.menubar)
-        self.menu_analysis.setObjectName("menu_analysis")
-        self.menu_mathematics = QMenu(self.menu_analysis)
-        self.menu_mathematics.setObjectName("menu_mathematics")
-        self.menu_data_manipulation = QMenu(self.menu_analysis)
-        self.menu_data_manipulation.setObjectName("menu_data_manipulation")
-        self.menu_data_manage = QMenu(self.menu_analysis)
-        self.menu_data_manage.setObjectName("menu_data_manage")
-        self.menu_plot = QMenu(self.menubar)
-        self.menu_plot.setObjectName("menu_plot")
         self.setMenuBar(self.menubar)
         
 #        创建状态栏
@@ -116,39 +109,38 @@ class MainWindow(QMainWindow):
         self.action_export_data = QAction(self)
         self.action_export_data.setObjectName("action_export_data")
         self.action_export_data.setIcon(QIcon(r"E:\Demo\lib\icon\export.ico"))
+        self.action_export_data.setCheckable(True)
         self.action_exit = QAction(self)
         self.action_exit.setObjectName("action_exit")
-        self.action_simple_math = QAction(self)
-        self.action_simple_math.setObjectName("action_simple_math")
-        self.action_testpoint_manage = QAction(self)
-        self.action_testpoint_manage.setObjectName("action_testpoint_manage")
-        self.action_synchronization = QAction(self)
-        self.action_synchronization.setObjectName("action_synchronization")
-        self.action_tuning = QAction(self)
-        self.action_tuning.setObjectName("action_tuning")
-        self.action_para_manage = QAction(self)
-        self.action_para_manage.setObjectName("action_para_manage")
-        self.action_temp_manage = QAction(self)
-        self.action_temp_manage.setObjectName("action_temp_manage")
+        self.action_exit.setIcon(QIcon(r"E:\Demo\lib\icon\exit.png"))
+        self.action_mathematics = QAction(self)
+        self.action_mathematics.setObjectName("action_mathematics")
+        self.action_mathematics.setIcon(QIcon(r"E:\Demo\lib\icon\caculator.ico"))
+        self.action_mathematics.setCheckable(True)
+        self.action_data_manipulation = QAction(self)
+        self.action_data_manipulation.setObjectName("action_data_manipulation")
+        self.action_data_manipulation.setIcon(QIcon(r"E:\Demo\lib\icon\datamanipulate.ico"))
+        self.action_data_manipulation.setCheckable(True)
+        self.action_data_manage = QAction(self)
+        self.action_data_manage.setObjectName("action_data_manage")
+        self.action_data_manage.setIcon(QIcon(r"E:\Demo\lib\icon\datamanage.ico"))
+        self.action_data_manage.setCheckable(True)
         self.action_options = QAction(self)
         self.action_options.setObjectName("action_options")
         self.action_options.setIcon(QIcon(r"E:\Demo\lib\icon\setting.ico"))
         self.action_about = QAction(self)
         self.action_about.setObjectName("action_about")
         self.action_about.setIcon(QIcon(r"E:\Demo\lib\icon\information.ico"))
-        self.action_quick_plot = QAction(self)
-        self.action_quick_plot.setObjectName("action_quick_plot")
-        self.action_quick_plot.setIcon(QIcon(r"E:\Demo\lib\icon\quick_plot.ico"))
-        self.action_custom_defined_plot = QAction(self)
-        self.action_custom_defined_plot.setObjectName("action_custom_defined_plot")
-        self.action_multi_source_plot = QAction(self)
-        self.action_multi_source_plot.setObjectName("action_multi_source_plot")
+        self.action_plot = QAction(self)
+        self.action_plot.setObjectName("action_plot")
+        self.action_plot.setIcon(QIcon(r"E:\Demo\lib\icon\quick_plot.ico"))
+        self.action_plot.setCheckable(True)
         self.action_paralist_dock_isclosed = QAction(self)
         self.action_paralist_dock_isclosed.setCheckable(True)
         self.action_paralist_dock_isclosed.setChecked(True)
         self.action_paralist_dock_isclosed.setObjectName("action_paralist_dock_isclosed")
         
-#        将动作添加到对应的菜单下
+#        将动作添加到对应的菜单下       
         self.menu_open.addAction(self.action_open_normal_datafile)
         self.menu_file.addSeparator()
         self.menu_file.addAction(self.menu_open.menuAction())
@@ -156,26 +148,17 @@ class MainWindow(QMainWindow):
         self.menu_file.addSeparator()
         self.menu_file.addAction(self.action_exit)
         self.menu_view.addAction(self.action_paralist_dock_isclosed)
+        self.menu_tools.addAction(self.action_plot)
+        self.menu_tools.addAction(self.action_mathematics)
+        self.menu_tools.addAction(self.action_data_manipulation)
+        self.menu_tools.addAction(self.action_data_manage)
         self.menu_tools.addAction(self.action_options)
         self.menu_help.addAction(self.action_about)
-        self.menu_mathematics.addAction(self.action_simple_math)
-        self.menu_data_manipulation.addAction(self.action_testpoint_manage)
-        self.menu_data_manipulation.addAction(self.action_synchronization)
-        self.menu_data_manipulation.addAction(self.action_tuning)
-        self.menu_data_manage.addAction(self.action_para_manage)
-        self.menu_data_manage.addAction(self.action_temp_manage)
-        self.menu_analysis.addAction(self.menu_mathematics.menuAction())
-        self.menu_analysis.addAction(self.menu_data_manipulation.menuAction())
-        self.menu_analysis.addAction(self.menu_data_manage.menuAction())
-        self.menu_plot.addAction(self.action_quick_plot)
-        self.menu_plot.addAction(self.action_custom_defined_plot)
-        self.menu_plot.addAction(self.action_multi_source_plot)
+
 #        添加菜单栏
         self.menubar.addAction(self.menu_file.menuAction())
         self.menubar.addAction(self.menu_edit.menuAction())
         self.menubar.addAction(self.menu_view.menuAction())
-        self.menubar.addAction(self.menu_analysis.menuAction())
-        self.menubar.addAction(self.menu_plot.menuAction())
         self.menubar.addAction(self.menu_tools.menuAction())
         self.menubar.addAction(self.menu_window.menuAction())
         self.menubar.addAction(self.menu_help.menuAction())
@@ -183,7 +166,10 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.action_open_normal_datafile)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.action_export_data)
-        self.toolbar.addAction(self.action_quick_plot)
+        self.toolbar.addAction(self.action_plot)
+        self.toolbar.addAction(self.action_mathematics)
+        self.toolbar.addAction(self.action_data_manipulation)
+        self.toolbar.addAction(self.action_data_manage)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.action_about)
 
@@ -193,7 +179,11 @@ class MainWindow(QMainWindow):
 # =======连接信号与槽
         self.mw_paralist_dock.signal_close.connect(self.slot_paralist_dock_close)
 #        下列动作与槽的连接，对于只在UI层的流程不在控制器类里管理
-        self.action_export_data.triggered.connect(self.slot_show_export_data_page)
+        self.action_export_data.triggered.connect(self.slot_show_page)
+        self.action_plot.triggered.connect(self.slot_show_page)
+        self.action_mathematics.triggered.connect(self.slot_show_page)
+        self.action_data_manipulation.triggered.connect(self.slot_show_page)
+        self.action_data_manage.triggered.connect(self.slot_show_page)
         self.action_paralist_dock_isclosed.triggered.connect(self.view_paralist_dock_isclosed)
         self.action_about.triggered.connect(self.view_about)
         self.action_exit.triggered.connect(self.view_exit)
@@ -241,6 +231,7 @@ class MainWindow(QMainWindow):
         
 #    响应参数窗口显示动作
     def view_paralist_dock_isclosed(self):
+        
         if self.mw_paralist_dock.isHidden():
             self.mw_paralist_dock.setHidden(False)
         else:
@@ -252,12 +243,74 @@ class MainWindow(QMainWindow):
 
 #        参数窗口关闭后需要把视图下的勾选去掉
     def slot_paralist_dock_close(self):
+        
         self.action_paralist_dock_isclosed.setChecked(False)
         
-    def slot_show_export_data_page(self):
-        self.mw_stacked_widget.show_page(0)
-#        self.action_export_data.
-
+#    显示用户选择的界面
+    def slot_show_page(self):
+        
+#        接收发出信号的那个对象
+        sender = QObject.sender(self)
+        if self.mw_stacked_widget.isHidden():
+#            软件启动时堆叠窗口是不显示的
+            self.mw_stacked_widget.setHidden(False)
+            if (sender == self.action_export_data):
+#                显示页面
+                self.mw_stacked_widget.show_page(0)
+#                将此次选择记住，供后续调用
+                self.last_page = self.action_export_data
+            if (sender == self.action_plot):
+                self.mw_stacked_widget.show_page(1)
+                self.last_page = self.action_plot
+            if (sender == self.action_mathematics):
+                self.mw_stacked_widget.show_page(2)
+                self.last_page = self.action_mathematics
+            if (sender == self.action_data_manipulation):
+                self.mw_stacked_widget.show_page(3)
+                self.last_page = self.action_data_manipulation
+            if (sender == self.action_data_manage):
+                self.mw_stacked_widget.show_page(4)
+                self.last_page = self.action_data_manage               
+        else:
+            if (sender == self.action_export_data):
+                if (self.last_page == self.action_export_data):
+#                    再次按下同一按钮且按钮是选择状态，按钮会自动弹起，
+#                    但这不是我们期望的，所以设置动作仍被选择
+                    self.action_export_data.setChecked(True)
+                else:
+#                    将上一选中动作按钮弹起
+                    self.last_page.setChecked(False)
+                    self.mw_stacked_widget.show_page(0)
+#                    将新的选择记住
+                    self.last_page = self.action_export_data
+            if (sender == self.action_plot):
+                if (self.last_page == self.action_plot):
+                    self.action_plot.setChecked(True)                  
+                else:
+                    self.last_page.setChecked(False)
+                    self.mw_stacked_widget.show_page(1)
+                    self.last_page = self.action_plot
+            if (sender == self.action_mathematics):
+                if (self.last_page == self.action_mathematics):
+                    self.action_mathematics.setChecked(True)                  
+                else:
+                    self.last_page.setChecked(False)
+                    self.mw_stacked_widget.show_page(2)
+                    self.last_page = self.action_mathematics
+            if (sender == self.action_data_manipulation):
+                if (self.last_page == self.action_data_manipulation):
+                    self.action_data_manipulation.setChecked(True)                  
+                else:
+                    self.last_page.setChecked(False)
+                    self.mw_stacked_widget.show_page(3)
+                    self.last_page = self.action_data_manipulation
+            if (sender == self.action_data_manage):
+                if (self.last_page == self.action_data_manage):
+                    self.action_data_manage.setChecked(True)                  
+                else:
+                    self.last_page.setChecked(False)
+                    self.mw_stacked_widget.show_page(4)
+                    self.last_page = self.action_data_manage
 
 # =============================================================================
 # 汉化
@@ -272,11 +325,6 @@ class MainWindow(QMainWindow):
         self.menu_tools.setTitle(_translate("MainWindow", "工具"))
         self.menu_window.setTitle(_translate("MainWindow", "窗口"))
         self.menu_help.setTitle(_translate("MainWindow", "帮助"))
-        self.menu_analysis.setTitle(_translate("MainWindow", "分析"))
-        self.menu_mathematics.setTitle(_translate("MainWindow", "数学计算"))
-        self.menu_data_manipulation.setTitle(_translate("MainWindow", "数据操作"))
-        self.menu_data_manage.setTitle(_translate("MainWindow", "数据管理"))
-        self.menu_plot.setTitle(_translate("MainWindow", "绘图"))
         self.mw_paralist_dock.setWindowTitle(_translate("MainWindow", "参数窗口"))
         self.mw_paralist_dock.line_edit_search_para.setPlaceholderText(_translate("MainWindow", "过滤器"))
         self.toolbar.setWindowTitle(_translate("MainWindow", "工具栏"))
@@ -285,15 +333,10 @@ class MainWindow(QMainWindow):
         self.action_export_data.setText(_translate("MainWindow", "导出数据"))
         self.action_export_data.setToolTip(_translate("MainWindow", "导出数据文件"))
         self.action_exit.setText(_translate("MainWindow", "退出"))
-        self.action_simple_math.setText(_translate("MainWindow", "简单计算"))
-        self.action_testpoint_manage.setText(_translate("MainWindow", "试验点"))
-        self.action_synchronization.setText(_translate("MainWindow", "时间同步"))
-        self.action_tuning.setText(_translate("MainWindow", "调频"))
-        self.action_para_manage.setText(_translate("MainWindow", "参数"))
-        self.action_temp_manage.setText(_translate("MainWindow", "模板"))
+        self.action_mathematics.setText(_translate("MainWindow", "数学计算"))
+        self.action_data_manipulation.setText(_translate("MainWindow", "数据操作"))
+        self.action_data_manage.setText(_translate("MainWindow", "数据管理"))
         self.action_options.setText(_translate("MainWindow", "选项"))
         self.action_about.setText(_translate("MainWindow", "关于"))
-        self.action_quick_plot.setText(_translate("MainWindow", "快速绘图"))
-        self.action_custom_defined_plot.setText(_translate("MainWindow", "自定义绘图"))
-        self.action_multi_source_plot.setText(_translate("MainWindow", "并行绘图"))
+        self.action_plot.setText(_translate("MainWindow", "绘图"))
         self.action_paralist_dock_isclosed.setText(_translate("MainWindow", "参数窗口"))
