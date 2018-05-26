@@ -10,25 +10,24 @@
 # 。。。
 #
 # =======日志
-# 1.2018-05-16 王学良创建文件
+# 
 # =============================================================================
 
 
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import (QSize, QRect, Qt, QMetaObject, QCoreApplication,
-                          pyqtSignal)
-from PyQt5.QtWidgets import (QWidget, QMainWindow, QMenuBar, QMessageBox,
-                             QFileDialog, QMenu, QToolBar, QAction, QStatusBar,
-                             QHBoxLayout)
+from PyQt5.QtCore import (QSize, QRect, Qt, QCoreApplication, pyqtSignal)
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (QApplication,QWidget, QMainWindow, QMenuBar, 
+                             QMessageBox, QMenu, QToolBar, 
+                             QAction, QStatusBar, QHBoxLayout)
 
 # =============================================================================
 # Package views imports
 # =============================================================================
 from stacked_widget import StackedWidget
 from paralist_dock import ParalistDock
-from new_project_dialog import NewProjectDialog
 
 # =============================================================================
 # Main Window
@@ -41,6 +40,7 @@ class MainWindow(QMainWindow):
     
     def __init__(self):
         QMainWindow.__init__(self)
+        self.setWindowIcon(QIcon(r"E:\Demo\lib\icon\window.png"))
         
     def setup(self):
 #        定义主窗口
@@ -51,6 +51,7 @@ class MainWindow(QMainWindow):
 #        创建堆叠窗口        
         self.mw_stacked_widget = StackedWidget()
         self.mw_stacked_widget.setup()
+        self.mw_stacked_widget.hide()
 
 #        创建参数列表窗口
         self.mw_paralist_dock = ParalistDock()
@@ -73,10 +74,8 @@ class MainWindow(QMainWindow):
         self.menubar.setObjectName("menubar")
         self.menu_file = QMenu(self.menubar)
         self.menu_file.setObjectName("menu_file")
-        self.menu_import = QMenu(self.menu_file)
-        self.menu_import.setObjectName("menu_import")
-        self.menu_export = QMenu(self.menu_file)
-        self.menu_export.setObjectName("menu_export")
+        self.menu_open = QMenu(self.menu_file)
+        self.menu_open.setObjectName("menu_open")
         self.menu_edit = QMenu(self.menubar)
         self.menu_edit.setObjectName("menu_edit")
         self.menu_view = QMenu(self.menubar)
@@ -108,16 +107,15 @@ class MainWindow(QMainWindow):
         self.toolbar = QToolBar(self)
         self.toolbar.setObjectName("toolbar")
         self.addToolBar(Qt.TopToolBarArea, self.toolbar)
+
         
 #        创建动作
-        self.action_new = QAction(self)
-        self.action_new.setObjectName("action_new")
-        self.action_open = QAction(self)
-        self.action_open.setObjectName("action_open")
-        self.action_import_normal_datafile = QAction(self)
-        self.action_import_normal_datafile.setObjectName("action_import_normal_datafile")
+        self.action_open_normal_datafile = QAction(self)
+        self.action_open_normal_datafile.setObjectName("action_open_normal_datafile")
+        self.action_open_normal_datafile.setIcon(QIcon(r"E:\Demo\lib\icon\open.ico"))
         self.action_export_data = QAction(self)
         self.action_export_data.setObjectName("action_export_data")
+        self.action_export_data.setIcon(QIcon(r"E:\Demo\lib\icon\export.ico"))
         self.action_exit = QAction(self)
         self.action_exit.setObjectName("action_exit")
         self.action_simple_math = QAction(self)
@@ -134,10 +132,13 @@ class MainWindow(QMainWindow):
         self.action_temp_manage.setObjectName("action_temp_manage")
         self.action_options = QAction(self)
         self.action_options.setObjectName("action_options")
+        self.action_options.setIcon(QIcon(r"E:\Demo\lib\icon\setting.ico"))
         self.action_about = QAction(self)
         self.action_about.setObjectName("action_about")
+        self.action_about.setIcon(QIcon(r"E:\Demo\lib\icon\information.ico"))
         self.action_quick_plot = QAction(self)
         self.action_quick_plot.setObjectName("action_quick_plot")
+        self.action_quick_plot.setIcon(QIcon(r"E:\Demo\lib\icon\quick_plot.ico"))
         self.action_custom_defined_plot = QAction(self)
         self.action_custom_defined_plot.setObjectName("action_custom_defined_plot")
         self.action_multi_source_plot = QAction(self)
@@ -148,13 +149,10 @@ class MainWindow(QMainWindow):
         self.action_paralist_dock_isclosed.setObjectName("action_paralist_dock_isclosed")
         
 #        将动作添加到对应的菜单下
-        self.menu_import.addAction(self.action_import_normal_datafile)
-        self.menu_export.addAction(self.action_export_data)
-        self.menu_file.addAction(self.action_new)
-        self.menu_file.addAction(self.action_open)
+        self.menu_open.addAction(self.action_open_normal_datafile)
         self.menu_file.addSeparator()
-        self.menu_file.addAction(self.menu_import.menuAction())
-        self.menu_file.addAction(self.menu_export.menuAction())
+        self.menu_file.addAction(self.menu_open.menuAction())
+        self.menu_file.addAction(self.action_export_data)
         self.menu_file.addSeparator()
         self.menu_file.addAction(self.action_exit)
         self.menu_view.addAction(self.action_paralist_dock_isclosed)
@@ -172,6 +170,7 @@ class MainWindow(QMainWindow):
         self.menu_plot.addAction(self.action_quick_plot)
         self.menu_plot.addAction(self.action_custom_defined_plot)
         self.menu_plot.addAction(self.action_multi_source_plot)
+#        添加菜单栏
         self.menubar.addAction(self.menu_file.menuAction())
         self.menubar.addAction(self.menu_edit.menuAction())
         self.menubar.addAction(self.menu_view.menuAction())
@@ -180,13 +179,24 @@ class MainWindow(QMainWindow):
         self.menubar.addAction(self.menu_tools.menuAction())
         self.menubar.addAction(self.menu_window.menuAction())
         self.menubar.addAction(self.menu_help.menuAction())
-        self.toolbar.addAction(self.action_import_normal_datafile)
+#        添加工具栏
+        self.toolbar.addAction(self.action_open_normal_datafile)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.action_export_data)
+        self.toolbar.addAction(self.action_quick_plot)
+        self.toolbar.addSeparator()
+        self.toolbar.addAction(self.action_about)
 
         self.retranslate()
 #        QMetaObject.connectSlotsByName(self)
         
 # =======连接信号与槽
         self.mw_paralist_dock.signal_close.connect(self.slot_paralist_dock_close)
+#        下列动作与槽的连接，对于只在UI层的流程不在控制器类里管理
+        self.action_export_data.triggered.connect(self.slot_show_export_data_page)
+        self.action_paralist_dock_isclosed.triggered.connect(self.view_paralist_dock_isclosed)
+        self.action_about.triggered.connect(self.view_about)
+        self.action_exit.triggered.connect(self.view_exit)
 
 
 # =============================================================================
@@ -194,44 +204,24 @@ class MainWindow(QMainWindow):
 # =============================================================================
 
 # =============================================================================
-#    与新建项目有关的显示
-    def view_new(self):
-        return NewProjectDialog().get_project_info()
-
-    def view_set_window_title(self, title):
-        if title:
-            self.setWindowTitle(title + ' - Demo')
-# =============================================================================
-#    与打开项目有关的显示
+#    与关于退出有关的显示
+    def view_exit(self):
         
-#    响应打开项目的指令，函数返回一个str型的文件路径
-    def view_open(self):
-        sel_pro = QFileDialog.getExistingDirectory(self, 'Open Program')
-        if sel_pro:
-            sel_pro = sel_pro.replace('/','\\')
-            return sel_pro
-        else:
-            return None
-        
-    def view_open_status(self, status, pro_name):
-        if status:
+        QApplication.closeAllWindows()
             
-            tipDialog = QMessageBox(self)
-            tipDialog.resize(300,100)
-            tipDialog.setWindowTitle("Information")
-            tipDialog.setText("Open a project suceessfully!")
-            tipDialog.exec_()
-        else:
-            tipDialog = QMessageBox(self)
-            tipDialog.resize(300,100)
-            tipDialog.setWindowTitle("Caution")
-            tipDialog.setText("Unsuceessfully, It's not a project!")
-            tipDialog.exec_()                        
-
 # =============================================================================
 #    与关于数据导入有关的显示
             
-#    
+    def view_data_export(self):
+        self.mw_stacked_widget.show()
+        list_sel_para = []
+        list_temp = self.mw_paralist_dock.tree_widget_display_datafile.selectedItems()
+        if list_temp:
+            for item in list_temp:
+                if item.parent():
+                    list_sel_para.append(item.text(0))
+        self.mw_stacked_widget.qwidget_data_export.display_sel_para(list_sel_para)
+                
 
 # =============================================================================
 #    与关于信息显示有关的显示
@@ -250,12 +240,11 @@ class MainWindow(QMainWindow):
 #    与参数窗口有关的显示
         
 #    响应参数窗口显示动作
-    def control_paralist_dock_isclosed(self):
+    def view_paralist_dock_isclosed(self):
         if self.mw_paralist_dock.isHidden():
             self.mw_paralist_dock.setHidden(False)
         else:
             self.mw_paralist_dock.setHidden(True)
-
 
 # =============================================================================
 # Slots            
@@ -264,6 +253,10 @@ class MainWindow(QMainWindow):
 #        参数窗口关闭后需要把视图下的勾选去掉
     def slot_paralist_dock_close(self):
         self.action_paralist_dock_isclosed.setChecked(False)
+        
+    def slot_show_export_data_page(self):
+        self.mw_stacked_widget.show_page(0)
+#        self.action_export_data.
 
 
 # =============================================================================
@@ -273,8 +266,7 @@ class MainWindow(QMainWindow):
         _translate = QCoreApplication.translate
         self.setWindowTitle(_translate("MainWindow", "演示程序"))
         self.menu_file.setTitle(_translate("MainWindow", "文件"))
-        self.menu_import.setTitle(_translate("MainWindow", "导入"))
-        self.menu_export.setTitle(_translate("MainWindow", "导出"))
+        self.menu_open.setTitle(_translate("MainWindow", "打开"))
         self.menu_edit.setTitle(_translate("MainWindow", "编辑"))
         self.menu_view.setTitle(_translate("MainWindow", "视图"))
         self.menu_tools.setTitle(_translate("MainWindow", "工具"))
@@ -288,11 +280,10 @@ class MainWindow(QMainWindow):
         self.mw_paralist_dock.setWindowTitle(_translate("MainWindow", "参数窗口"))
         self.mw_paralist_dock.line_edit_search_para.setPlaceholderText(_translate("MainWindow", "过滤器"))
         self.toolbar.setWindowTitle(_translate("MainWindow", "工具栏"))
-        self.action_new.setText(_translate("MainWindow", "新建"))
-        self.action_open.setText(_translate("MainWindow", "打开"))
-        self.action_import_normal_datafile.setText(_translate("MainWindow", "通用数据"))
-        self.action_export_data.setText(_translate("MainWindow", "数据文件"))
-        self.action_export_data.setToolTip(_translate("MainWindow", "数据文件"))
+        self.action_open_normal_datafile.setText(_translate("MainWindow", "通用数据"))
+        self.action_open_normal_datafile.setToolTip(_translate("MainWindow", "打开通用数据"))
+        self.action_export_data.setText(_translate("MainWindow", "导出数据"))
+        self.action_export_data.setToolTip(_translate("MainWindow", "导出数据文件"))
         self.action_exit.setText(_translate("MainWindow", "退出"))
         self.action_simple_math.setText(_translate("MainWindow", "简单计算"))
         self.action_testpoint_manage.setText(_translate("MainWindow", "试验点"))
@@ -306,43 +297,3 @@ class MainWindow(QMainWindow):
         self.action_custom_defined_plot.setText(_translate("MainWindow", "自定义绘图"))
         self.action_multi_source_plot.setText(_translate("MainWindow", "并行绘图"))
         self.action_paralist_dock_isclosed.setText(_translate("MainWindow", "参数窗口"))
-        
-# =============================================================================
-#     def retranslate(self):
-#         _translate = QCoreApplication.translate
-#         self.setWindowTitle(_translate("MainWindow", "演示"))
-#         self.menu_file.setTitle(_translate("MainWindow", "File"))
-#         self.menu_import.setTitle(_translate("MainWindow", "Import"))
-#         self.menu_export.setTitle(_translate("MainWindow", "Export"))
-#         self.menu_edit.setTitle(_translate("MainWindow", "Edit"))
-#         self.menu_view.setTitle(_translate("MainWindow", "View"))
-#         self.menu_tools.setTitle(_translate("MainWindow", "Tools"))
-#         self.menu_window.setTitle(_translate("MainWindow", "Window"))
-#         self.menu_help.setTitle(_translate("MainWindow", "Help"))
-#         self.menu_analysis.setTitle(_translate("MainWindow", "Analysis"))
-#         self.menu_mathematics.setTitle(_translate("MainWindow", "Mathematics"))
-#         self.menu_data_manipulation.setTitle(_translate("MainWindow", "Data Manipulation"))
-#         self.menu_data_manage.setTitle(_translate("MainWindow", "Data Manage"))
-#         self.menu_plot.setTitle(_translate("MainWindow", "Plot"))
-#         self.mw_paralist_dock.setWindowTitle(_translate("MainWindow", "Parameters"))
-#         self.mw_paralist_dock.line_edit_search_para.setPlaceholderText(_translate("MainWindow", "Filter"))
-#         self.toolbar.setWindowTitle(_translate("MainWindow", "toolBar"))
-#         self.action_new.setText(_translate("MainWindow", "New"))
-#         self.action_open.setText(_translate("MainWindow", "Open"))
-#         self.action_import_normal_datafile.setText(_translate("MainWindow", "Normal Datafile"))
-#         self.action_export_data.setText(_translate("MainWindow", "Data File"))
-#         self.action_export_data.setToolTip(_translate("MainWindow", "Data File"))
-#         self.action_exit.setText(_translate("MainWindow", "Exit"))
-#         self.action_simple_math.setText(_translate("MainWindow", "Simple Math..."))
-#         self.action_testpoint_manage.setText(_translate("MainWindow", "Test Point"))
-#         self.action_synchronization.setText(_translate("MainWindow", "Synchronization"))
-#         self.action_tuning.setText(_translate("MainWindow", "Tuning"))
-#         self.action_para_manage.setText(_translate("MainWindow", "Parameters"))
-#         self.action_temp_manage.setText(_translate("MainWindow", "Templates"))
-#         self.action_options.setText(_translate("MainWindow", "Options"))
-#         self.action_about.setText(_translate("MainWindow", "About Demo"))
-#         self.action_quick_plot.setText(_translate("MainWindow", "Quick Plot"))
-#         self.action_custom_defined_plot.setText(_translate("MainWindow", "Custom Defined Plot"))
-#         self.action_multi_source_plot.setText(_translate("MainWindow", "Multi-source Plot"))
-#         self.action_paralist_dock_isclosed.setText(_translate("MainWindow", "Parameters Dock"))
-# =============================================================================

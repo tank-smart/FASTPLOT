@@ -10,7 +10,7 @@
 # 。。。
 #
 # =======日志
-# 1.2018-05-17 王学良创建文件
+# 
 # =============================================================================
 
 # =============================================================================
@@ -58,22 +58,22 @@ class ParalistDock(QDockWidget):
         self.tree_widget_display_datafile.setObjectName("tree_widget_display_datafile")
         self.tree_widget_display_datafile.headerItem().setText(0, "1")
         self.tree_widget_display_datafile.header().setVisible(False)
+        self.tree_widget_display_datafile.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.vlayout_paralist_dock.addWidget(self.tree_widget_display_datafile)
-        self.setWidget(self.layout_paralist_dock)
+        self.setWidget(self.layout_paralist_dock)  
+    
+    def display_file_group(self, file_group):
 
-    def display(self, file_name):
-        if file_name:  #file_name is a list
-            for each_file in file_name:
-                self.tree_widget_display_datafile.setSelectionMode(QAbstractItemView.ExtendedSelection)
-                root=QTreeWidgetItem(self.tree_widget_display_datafile) #QTreeWidgetItem object: root
-                root.setText(0,each_file) #set text of treewidget
-                para_list=  file_name[each_file]#ndarray to list
-                for i in range(len(para_list)):
-                    child=QTreeWidgetItem(root)  #child of root
-                    child.setText(0,para_list[i])
+        self.tree_widget_display_datafile.clear()        
+        if file_group:  #file_name is a dict            
+            for file in file_group:
+                root = QTreeWidgetItem(self.tree_widget_display_datafile) #QTreeWidgetItem object: root
+                root.setText(0,file) #set text of treewidget
+                for para in file_group[file]:
+                    child = QTreeWidgetItem(root)  #child of root
+                    child.setText(0,para)   
 
-
-#    重载关闭事件，需要增加一个关闭的信号让视图的勾选去掉        
+#    重载关闭事件，需要增加一个关闭的信号让菜单栏下的勾选去掉        
     def closeEvent(self, event: QCloseEvent):
         event.accept()
         self.signal_close.emit()
