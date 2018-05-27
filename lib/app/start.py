@@ -13,7 +13,7 @@
 # 
 # =============================================================================
 
-from controllers.main_controller import MainController
+from views import mainwindow
 
 def main():
-    return MainController().control_start()
+    return mainwindow.main()

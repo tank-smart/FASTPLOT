@@ -22,7 +22,27 @@
     </widget>
    </item>
    <item>
-    <widget class="QListWidget" name="sel_para_tree"/>
+    <widget class="QTreeWidget" name="sel_para_tree">
+     <property name="columnCount">
+      <number>2</number>
+     </property>
+     <attribute name="headerDefaultSectionSize">
+      <number>240</number>
+     </attribute>
+     <attribute name="headerMinimumSectionSize">
+      <number>240</number>
+     </attribute>
+     <column>
+      <property name="text">
+       <string>Original Name</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Output Name</string>
+      </property>
+     </column>
+    </widget>
    </item>
    <item>
     <widget class="QLabel" name="sel_testpoint">

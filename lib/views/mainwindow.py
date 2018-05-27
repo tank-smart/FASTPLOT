@@ -13,15 +13,15 @@
 # 
 # =============================================================================
 
-
+import sys
 # =============================================================================
 # Qt imports
 # =============================================================================
 from PyQt5.QtCore import (QObject,QSize, QRect, Qt, QCoreApplication,
                           pyqtSignal)
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QApplication,QWidget, QMainWindow, QMenuBar, 
-                             QMessageBox, QMenu, QToolBar, 
+from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar, 
+                             QFileDialog, QMessageBox, QMenu, QToolBar, 
                              QAction, QStatusBar, QHBoxLayout)
 
 # =============================================================================
@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import (QApplication,QWidget, QMainWindow, QMenuBar,
 # =============================================================================
 from stacked_widget import StackedWidget
 from paralist_dock import ParalistDock
+from models.project_model import ProjectModel
 
 # =============================================================================
 # Main Window
@@ -42,7 +43,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
 #        设置窗口图标
-        self.setWindowIcon(QIcon(r"E:\Demo\lib\icon\window.png"))
+        self.setWindowIcon(QIcon(r"E:\DAGUI\lib\icon\window.png"))
+        self.project = ProjectModel()
         
     def setup(self):
 #        定义主窗口
@@ -105,35 +107,35 @@ class MainWindow(QMainWindow):
 #        创建动作
         self.action_open_normal_datafile = QAction(self)
         self.action_open_normal_datafile.setObjectName("action_open_normal_datafile")
-        self.action_open_normal_datafile.setIcon(QIcon(r"E:\Demo\lib\icon\open.ico"))
+        self.action_open_normal_datafile.setIcon(QIcon(r"E:\DAGUI\lib\icon\open.ico"))
         self.action_export_data = QAction(self)
         self.action_export_data.setObjectName("action_export_data")
-        self.action_export_data.setIcon(QIcon(r"E:\Demo\lib\icon\export.ico"))
+        self.action_export_data.setIcon(QIcon(r"E:\DAGUI\lib\icon\export.ico"))
         self.action_export_data.setCheckable(True)
         self.action_exit = QAction(self)
         self.action_exit.setObjectName("action_exit")
-        self.action_exit.setIcon(QIcon(r"E:\Demo\lib\icon\exit.png"))
+        self.action_exit.setIcon(QIcon(r"E:\DAGUI\lib\icon\exit.png"))
         self.action_mathematics = QAction(self)
         self.action_mathematics.setObjectName("action_mathematics")
-        self.action_mathematics.setIcon(QIcon(r"E:\Demo\lib\icon\caculator.ico"))
+        self.action_mathematics.setIcon(QIcon(r"E:\DAGUI\lib\icon\caculator.ico"))
         self.action_mathematics.setCheckable(True)
         self.action_data_manipulation = QAction(self)
         self.action_data_manipulation.setObjectName("action_data_manipulation")
-        self.action_data_manipulation.setIcon(QIcon(r"E:\Demo\lib\icon\datamanipulate.ico"))
+        self.action_data_manipulation.setIcon(QIcon(r"E:\DAGUI\lib\icon\datamanipulate.ico"))
         self.action_data_manipulation.setCheckable(True)
         self.action_data_manage = QAction(self)
         self.action_data_manage.setObjectName("action_data_manage")
-        self.action_data_manage.setIcon(QIcon(r"E:\Demo\lib\icon\datamanage.ico"))
+        self.action_data_manage.setIcon(QIcon(r"E:\DAGUI\lib\icon\datamanage.ico"))
         self.action_data_manage.setCheckable(True)
         self.action_options = QAction(self)
         self.action_options.setObjectName("action_options")
-        self.action_options.setIcon(QIcon(r"E:\Demo\lib\icon\setting.ico"))
+        self.action_options.setIcon(QIcon(r"E:\DAGUI\lib\icon\setting.ico"))
         self.action_about = QAction(self)
         self.action_about.setObjectName("action_about")
-        self.action_about.setIcon(QIcon(r"E:\Demo\lib\icon\information.ico"))
+        self.action_about.setIcon(QIcon(r"E:\DAGUI\lib\icon\information.ico"))
         self.action_plot = QAction(self)
         self.action_plot.setObjectName("action_plot")
-        self.action_plot.setIcon(QIcon(r"E:\Demo\lib\icon\quick_plot.ico"))
+        self.action_plot.setIcon(QIcon(r"E:\DAGUI\lib\icon\quick_plot.ico"))
         self.action_plot.setCheckable(True)
         self.action_paralist_dock_isclosed = QAction(self)
         self.action_paralist_dock_isclosed.setCheckable(True)
@@ -174,50 +176,66 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.action_about)
 
         self.retranslate()
-#        QMetaObject.connectSlotsByName(self)
         
 # =======连接信号与槽
-        self.mw_paralist_dock.signal_close.connect(self.slot_paralist_dock_close)
-#        下列动作与槽的连接，对于只在UI层的流程不在控制器类里管理
+# =============================================================================
+#       主窗口的信号连接        
+        self.action_open_normal_datafile.triggered.connect(
+                self.slot_open_normal_datafile)
+#        按下按钮显示相应的页面
         self.action_export_data.triggered.connect(self.slot_show_page)
         self.action_plot.triggered.connect(self.slot_show_page)
         self.action_mathematics.triggered.connect(self.slot_show_page)
         self.action_data_manipulation.triggered.connect(self.slot_show_page)
         self.action_data_manage.triggered.connect(self.slot_show_page)
-        self.action_paralist_dock_isclosed.triggered.connect(self.view_paralist_dock_isclosed)
-        self.action_about.triggered.connect(self.view_about)
-        self.action_exit.triggered.connect(self.view_exit)
+#        按下视图菜单栏下的关闭动作
+        self.action_paralist_dock_isclosed.triggered.connect(
+                self.slot_paralist_dock_isclosed)
+#        程序的关于信息
+        self.action_about.triggered.connect(self.slot_about)
+#        程序退出
+        self.action_exit.triggered.connect(self.slot_exit)
+# =============================================================================
+#       参数窗口的信号连接
+#        将参数窗口中选中的参数传递给堆叠窗口中显示
+        self.mw_paralist_dock.signal_export_para.connect(
+                self.mw_stacked_widget.qwidget_data_export.import_para)
+        self.mw_paralist_dock.signal_export_para.connect(
+                self.action_export_data.trigger)
+        self.mw_paralist_dock.signal_search_para.connect(
+                self.slot_search_para)
+        self.mw_paralist_dock.signal_close.connect(
+                self.slot_paralist_dock_close)
+        
 
 
 # =============================================================================
-# Views
+# Slots            
 # =============================================================================
 
-# =============================================================================
+#    搜索参数并显示在参数窗口里
+    def slot_search_para(self, paraname):
+        
+        result = self.project.search_para(paraname)
+        self.mw_paralist_dock.display_file_group(result, True)
+
+#    打开数据文件并将文件信息存入project中
+    def slot_open_normal_datafile(self):
+        
+        file_name, ok = QFileDialog.getOpenFileNames(
+                self, 'Open', r'E:\\', "Datafiles (*.txt *.csv *.dat)")
+        self.project.open_normal_datafiles(file_name)
+        self.mw_paralist_dock.display_file_group(
+                self.project.get_datafile_for_tree())
+
 #    与关于退出有关的显示
-    def view_exit(self):
+    def slot_exit(self):
         
         QApplication.closeAllWindows()
             
-# =============================================================================
-#    与关于数据导入有关的显示
-            
-    def view_data_export(self):
-        self.mw_stacked_widget.show()
-        list_sel_para = []
-        list_temp = self.mw_paralist_dock.tree_widget_display_datafile.selectedItems()
-        if list_temp:
-            for item in list_temp:
-                if item.parent():
-                    list_sel_para.append(item.text(0))
-        self.mw_stacked_widget.qwidget_data_export.display_sel_para(list_sel_para)
-                
-
-# =============================================================================
-#    与关于信息显示有关的显示
-            
 #    显示About信息
-    def view_about(self):
+    def slot_about(self):
+        
         QMessageBox.about(self,
             QCoreApplication.translate("MainWindow", "关于演示程序"),
             QCoreApplication.translate("MainWindow", """<b>演示程序</b>
@@ -226,20 +244,13 @@ class MainWindow(QMainWindow):
             <p>由试飞中心试飞工程部绘图软件开发团队开发维护
             """))
 
-# =============================================================================
-#    与参数窗口有关的显示
-        
 #    响应参数窗口显示动作
-    def view_paralist_dock_isclosed(self):
+    def slot_paralist_dock_isclosed(self):
         
         if self.mw_paralist_dock.isHidden():
             self.mw_paralist_dock.setHidden(False)
         else:
             self.mw_paralist_dock.setHidden(True)
-
-# =============================================================================
-# Slots            
-# =============================================================================
 
 #        参数窗口关闭后需要把视图下的勾选去掉
     def slot_paralist_dock_close(self):
@@ -257,7 +268,7 @@ class MainWindow(QMainWindow):
             if (sender == self.action_export_data):
 #                显示页面
                 self.mw_stacked_widget.show_page(0)
-#                将此次选择记住，供后续调用
+#                将此次选择记住
                 self.last_page = self.action_export_data
             if (sender == self.action_plot):
                 self.mw_stacked_widget.show_page(1)
@@ -340,3 +351,10 @@ class MainWindow(QMainWindow):
         self.action_about.setText(_translate("MainWindow", "关于"))
         self.action_plot.setText(_translate("MainWindow", "绘图"))
         self.action_paralist_dock_isclosed.setText(_translate("MainWindow", "参数窗口"))
+        
+def main():
+    app = QApplication(sys.argv)
+    mainwindow = MainWindow()
+    mainwindow.setup()
+    mainwindow.show()
+    return app.exec_()

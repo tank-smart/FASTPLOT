@@ -1,2 +1,2 @@
 mainwindow.py
-new_project_dialog.py
+paralist_dock.py

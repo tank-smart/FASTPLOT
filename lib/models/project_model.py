@@ -34,6 +34,7 @@ class ProjectModel(object):
 # 主功能函数
 # =============================================================================
 
+#    将导入的文件存入项目类的数据文件组中
     def open_normal_datafiles(self, filename_list):
         
         if filename_list:
@@ -42,6 +43,7 @@ class ProjectModel(object):
                 file.config(filename)
                 self.datafile_group.append(file)
                 
+#    在数据文件中搜索参数，返回参数的列表
     def search_para(self, para_name):
         
         result = {}
@@ -49,9 +51,11 @@ class ProjectModel(object):
             pattern = re.compile('.*' + para_name + '.*')
             for file in self.datafile_group:
 #                字典的推导式
-                result[file.filename] = [para for para
-                          in file.paras_in_file
-                          if re.match(pattern, para)]
+                 search_paras = [para for para
+                                 in file.paras_in_file
+                                 if re.match(pattern, para)]
+                 if search_paras:
+                     result[file.file_dir] = search_paras
         else:
             result = self.get_datafile_for_tree()
         
@@ -62,7 +66,7 @@ class ProjectModel(object):
         
         datafiles = {}
         for file in self.datafile_group:
-            datafiles[file.filename] = file.paras_in_file
+            datafiles[file.file_dir] = file.paras_in_file
         return datafiles
 # =============================================================================
 # 辅助函数        

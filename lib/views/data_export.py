@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'E:\Demo\lib\views\data_export.ui'
+# Form implementation generated from reading ui file 'E:\DAGUI\lib\views\data_export.ui'
 #
 # Created by: PyQt5 UI code generator 5.6
 #
@@ -17,8 +17,13 @@ class Ui_Form(object):
         self.sel_para = QtWidgets.QLabel(Form)
         self.sel_para.setObjectName("sel_para")
         self.verticalLayout.addWidget(self.sel_para)
-        self.sel_para_tree = QtWidgets.QListWidget(Form)
+        
+        self.sel_para_tree = QtWidgets.QTreeWidget(Form)
+        self.sel_para_tree.setColumnCount(2)
         self.sel_para_tree.setObjectName("sel_para_tree")
+        self.sel_para_tree.header().setDefaultSectionSize(240)
+        self.sel_para_tree.header().setMinimumSectionSize(240)
+        
         self.verticalLayout.addWidget(self.sel_para_tree)
         self.sel_testpoint = QtWidgets.QLabel(Form)
         self.sel_testpoint.setObjectName("sel_testpoint")
@@ -61,6 +66,8 @@ class Ui_Form(object):
         _translate = QtCore.QCoreApplication.translate
         Form.setWindowTitle(_translate("Form", "Form"))
         self.sel_para.setText(_translate("Form", "Selected parameters"))
+        self.sel_para_tree.headerItem().setText(0, _translate("Form", "Original Name"))
+        self.sel_para_tree.headerItem().setText(1, _translate("Form", "Output Name"))
         self.sel_testpoint.setText(_translate("Form", "Select testpoint"))
         self.export_loc.setText(_translate("Form", "Export location"))
         self.sel_dir.setText(_translate("Form", "..."))
