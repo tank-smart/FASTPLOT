@@ -23,15 +23,25 @@ from PyQt5.QtWidgets import (QWidget, QMainWindow, QMenuBar, QPushButton,
                              QStackedWidget, QLineEdit, QTreeWidget, QSizePolicy, 
                              QVBoxLayout, QHBoxLayout, QFrame)
 
+# =============================================================================
+# Package views imports
+# =============================================================================
 from views.data_export_view import DataExport
 
 # =============================================================================
 # Stacked Widget
 # =============================================================================
 class StackedWidget(QStackedWidget):
+
+# =============================================================================
+# 初始化
+# =============================================================================
     def __init__(self):
         QStackedWidget.__init__(self)
-    
+
+# =============================================================================
+# UI模块    
+# =============================================================================
     def setup(self):
         self.setEnabled(True)
         self.setAcceptDrops(False)
@@ -51,6 +61,9 @@ class StackedWidget(QStackedWidget):
         
         self.setCurrentIndex(0)
 
+# =============================================================================
+# 功能函数模块
+# =============================================================================
     def setup_data_export(self):
         self.qwidget_data_export = DataExport()
         self.qwidget_data_export.setup()

@@ -1,6 +1,21 @@
 # -*- coding: utf-8 -*-
 
+# =============================================================================
+# =======概述
+# 创建日期：2018-05-16
+# 编码人员：王学良
+# 简述：数据导出类
+#
+# =======使用说明
+# 
+#
+# =======日志
+# 
+# =============================================================================
 
+# =============================================================================
+# Qt imports
+# =============================================================================
 from PyQt5.QtCore import Qt, QCoreApplication, QSize, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QTreeWidget, 
@@ -9,8 +24,14 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QTreeWidget,
                              QAction, QSizePolicy, QVBoxLayout,QHBoxLayout,
                              QAbstractItemView)
 
+# =============================================================================
+# DataExport
+# =============================================================================
 class DataExport(QWidget):
  
+# =============================================================================
+# 初始化
+# =============================================================================
     def __init__(self):
         QWidget.__init__(self)
 #        选择的参数，键为文件路径，值为参数列表
@@ -18,7 +39,10 @@ class DataExport(QWidget):
 #        设置文件与参数的图标
         self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
         self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
-    
+
+# =============================================================================
+# UI模块    
+# =============================================================================
     def setup(self):
 
         self.verticalLayout = QVBoxLayout(self)
@@ -77,7 +101,8 @@ class DataExport(QWidget):
         self.action_delete.setText(QCoreApplication.
                                    translate("DataExport", "删除参数"))
 
-#        信号与槽进行连接
+# =======连接信号与槽
+# =============================================================================
         self.sel_dir.clicked.connect(self.slot_sel_dir)
 #        使右键时能弹出菜单
         self.sel_para_tree.customContextMenuRequested.connect(
@@ -89,7 +114,7 @@ class DataExport(QWidget):
         self.retranslateUi()
 
 # =============================================================================
-# Slots
+# Slots模块
 # =============================================================================
 #    右键菜单的事件处理
     def on_tree_context_menu(self, pos):
@@ -139,9 +164,8 @@ class DataExport(QWidget):
         self.location_view.setText("")
     
 # =============================================================================
-# 功能函数
+# 功能函数模块
 # =============================================================================
-    
     def import_para(self, paras_with_file):
         
         if paras_with_file:
