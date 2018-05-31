@@ -39,8 +39,7 @@ class Slider(QFrame):
         painter = QPainter(self)
         w = self.width()
         h = self.height()
-        painter.setBrush(QBrush(QColor(0x00, 0xFF, 0x00)))
+        painter.setBrush(QBrush(QColor(125, 125, 125)))
         painter.drawRect(0, 0, w - 1, h - 1)
-        painter.setBrush(QBrush(QColor(0x00, 0x00, 0x00)))
-        painter.drawRect(0, 0, w / 2 , h)
-        
+        painter.setBrush(QBrush(QColor(50, 50, 50)))
+        painter.drawRect(0, 0, w / 2 , h)      
