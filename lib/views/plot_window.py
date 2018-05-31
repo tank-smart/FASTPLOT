@@ -136,6 +136,9 @@ class PlotWindow(QWidget):
         
     def slot_forward(self):
         self.toolbar.forward()
+        
+    def slot_edit(self):
+        self.toolbar.edit_parameters()
 # =============================================================================
      
 # =============================================================================
