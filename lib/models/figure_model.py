@@ -128,6 +128,7 @@ class PlotCanvas(FigureCanvas):
         
     def hide_toolbar(self,toolbar):
         toolbar.hide()
+    
         
     
 
