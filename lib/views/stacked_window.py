@@ -24,12 +24,8 @@ from PyQt5.QtWidgets import (QWidget, QMainWindow, QMenuBar, QPushButton,
 # =============================================================================
 # Package views imports
 # =============================================================================
-<<<<<<< HEAD:lib/views/stacked_window.py
 from views.data_export_window import DataExportWindow
 from views.plot_window import PlotWindow
-=======
-from views.data_export_view import DataExport
->>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d:lib/views/stacked_widget.py
 
 # =============================================================================
 # StackedWindow
@@ -45,20 +41,6 @@ class StackedWindow(QStackedWidget):
 # =============================================================================
 # UI模块    
 # =============================================================================
-<<<<<<< HEAD:lib/views/stacked_window.py
-=======
-class StackedWidget(QStackedWidget):
-
-# =============================================================================
-# 初始化
-# =============================================================================
-    def __init__(self):
-        QStackedWidget.__init__(self)
-
-# =============================================================================
-# UI模块    
-# =============================================================================
->>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d:lib/views/stacked_widget.py
     def setup(self):
         self.setEnabled(True)
         self.setAcceptDrops(False)

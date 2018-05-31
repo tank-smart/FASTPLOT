@@ -22,7 +22,6 @@ from PyQt5.QtWidgets import (QWidget, QDockWidget,QLineEdit, QMenu,
                              QHeaderView)
 
 # =============================================================================
-<<<<<<< HEAD:lib/views/paralist_window.py
 # ParalistWindow
 # =============================================================================
 class ParalistWindow(QDockWidget):
@@ -30,15 +29,6 @@ class ParalistWindow(QDockWidget):
 # =============================================================================
 # 自定义信号模块
 # =============================================================================
-=======
-# ParalistDock
-# =============================================================================
-class ParalistDock(QDockWidget):
-
-# =============================================================================
-# 自定义信号模块
-# =============================================================================
->>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d:lib/views/paralist_dock.py
 #    参数窗口关闭信号
     signal_close = pyqtSignal()
 #    导出数据的信号，带有字典型参数（存储了文件路径和参数名的信息）
@@ -51,13 +41,8 @@ class ParalistDock(QDockWidget):
 # =============================================================================
 # 初始化
 # =============================================================================
-<<<<<<< HEAD:lib/views/paralist_window.py
     def __init__(self, parent = None):
         super().__init__(parent)
-=======
-    def __init__(self):
-        QStackedWidget.__init__(self)
->>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d:lib/views/paralist_dock.py
 #        设置文件与参数的图标
         self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
         self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
@@ -114,11 +99,8 @@ class ParalistDock(QDockWidget):
         self.action_delete_file.setText(QCoreApplication.
                                        translate("ParalistDock", "删除文件"))
         
-<<<<<<< HEAD:lib/views/paralist_window.py
         self.setWidget(self.layout_paralist_dock)
         
-=======
->>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d:lib/views/paralist_dock.py
 # =======连接信号与槽
 # =============================================================================
 #        使右键时能弹出菜单(step 2)

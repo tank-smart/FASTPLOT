@@ -22,11 +22,7 @@ import re
 # =============================================================================
 # Package views imports
 # =============================================================================
-<<<<<<< HEAD
 from models.datafile_model import Normal_DataFile
-=======
-from models.normal_datafile_model import NormalDatafileModel
->>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d
 
 # =============================================================================
 # ProjectModel
