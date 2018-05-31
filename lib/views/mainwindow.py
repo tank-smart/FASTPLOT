@@ -62,14 +62,14 @@ class MainWindow(QMainWindow):
         self.setWindowState(Qt.WindowMaximized)
 
 #        创建堆叠窗口        
-        self.mw_stacked_widget = StackedWindow(self)
-        self.mw_stacked_widget.setup()
-        self.mw_stacked_widget.hide()
+        self.mw_stacked_window = StackedWindow(self)
+        self.mw_stacked_window.setup()
+        self.mw_stacked_window.hide()
 
 #        创建参数列表窗口
-        self.mw_paralist_dock = ParalistWindow(self)
-        self.mw_paralist_dock.setup()
-        self.addDockWidget(Qt.DockWidgetArea(1), self.mw_paralist_dock)
+        self.mw_paralist_window = ParalistWindow(self)
+        self.mw_paralist_window.setup()
+        self.addDockWidget(Qt.DockWidgetArea(1), self.mw_paralist_window)
 
 #        设置主窗口布局
         self.mainwindow_layout = QWidget(self)
@@ -78,7 +78,7 @@ class MainWindow(QMainWindow):
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setSpacing(0)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.horizontalLayout.addWidget(self.mw_stacked_widget)
+        self.horizontalLayout.addWidget(self.mw_stacked_window)
         self.setCentralWidget(self.mainwindow_layout)
         
 #        创建菜单栏
@@ -205,14 +205,19 @@ class MainWindow(QMainWindow):
         self.action_exit.triggered.connect(self.slot_exit)
 # =============================================================================
 #       参数窗口的信号连接
-#        将参数窗口中选中的参数传递给堆叠窗口中显示
-        self.mw_paralist_dock.signal_export_para.connect(
-                self.mw_stacked_widget.qwidget_data_export.import_para)
-        self.mw_paralist_dock.signal_export_para.connect(
+#        将参数窗口中选中的参数传递给导出窗口中显示
+        self.mw_paralist_window.signal_export_para.connect(
                 self.action_export_data.trigger)
-        self.mw_paralist_dock.signal_search_para.connect(
+        self.mw_paralist_window.signal_export_para.connect(
+                self.mw_stacked_window.qwidget_data_export.import_para)
+#        绘图
+        self.mw_paralist_window.signal_quick_plot.connect(
+                self.action_plot.trigger)
+        self.mw_paralist_window.signal_quick_plot.connect(
+                self.mw_stacked_window.qwidget_plot.plot)
+        self.mw_paralist_window.signal_search_para.connect(
                 self.slot_search_para)
-        self.mw_paralist_dock.signal_close.connect(
+        self.mw_paralist_window.signal_close.connect(
                 self.slot_paralist_dock_close)
 
 # =============================================================================
@@ -222,7 +227,7 @@ class MainWindow(QMainWindow):
     def slot_search_para(self, paraname):
         
         result = self.project.search_para(paraname)
-        self.mw_paralist_dock.display_file_group(result, True)
+        self.mw_paralist_window.display_file_group(result, True)
 
 #    打开数据文件并将文件信息存入project中
     def slot_open_normal_datafile(self):
@@ -231,7 +236,7 @@ class MainWindow(QMainWindow):
                 self, 'Open', r'E:\\', "Datafiles (*.txt *.csv *.dat)")
         file_name = [file.replace('/','\\') for file in file_name]
         self.project.open_normal_datafiles(file_name)
-        self.mw_paralist_dock.display_file_group(
+        self.mw_paralist_window.display_file_group(
                 self.project.get_datafile_for_tree())
 
 #    与关于退出有关的显示
@@ -253,10 +258,10 @@ class MainWindow(QMainWindow):
 #    响应参数窗口显示动作
     def slot_paralist_dock_isclosed(self):
         
-        if self.mw_paralist_dock.isHidden():
-            self.mw_paralist_dock.setHidden(False)
+        if self.mw_paralist_window.isHidden():
+            self.mw_paralist_window.setHidden(False)
         else:
-            self.mw_paralist_dock.setHidden(True)
+            self.mw_paralist_window.setHidden(True)
 
 #        参数窗口关闭后需要把视图下的勾选去掉
     def slot_paralist_dock_close(self):
@@ -268,25 +273,25 @@ class MainWindow(QMainWindow):
         
 #        接收发出信号的那个对象
         sender = QObject.sender(self)
-        if self.mw_stacked_widget.isHidden():
+        if self.mw_stacked_window.isHidden():
 #            软件启动时堆叠窗口是不显示的
-            self.mw_stacked_widget.setHidden(False)
+            self.mw_stacked_window.setHidden(False)
             if (sender == self.action_export_data):
 #                显示页面
-                self.mw_stacked_widget.show_page(0)
+                self.mw_stacked_window.show_page(0)
 #                将此次选择记住
                 self.last_page = self.action_export_data
             if (sender == self.action_plot):
-                self.mw_stacked_widget.show_page(1)
+                self.mw_stacked_window.show_page(1)
                 self.last_page = self.action_plot
             if (sender == self.action_mathematics):
-                self.mw_stacked_widget.show_page(2)
+                self.mw_stacked_window.show_page(2)
                 self.last_page = self.action_mathematics
             if (sender == self.action_data_manipulation):
-                self.mw_stacked_widget.show_page(3)
+                self.mw_stacked_window.show_page(3)
                 self.last_page = self.action_data_manipulation
             if (sender == self.action_data_manage):
-                self.mw_stacked_widget.show_page(4)
+                self.mw_stacked_window.show_page(4)
                 self.last_page = self.action_data_manage               
         else:
             if (sender == self.action_export_data):
@@ -297,7 +302,7 @@ class MainWindow(QMainWindow):
                 else:
 #                    将上一选中动作按钮弹起
                     self.last_page.setChecked(False)
-                    self.mw_stacked_widget.show_page(0)
+                    self.mw_stacked_window.show_page(0)
 #                    将新的选择记住
                     self.last_page = self.action_export_data
             if (sender == self.action_plot):
@@ -305,28 +310,28 @@ class MainWindow(QMainWindow):
                     self.action_plot.setChecked(True)                  
                 else:
                     self.last_page.setChecked(False)
-                    self.mw_stacked_widget.show_page(1)
+                    self.mw_stacked_window.show_page(1)
                     self.last_page = self.action_plot
             if (sender == self.action_mathematics):
                 if (self.last_page == self.action_mathematics):
                     self.action_mathematics.setChecked(True)                  
                 else:
                     self.last_page.setChecked(False)
-                    self.mw_stacked_widget.show_page(2)
+                    self.mw_stacked_window.show_page(2)
                     self.last_page = self.action_mathematics
             if (sender == self.action_data_manipulation):
                 if (self.last_page == self.action_data_manipulation):
                     self.action_data_manipulation.setChecked(True)                  
                 else:
                     self.last_page.setChecked(False)
-                    self.mw_stacked_widget.show_page(3)
+                    self.mw_stacked_window.show_page(3)
                     self.last_page = self.action_data_manipulation
             if (sender == self.action_data_manage):
                 if (self.last_page == self.action_data_manage):
                     self.action_data_manage.setChecked(True)                  
                 else:
                     self.last_page.setChecked(False)
-                    self.mw_stacked_widget.show_page(4)
+                    self.mw_stacked_window.show_page(4)
                     self.last_page = self.action_data_manage
 
 # =============================================================================
@@ -347,8 +352,8 @@ class MainWindow(QMainWindow):
         self.menu_tools.setTitle(_translate("MainWindow", "工具"))
         self.menu_window.setTitle(_translate("MainWindow", "窗口"))
         self.menu_help.setTitle(_translate("MainWindow", "帮助"))
-        self.mw_paralist_dock.setWindowTitle(_translate("MainWindow", "参数窗口"))
-        self.mw_paralist_dock.line_edit_search_para.setPlaceholderText(_translate("MainWindow", "过滤器"))
+        self.mw_paralist_window.setWindowTitle(_translate("MainWindow", "参数窗口"))
+        self.mw_paralist_window.line_edit_search_para.setPlaceholderText(_translate("MainWindow", "过滤器"))
         self.toolbar.setWindowTitle(_translate("MainWindow", "工具栏"))
         self.action_open_normal_datafile.setText(_translate("MainWindow", "通用数据"))
         self.action_open_normal_datafile.setToolTip(_translate("MainWindow", "打开通用数据"))

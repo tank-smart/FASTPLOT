@@ -17,7 +17,7 @@
 # =============================================================================
 from PyQt5.QtWidgets import QFrame
 from PyQt5.QtGui import QPaintEvent, QPainter, QBrush, QColor
-from PyQt5.QtCore import QPoint
+from PyQt5.QtCore import Qt, QPoint
 
 # =============================================================================
 # Slider
@@ -39,7 +39,8 @@ class Slider(QFrame):
         painter = QPainter(self)
         w = self.width()
         h = self.height()
-        painter.setBrush(QBrush(QColor(125, 125, 125)))
-        painter.drawRect(0, 0, w - 1, h - 1)
-        painter.setBrush(QBrush(QColor(50, 50, 50)))
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QBrush(QColor(200, 200, 200)))
+        painter.drawRect(0, 0, w, h)
+        painter.setBrush(QBrush(QColor(175, 175, 175)))
         painter.drawRect(0, 0, w / 2 , h)      

@@ -108,7 +108,23 @@ class PlotWindow(QWidget):
         self.verticalLayout_2.addLayout(self.horizontalLayout)
 
         self.retranslateUi()
-
+# =======连接信号与槽
+# =============================================================================
+        self.button_move_left.triggered.connect()
+        self.button_move_right.triggered.connect()
+        self.button_zoom_in.triggered.connect()
+        self.button_zoom_out.triggered.connect()
+        
+# =============================================================================
+# 功能函数模块
+# =============================================================================
+    def plot(self, filegroup):
+        
+        if filegroup:
+            for file in filegroup:
+                self.plotcanvas.plot_para(file, filegroup[file])
+    
+    
 # =============================================================================
 # 汉化
 # =============================================================================
