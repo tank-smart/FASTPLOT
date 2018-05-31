@@ -2,8 +2,6 @@
 
 # =============================================================================
 # =======概述
-# 创建日期：2018-05-20
-# 编码人员：王学良
 # 简述：项目类
 #
 # =======使用说明
@@ -16,13 +14,24 @@
 # 暂时只实现选择文件夹载入项目，后续需要实现选择项目文件载入项目
 # =============================================================================
 
+# =============================================================================
+# Stdlib imports
+# =============================================================================
 import re
 
+# =============================================================================
+# Package views imports
+# =============================================================================
+from models.datafile_model import Normal_DataFile
 
-from models.normal_datafile_model import NormalDatafileModel
-
+# =============================================================================
+# ProjectModel
+# =============================================================================
 class ProjectModel(object):
-    
+
+# =============================================================================
+# 初始化    
+# =============================================================================
     def __init__(self):
         
 #        项目所涉及的数据文件，列表类型，
@@ -31,16 +40,14 @@ class ProjectModel(object):
         self.resultfile_group = []
 
 # =============================================================================
-# 主功能函数
+# 功能函数模块
 # =============================================================================
-
 #    将导入的文件存入项目类的数据文件组中
     def open_normal_datafiles(self, filename_list):
         
         if filename_list:
             for filename in filename_list:
-                file = NormalDatafileModel()
-                file.config(filename)
+                file = Normal_DataFile(filename)
                 self.datafile_group.append(file)
                 
 #    在数据文件中搜索参数，返回参数的列表
@@ -55,7 +62,7 @@ class ProjectModel(object):
                                  in file.paras_in_file
                                  if re.match(pattern, para)]
                  if search_paras:
-                     result[file.file_dir] = search_paras
+                     result[file.filedir] = search_paras
         else:
             result = self.get_datafile_for_tree()
         
@@ -66,9 +73,10 @@ class ProjectModel(object):
         
         datafiles = {}
         for file in self.datafile_group:
-            datafiles[file.file_dir] = file.paras_in_file
+            datafiles[file.filedir] = file.paras_in_file
         return datafiles
+
 # =============================================================================
-# 辅助函数        
+# 辅助函数模块      
 # =============================================================================
         

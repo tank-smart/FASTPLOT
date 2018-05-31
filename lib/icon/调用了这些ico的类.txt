@@ -1,2 +1,3 @@
 mainwindow.py
-paralist_dock.py
+paralist_window.py
+plot_window.py

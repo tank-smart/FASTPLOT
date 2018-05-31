@@ -2,8 +2,6 @@
 
 # =============================================================================
 # =======概述
-# 创建日期：2018-05-17
-# 编码人员：王学良
 # 简述：参数窗口类
 #
 # =======使用说明
@@ -18,16 +16,19 @@
 # =============================================================================
 from PyQt5.QtCore import Qt, pyqtSignal, QCoreApplication
 from PyQt5.QtGui import QCloseEvent, QIcon
-from PyQt5.QtWidgets import (QWidget, QDockWidget, QStackedWidget, QLineEdit,
-                             QMenu, QTreeWidget, QTreeWidgetItem, QAction,
+from PyQt5.QtWidgets import (QWidget, QDockWidget,QLineEdit, QMenu, 
+                             QTreeWidget, QTreeWidgetItem, QAction,
                              QSizePolicy, QVBoxLayout, QAbstractItemView,
-                             QMessageBox)
+                             QHeaderView)
 
 # =============================================================================
-# Stacked Widget
+# ParalistWindow
 # =============================================================================
-class ParalistDock(QDockWidget):
-#    自定义信号
+class ParalistWindow(QDockWidget):
+
+# =============================================================================
+# 自定义信号模块
+# =============================================================================
 #    参数窗口关闭信号
     signal_close = pyqtSignal()
 #    导出数据的信号，带有字典型参数（存储了文件路径和参数名的信息）
@@ -37,12 +38,18 @@ class ParalistDock(QDockWidget):
 #    搜索参数的信号
     signal_search_para = pyqtSignal(str)
     
-    def __init__(self):
-        QStackedWidget.__init__(self)
+# =============================================================================
+# 初始化
+# =============================================================================
+    def __init__(self, parent = None):
+        super().__init__(parent)
 #        设置文件与参数的图标
         self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
         self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
     
+# =============================================================================
+# UI模块
+# =============================================================================
     def setup(self):
         sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -75,14 +82,12 @@ class ParalistDock(QDockWidget):
         self.tree_widget_display_datafile.setObjectName(
                 "tree_widget_display_datafile")
         self.tree_widget_display_datafile.header().setVisible(False)
-        
 #        设置每个item是可以被选择的
         self.tree_widget_display_datafile.setSelectionMode(
                 QAbstractItemView.ExtendedSelection)
 #        让树可支持右键菜单(step 1)
         self.tree_widget_display_datafile.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.vlayout_paralist_dock.addWidget(self.tree_widget_display_datafile)
-        self.setWidget(self.layout_paralist_dock)
+        self.vlayout_paralist_dock.addWidget(self.tree_widget_display_datafile)        
 #        添加右键动作
         self.action_export = QAction(self.tree_widget_display_datafile)
         self.action_export.setText(QCoreApplication.
@@ -94,7 +99,10 @@ class ParalistDock(QDockWidget):
         self.action_delete_file.setText(QCoreApplication.
                                        translate("ParalistDock", "删除文件"))
         
-#        信号与槽关联
+        self.setWidget(self.layout_paralist_dock)
+        
+# =======连接信号与槽
+# =============================================================================
 #        使右键时能弹出菜单(step 2)
         self.tree_widget_display_datafile.customContextMenuRequested.connect(
                 self.on_tree_context_menu)
@@ -106,7 +114,7 @@ class ParalistDock(QDockWidget):
         self.line_edit_search_para.textChanged.connect(self.slot_search_para)
 
 # =============================================================================
-# Slots
+# Slots模块
 # =============================================================================
 #    右键菜单的事件处理(step 3)
     def on_tree_context_menu(self, pos):
@@ -144,21 +152,27 @@ class ParalistDock(QDockWidget):
 #    当参数搜索行有用户输入时将搜索参数的信号发出
     def slot_search_para(self, paraname):
         self.signal_search_para.emit(paraname)
+
+#    重载关闭事件，需要增加一个关闭的信号让菜单栏下的勾选去掉        
+    def closeEvent(self, event: QCloseEvent):
+        event.accept()
+        self.signal_close.emit()
+
 # =============================================================================
-# 功能函数    
+# 功能函数模块   
 # =============================================================================
     def display_file_group(self, file_group , is_expand_all = False):
-        
+
+#        不确定是否真的删除了
+        self.tree_widget_display_datafile.clear()        
         if file_group:  #file_name is a dict
-#            不确定是否真的删除了
-            self.tree_widget_display_datafile.clear()
             
             for file_dir in file_group:
                 root = QTreeWidgetItem(self.tree_widget_display_datafile) #QTreeWidgetItem object: root
 #                设置图标
                 root.setIcon(0,self.fileicon)
 #                显示文件名而不是路径
-                pos = file_dir.rindex('/')
+                pos = file_dir.rindex('\\')
                 filename = file_dir[pos+1:]
                 root.setText(0, filename) #set text of treewidget
 #                将路径作为数据存入item中
@@ -188,10 +202,4 @@ class ParalistDock(QDockWidget):
                     else:
                         result[file_dir] = []
                         result[file_dir].append(item.text(0))
-        return result
-                    
-#    重载关闭事件，需要增加一个关闭的信号让菜单栏下的勾选去掉        
-    def closeEvent(self, event: QCloseEvent):
-        event.accept()
-        self.signal_close.emit()
-        
+        return result        

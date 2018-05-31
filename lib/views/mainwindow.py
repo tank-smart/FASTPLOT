@@ -2,8 +2,6 @@
 
 # =============================================================================
 # =======概述
-# 创建日期：2018-05-16
-# 编码人员：王学良
 # 简述：主窗口类
 #
 # =======使用说明
@@ -13,12 +11,15 @@
 # 
 # =============================================================================
 
+# =============================================================================
+# Stdlib imports
+# =============================================================================
 import sys
+
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import (QObject,QSize, QRect, Qt, QCoreApplication,
-                          pyqtSignal)
+from PyQt5.QtCore import QObject,QSize, QRect, Qt, QCoreApplication
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar, 
                              QFileDialog, QMessageBox, QMenu, QToolBar, 
@@ -27,25 +28,32 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar,
 # =============================================================================
 # Package views imports
 # =============================================================================
-from stacked_widget import StackedWidget
-from paralist_dock import ParalistDock
+from stacked_window import StackedWindow
+from paralist_window import ParalistWindow
 from models.project_model import ProjectModel
 
 # =============================================================================
 # Main Window
 # =============================================================================
-class MainWindow(QMainWindow):
+class MainWindow(QMainWindow):   
 
-    #此处定义常量
+# =============================================================================
+# 自定义信号模块
+# =============================================================================
+
     
-    #此处定义信号
-    
-    def __init__(self):
-        QMainWindow.__init__(self)
+# =============================================================================
+# 初始化
+# =============================================================================
+    def __init__(self, parent = None):
+        super().__init__(parent)
 #        设置窗口图标
         self.setWindowIcon(QIcon(r"E:\DAGUI\lib\icon\window.png"))
         self.project = ProjectModel()
-        
+
+# =============================================================================
+# UI模块
+# =============================================================================
     def setup(self):
 #        定义主窗口
         self.setEnabled(True)
@@ -54,12 +62,12 @@ class MainWindow(QMainWindow):
         self.setWindowState(Qt.WindowMaximized)
 
 #        创建堆叠窗口        
-        self.mw_stacked_widget = StackedWidget()
+        self.mw_stacked_widget = StackedWindow(self)
         self.mw_stacked_widget.setup()
         self.mw_stacked_widget.hide()
 
 #        创建参数列表窗口
-        self.mw_paralist_dock = ParalistDock()
+        self.mw_paralist_dock = ParalistWindow(self)
         self.mw_paralist_dock.setup()
         self.addDockWidget(Qt.DockWidgetArea(1), self.mw_paralist_dock)
 
@@ -206,13 +214,10 @@ class MainWindow(QMainWindow):
                 self.slot_search_para)
         self.mw_paralist_dock.signal_close.connect(
                 self.slot_paralist_dock_close)
-        
-
 
 # =============================================================================
-# Slots            
+# Slots模块            
 # =============================================================================
-
 #    搜索参数并显示在参数窗口里
     def slot_search_para(self, paraname):
         
@@ -224,6 +229,7 @@ class MainWindow(QMainWindow):
         
         file_name, ok = QFileDialog.getOpenFileNames(
                 self, 'Open', r'E:\\', "Datafiles (*.txt *.csv *.dat)")
+        file_name = [file.replace('/','\\') for file in file_name]
         self.project.open_normal_datafiles(file_name)
         self.mw_paralist_dock.display_file_group(
                 self.project.get_datafile_for_tree())
@@ -322,6 +328,11 @@ class MainWindow(QMainWindow):
                     self.last_page.setChecked(False)
                     self.mw_stacked_widget.show_page(4)
                     self.last_page = self.action_data_manage
+
+# =============================================================================
+# 功能函数模块
+# =============================================================================
+
 
 # =============================================================================
 # 汉化
