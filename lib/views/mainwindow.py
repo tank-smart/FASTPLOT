@@ -45,8 +45,13 @@ class MainWindow(QMainWindow):
 # =============================================================================
 # 初始化
 # =============================================================================
+<<<<<<< HEAD
     def __init__(self, parent = None):
         super().__init__(parent)
+=======
+    def __init__(self):
+        QMainWindow.__init__(self)
+>>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d
 #        设置窗口图标
         self.setWindowIcon(QIcon(r"E:\DAGUI\lib\icon\window.png"))
         self.project = ProjectModel()

@@ -2,6 +2,11 @@
 
 # =============================================================================
 # =======概述
+<<<<<<< HEAD:lib/views/data_export_window.py
+=======
+# 创建日期：2018-05-16
+# 编码人员：王学良
+>>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d:lib/views/data_export_view.py
 # 简述：数据导出类
 #
 # =======使用说明
@@ -10,8 +15,11 @@
 # =======日志
 # 
 # =============================================================================
+<<<<<<< HEAD:lib/views/data_export_window.py
 
 import pandas as pd
+=======
+>>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d:lib/views/data_export_view.py
 
 # =============================================================================
 # Qt imports
@@ -25,6 +33,7 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QTreeWidget,
                              QAbstractItemView)
 
 # =============================================================================
+<<<<<<< HEAD:lib/views/data_export_window.py
 # Package models imports
 # =============================================================================
 from models.datafile_model import DataFile, Normal_DataFile
@@ -33,12 +42,22 @@ from models.datafile_model import DataFile, Normal_DataFile
 # DataExportWindow
 # =============================================================================
 class DataExportWindow(QWidget):
+=======
+# DataExport
+# =============================================================================
+class DataExport(QWidget):
+>>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d:lib/views/data_export_view.py
  
 # =============================================================================
 # 初始化
 # =============================================================================
+<<<<<<< HEAD:lib/views/data_export_window.py
     def __init__(self, parent = None):
         super().__init__(parent)
+=======
+    def __init__(self):
+        QWidget.__init__(self)
+>>>>>>> 058f8ba1896ebc91db7f8433a6b6b1975d8dc28d:lib/views/data_export_view.py
 #        选择的参数，键为文件路径，值为参数列表
         self.sel_paras = {}
 #        设置文件与参数的图标
