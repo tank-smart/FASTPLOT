@@ -108,7 +108,49 @@ class PlotWindow(QWidget):
         self.verticalLayout_2.addLayout(self.horizontalLayout)
 
         self.retranslateUi()
-
+# =======连接信号与槽
+# =============================================================================
+        self.button_move_left.triggered.connect()
+        self.button_move_right.triggered.connect()
+        self.button_zoom_in.triggered.connect()
+        self.button_zoom_out.triggered.connect()
+# =======slot函数   
+# =============================================================================
+    def slot_home(self):
+        self.toolbar.home()
+        
+    def slot_pan(self):
+        self.toolbar.pan()
+        
+    def slot_zoom(self):
+        self.toolbar.zoom()
+        
+    def slot_config_subplots(self):
+        self.toolbar.configure_subplots()
+        
+    def slot_save(self):
+        self.toolbar.save_figure()
+        
+    def slot_back(self):
+        self.toolbar.back()
+        
+    def slot_forward(self):
+        self.toolbar.forward()
+# =============================================================================
+     
+# =============================================================================
+# 功能函数模块
+# =============================================================================
+    def plot(self, filegroup):
+        
+        if filegroup:
+            for file in filegroup:
+                self.plotcanvas.plot_para(file, filegroup[file])
+            self.toolbar=self.plotcanvas.add_toolbar(self.plotcanvas)
+            self.plotcanvas.hide_toolbar(self.toolbar)
+            
+    
+    
 # =============================================================================
 # 汉化
 # =============================================================================

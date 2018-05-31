@@ -143,7 +143,10 @@ class ParalistWindow(QDockWidget):
     
     def slot_quick_plot(self):
         
-        pass
+#        获得被选项的文件路径和参数列表
+        sel_items = self.get_dict_sel_item()
+#        传递出去
+        self.signal_quick_plot.emit(sel_items)
 
     def slot_delete_file(self):
         
