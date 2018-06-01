@@ -3,17 +3,16 @@
 # =============================================================================
 # =======概述
 # 创建日期：2018-05-17
-# 编码人员：王学良
 # 简述：启动
 #
 # =======使用说明
 # 。。。
 #
 # =======日志
-# 1.2018-05-17 王学良创建文件
+# 
 # =============================================================================
 
-from controllers.main_controller import MainController
+from views import mainwindow
 
 def main():
-    return MainController().control_start()
+    return mainwindow.main()
