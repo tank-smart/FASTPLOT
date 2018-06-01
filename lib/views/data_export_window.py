@@ -149,7 +149,7 @@ class DataExportWindow(QWidget):
         sel_item = self.sel_para_tree.itemAt(pos)
         if sel_item.parent():
             message = QMessageBox.warning(self,
-                          QCoreApplication.translate("DataExportWindowt", "删除参数"),
+                          QCoreApplication.translate("DataExportWindow", "删除参数"),
                           QCoreApplication.translate("DataExportWindow", "确定要删除这些参数吗"),
                           QMessageBox.Yes | QMessageBox.No)
             if ( message == QMessageBox.Yes):
@@ -174,10 +174,13 @@ class DataExportWindow(QWidget):
                                ignore_index = False) #merge different dataframe
             file_outpout = DataFile(filepath)
             file_outpout.save_file(filepath , df_all , sep = '\t') #/update for more sep/
+            QMessageBox.information(self,
+                QCoreApplication.translate("DataExportWindow", "导出提示"),
+                QCoreApplication.translate("DataExportWindow", "导出成功"))   
         else:
-             QMessageBox.information(self,
-                    QCoreApplication.translate("DataExportWindow", "导出错误"),
-                    QCoreApplication.translate("DataExportWindow", "没有选择参数或文件"))            
+            QMessageBox.information(self,
+                QCoreApplication.translate("DataExportWindow", "导出错误"),
+                QCoreApplication.translate("DataExportWindow", "没有选择参数或文件"))            
     
     def slot_reset(self):
         self.sel_paras = {}

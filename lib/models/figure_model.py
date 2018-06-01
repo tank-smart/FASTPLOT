@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSize
 #use show_toolbar(self,toolbar) or toolbar.show() display the toolbar
 class PlotCanvas(FigureCanvas):
     
-    def __init__(self,parent=None,width=5,height=4,dpi=100):
+    def __init__(self,parent=None,width=10,height=4,dpi=100):
         self.fig=Figure(figsize=(width,height),dpi=dpi)
         #self.fig=plt.figure()
         self.poslist=[[0.1, 0.77, 0.75, 0.18],[0.1, 0.53, 0.75, 0.18],[0.1, 0.29, 0.75, 0.18],[0.1, 0.05, 0.75, 0.18]]
@@ -74,8 +74,8 @@ class PlotCanvas(FigureCanvas):
 #        ax1.xaxis.set_major_locator(autodates)
         df.plot(para_list[0],ax=ax1,grid=True,fontsize=6,rot=0)
         ax1.legend(fontsize=6,loc='lower center', bbox_to_anchor=(0,1.01),ncol=2) #move legend to outside center up
-        #self.draw()
-        self.show()
+        self.draw()
+#        self.show()
         #plt.show()
         if self.pos<3:
             self.pos+=1
