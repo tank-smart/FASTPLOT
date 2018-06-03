@@ -46,22 +46,50 @@ class PlotWindow(QWidget):
     def setup(self):
         
         self.setObjectName("PlotWindow")
-        self.verticalLayout_2 = QVBoxLayout(self)
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+#        该窗口的主布局器，水平
+        self.horizontalLayout_2 = QHBoxLayout(self)
+        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_2.setSpacing(2)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")        
+#        子布局器，垂直，布局画布，水平子布局器
+        self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setSpacing(2)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setSpacing(2)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
 #        创建画布部件
         self.plotcanvas = PlotCanvas(self)
         self.plotcanvas.setObjectName("plotcanvas")
-        self.horizontalLayout_2.addWidget(self.plotcanvas)
+        self.verticalLayout_2.addWidget(self.plotcanvas)
+#        子布局器，布局左移/右移按钮和滑块
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setSpacing(2)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.button_move_left = QToolButton(self)
+        self.button_move_left.setMinimumSize(QSize(24, 24))
+        self.button_move_left.setMaximumSize(QSize(24, 24))
+        self.button_move_left.setObjectName("button_move_left")
+        self.button_move_left.setIcon(QIcon(r"E:\DAGUI\lib\icon\move_left.ico"))
+        self.horizontalLayout.addWidget(self.button_move_left)
+#        创建自定义的滑块部件
+        self.slider = Slider(self)
+        self.slider.setMinimumSize(QSize(0, 22))
+        self.slider.setMaximumSize(QSize(16777215, 22))
+        self.slider.setFrameShape(QFrame.StyledPanel)
+        self.slider.setFrameShadow(QFrame.Raised)
+        self.slider.setObjectName("slider")
+        self.horizontalLayout.addWidget(self.slider)
+        self.button_move_right = QToolButton(self)
+        self.button_move_right.setMinimumSize(QSize(24, 24))
+        self.button_move_right.setMaximumSize(QSize(24, 24))
+        self.button_move_right.setObjectName("button_move_right")
+        self.button_move_right.setIcon(QIcon(r"E:\DAGUI\lib\icon\move_right.ico"))
+        self.horizontalLayout.addWidget(self.button_move_right)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
 #        创建右侧的工具栏
         self.widget_plot_tools = QWidget(self)
         self.widget_plot_tools.setMinimumSize(QSize(32, 0))
         self.widget_plot_tools.setMaximumSize(QSize(32, 16777215))
         self.widget_plot_tools.setObjectName("widget_plot_tools")
+#        子布局器，垂直，布局工具按钮
         self.verticalLayout = QVBoxLayout(self.widget_plot_tools)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setSpacing(0)
@@ -111,32 +139,9 @@ class PlotWindow(QWidget):
         self.verticalLayout.addWidget(self.button_save)        
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
+#        先添加工具栏在添加包括画布/滑块的水平子布局器
         self.horizontalLayout_2.addWidget(self.widget_plot_tools)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setSpacing(2)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.button_move_left = QToolButton(self)
-        self.button_move_left.setMinimumSize(QSize(24, 24))
-        self.button_move_left.setMaximumSize(QSize(24, 24))
-        self.button_move_left.setObjectName("button_move_left")
-        self.button_move_left.setIcon(QIcon(r"E:\DAGUI\lib\icon\move_left.ico"))
-        self.horizontalLayout.addWidget(self.button_move_left)
-#        创建自定义的滑块部件
-        self.slider = Slider(self)
-        self.slider.setMinimumSize(QSize(0, 22))
-        self.slider.setMaximumSize(QSize(16777215, 22))
-        self.slider.setFrameShape(QFrame.StyledPanel)
-        self.slider.setFrameShadow(QFrame.Raised)
-        self.slider.setObjectName("slider")
-        self.horizontalLayout.addWidget(self.slider)
-        self.button_move_right = QToolButton(self)
-        self.button_move_right.setMinimumSize(QSize(24, 24))
-        self.button_move_right.setMaximumSize(QSize(24, 24))
-        self.button_move_right.setObjectName("button_move_right")
-        self.button_move_right.setIcon(QIcon(r"E:\DAGUI\lib\icon\move_right.ico"))
-        self.horizontalLayout.addWidget(self.button_move_right)
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
+        self.horizontalLayout_2.addLayout(self.verticalLayout_2)
 
         self.retranslateUi()
 # =======连接信号与槽
@@ -201,6 +206,7 @@ class PlotWindow(QWidget):
         if filegroup:         
             for file in filegroup:
                 self.plotcanvas.plot_para(file, filegroup[file])
+                self.slider.set_slider(0, 100)
                 
     
     

@@ -17,14 +17,14 @@
 # =============================================================================
 from PyQt5.QtWidgets import QFrame
 from PyQt5.QtGui import QPaintEvent, QMouseEvent, QPainter, QBrush, QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QPoint
 
 # =============================================================================
 # Slider
 # =============================================================================
 class Slider(QFrame):
 
-    MARIGIN = 2
+    MARGIN = 2
 # =============================================================================
 # 初始化    
 # =============================================================================
@@ -32,14 +32,27 @@ class Slider(QFrame):
         
         super().__init__(parent)
         
-        self.mouse_press = False
+        self.setMouseTracking(True)
+        self.mouse_press_in_left_margin = False
+        self.mouse_press_in_right_margin = False
+        self.mouse_press_in_slider = False
+#        记住当鼠标按住滑块时，滑块左侧的位置
+        self.slider_left_press_in_slider = 0
+#        记住鼠标按住滑块时的位置
+        self.mouse_pos_press_in_slider = QPoint(0, 0)
         
+#        绘图涉及到的特征量
         self.frame_width = 0
-        self.frame_height = self.height()
-        self.slider_top = self.MARIGIN
-        self.slider_left = self.MARIGIN
-        self.slider_width = 300 - self.MARIGIN
-        self.slider_height = self.frame_height - 2 * self.MARIGIN
+        self.frame_height = 0
+        self.slider_top = self.MARGIN
+        self.slider_left = 0
+        self.slider_width = 0
+        self.slider_height = 0
+        
+#        三个用百分比表示的区域，滑块前、中、后区域，三者之和定为100
+        self.per_forward_length = 0
+        self.per_slider_length = 0
+        self.per_back_length = 0
 
 # =============================================================================
 # 自定义UI   
@@ -48,12 +61,29 @@ class Slider(QFrame):
     def paintEvent(self, event : QPaintEvent):
         
         painter = QPainter(self)
+
+        pos = self.pos_cursor(self.mapFromGlobal(self.cursor().pos()))
+#        当鼠标在边界上时改变鼠标显示，一种是仅鼠标移动时（仅有这种时，
+#        鼠标快速移动pos将会是0或2，而不是-1或1），一种是鼠标按压时
+        if ((pos == -1 or pos == 1) or self.mouse_press_in_left_margin or
+            self.mouse_press_in_right_margin):
+            self.setCursor(Qt.SizeHorCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
+        
         self.frame_width = self.width()
+        self.frame_height = self.height()
+        self.slider_left = self.frame_width * self.per_forward_length / 100
+        self.slider_width = self.frame_width * self.per_slider_length / 100
+        self.slider_height = self.frame_height - 2 * self.MARGIN
         painter.setPen(Qt.NoPen)
         painter.setBrush(QBrush(QColor(210, 210, 210)))
         painter.drawRect(0, 0, self.frame_width, self.frame_height)
-        painter.setPen(QColor(195, 195, 195))
-        painter.setBrush(QBrush(QColor(175, 175, 175)))
+#        按住滑块时，滑块灰度改变
+        if self.mouse_press_in_slider:
+            painter.setBrush(QBrush(QColor(150, 150, 150)))
+        else:
+            painter.setBrush(QBrush(QColor(175, 175, 175)))
         painter.drawRect(self.slider_left, self.slider_top, 
                          self.slider_width,
                          self.slider_height)
@@ -62,57 +92,102 @@ class Slider(QFrame):
 # slots函数        
 # =============================================================================
     def mouseMoveEvent(self, event : QMouseEvent):
-        
-        self.setMouseTracking(True)
-        pos = self.pos_cursor_in_margin(event.pos())
-        
-        if pos != 0:
-            self.setCursor(Qt.SizeHorCursor)
-        else:
-            self.setCursor(Qt.ArrowCursor)
-            
-        if self.mouse_press:
-            if pos == -1:
-                self.setCursor(Qt.SizeHorCursor)
-                length = self.slider_left + self.slider_width
-                self.slider_left = event.x()
+
+        if self.mouse_press_in_left_margin:
+            length = self.slider_left + self.slider_width
+            width = length - event.x()
+            if (width < 2 * self.MARGIN):
+                self.slider_left = length - 2 * self.MARGIN
+                self.slider_width = 2 * self.MARGIN
+            else:
+                if (event.x() < 0):
+                    self.slider_left = 0
+                else:
+                    self.slider_left = event.x()
                 self.slider_width = length - self.slider_left
-                self.update()
-            elif pos == 1:
-                self.setCursor(Qt.SizeHorCursor)
-                self.slider_width = event.x() - self.slider_left
-                self.update()
+            self.per_forward_length = round(float(self.slider_left) / self.frame_width, 2) * 100
+            self.per_slider_length = round(float(self.slider_width) / self.frame_width, 2) * 100
+            self.per_back_length = 100 - self.per_forward_length - self.per_slider_length
+            self.update()
+        elif self.mouse_press_in_right_margin:
+            width = event.x() - self.slider_left
+            if (width < 2 * self.MARGIN):
+                self.slider_width = 2 * self.MARGIN
+            else:
+                if (event.x() < self.width()):
+                    self.slider_width = event.x() - self.slider_left
+                else:
+                    self.slider_width = self.width()- self.slider_left
+            self.update()
+        elif self.mouse_press_in_slider:
+            left = self.slider_left_press_in_slider + (event.x() -
+                                    self.mouse_pos_press_in_slider.x())
+            if (left < 0):
+                self.slider_left = 0
+            elif ((left + self.slider_width) > self.width()):
+                self.slider_left = self.width() - self.slider_width
+            else:
+                self.slider_left = left
+            self.update()
+        else:
+            self.update()
     
     def mousePressEvent(self, event : QMouseEvent):
         
-        self.mouse_press = True
+#        鼠标按下时，将鼠标在哪里按下记住
+        pos = self.pos_cursor(event.pos())
+        if pos == -1:
+            self.mouse_press_in_left_margin = True
+        if pos == 1:
+            self.mouse_press_in_right_margin = True
+        if pos == 0:
+            self.mouse_press_in_slider = True
+            self.slider_left_press_in_slider = self.slider_left
+#            记住鼠标按下时的位置
+            self.mouse_pos_press_in_slider = event.pos()
+#            当鼠标按住滑块是滑块应改变灰度
+            self.update()
         
-    def mouseReleaseEven(self, event : QMouseEvent):
+    def mouseReleaseEvent(self, event : QMouseEvent):
         
-        self.mouse_press = False
+#        鼠标释放时，重置所有状态
+        self.mouse_press_in_left_margin = False
+        self.mouse_press_in_right_margin = False
+        self.mouse_press_in_slider = False
+        self.mouse_pos_press_in_slider = QPoint(0, 0)
             
     
 # =============================================================================
 # 功能函数    
 # =============================================================================
 #    判断鼠标是否在边界上
-    def pos_cursor_in_margin(self, pos):
+    def pos_cursor(self, pos):
         
         x = pos.x()
-        left_l = self.slider_left - self.MARIGIN
-        left_r = self.slider_left + self.MARIGIN
-        right_l = self.slider_left + self.slider_width - self.MARIGIN
-        right_r = self.slider_left + self.slider_width + self.MARIGIN
+        left_l = self.slider_left - self.MARGIN
+        left_r = self.slider_left + self.MARGIN
+        right_l = self.slider_left + self.slider_width - self.MARGIN
+        right_r = self.slider_left + self.slider_width + self.MARGIN
 #        如果在左边界
         if (left_l <= x and x <= left_r):
             return -1
 #        如果在右边界
         elif (right_l <= x and x <= right_r):
             return 1
-#        如果不在边界上
-        else:
+#        如果在中间上
+        elif (left_r <= x and x <= right_l):
             return 0
-    
+#        如果不在滑块在空白处
+        else:
+            return 2
+
+#    设置滑块长度和位置
+    def set_slider(self, forward_len, slider_len):
+        if ((forward_len + slider_len) <= 100):
+            self.per_forward_length = forward_len
+            self.per_slider_length = slider_len
+            self.per_back_length = 100 - self.per_forward_length - self.per_slider_length
+            self.update()
     
     
     
