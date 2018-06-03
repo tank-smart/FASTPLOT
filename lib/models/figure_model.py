@@ -22,7 +22,7 @@ import sys
 sys.path.append(r"D:\Program Files\git\DAGUI\lib")
 
 import matplotlib
-#matplotlib.use('Qt5Agg')
+matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -33,7 +33,6 @@ from matplotlib.dates import AutoDateLocator
 from matplotlib.ticker import FuncFormatter
 import pandas as pd
 from models.datafile_model import Normal_DataFile
-#from datafile_model import Normal_DataFile
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
 
 # =======类基本信息
@@ -108,27 +107,6 @@ class PlotCanvas(FigureCanvas):
             self.pos=0
 
         
-#    def plot_para_time(self,source=None,para_list=[]):
-#        if isinstance(source,(str,unicode)): #！！！！python 2
-#            file_plot=Normal_DataFile(source)
-#            para_list.insert(0,file_plot.paras_in_file[0])
-#            df=file_plot.cols_input(source,para_list)
-#        elif isinstance(source,pd.DataFrame):
-#            df=source
-#        else:
-#            return
-#        df[para_list[0]]=pd.to_datetime(df[para_list[0]],format='%H:%M:%S:%f')
-#        ax1 = self.fig.add_subplot(1,1,1)
-#        ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S:%f'))#设置时间标签显示格式
-#        #plt.xticks(pd.date_range('2014-09-01','2014-09-30'),rotation=90)
-#        #plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S.%f')) # 显示时间坐标的格式
-#    
-#        #autodates= AutoDateLocator()                # 时间间隔自动选取
-#        #plt.gca().xaxis.set_major_locator(autodates)
-#        df.plot(para_list[0],ax=ax1,grid=True,fontsize=6)
-#        ax1.legend(fontsize=6,loc='lower center', bbox_to_anchor=(0.5,1.01),ncol=2)
-#        #self.draw()
-#        self.show()
 #        
 #    def plot_para(self,source=None,para_list=[]):
 #        if isinstance(source,(str,unicode)): #！！！！python 2
