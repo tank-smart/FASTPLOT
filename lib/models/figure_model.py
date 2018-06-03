@@ -1,11 +1,25 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sun May 20 21:53:22 2018
+# =============================================================================
+# =======概述
+# 文件名：figure_model.py
+# 简述：绘图类
+#
+# =======内容
+# 包含类：
+# class PlotCanvas(FigureCanvas):
+#
+# =======使用说明
+# 参考类的使用说明
+#
+# =======日志
 
-@author: Yan Hua
-"""
+# =======备注
+
+# =============================================================================
+
+# =======imports
 import sys
-sys.path.append(r"E:\DAGUI\lib")
+sys.path.append(r"D:\Program Files\git\DAGUI\lib")
 
 import matplotlib
 #matplotlib.use('Qt5Agg')
@@ -22,11 +36,22 @@ from models.datafile_model import Normal_DataFile
 #from datafile_model import Normal_DataFile
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
 
+# =======类基本信息
+#class PlotCanvas
+#说明：绘图类，继承自FigureCanvas
+#功能：完成绘图相关功能
+# =====properties：
 
-#------------
-#use plot_para() to plot 4*1 figure
-#use add_toolbar(self,parent=None) to add toolbar, toolbar is qt widget, set parent of toolbar
-#use show_toolbar(self,toolbar) or toolbar.show() display the toolbar
+# =====functions:
+#my_format(self, x, pos=None):自定义时间轴的显示格式
+#plot_para(self,source=None,para_list=[]):绘图函数，将para_list参数列表中额参数读入
+#并在PlotCanvas画出；可接受的数据源source包括参数的文件路径或参数dataframe
+#add_toolbar(self,parent=None)：增加绘图工具
+#show_toolbar(self,toolbar)：显示qt NavigationTool
+#hide_toolbar(self,toolbar)：隐藏qt NavigationTool
+# =======使用说明
+# 实例化类
+
 class PlotCanvas(FigureCanvas):
     
     def __init__(self,parent=None,width=10,height=4,dpi=100):
@@ -132,9 +157,8 @@ class PlotCanvas(FigureCanvas):
     
 
 if __name__ == "__main__":
-    #filename=u"D:/flightdata/FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
+    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
     #filename=u"D:/flightdata/FTPD-C919-10101-PD-170318-G-02-CAOWEN-664003-16.txt"
-    filename=r"E:\\data.txt"
     #filename=u"C:/Users/admin/Desktop/5008问题汇总.xlsx"
     #df=chunk_input(filename,sep='all')
     #df=all_input(filename)
