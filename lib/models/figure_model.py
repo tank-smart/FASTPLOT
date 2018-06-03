@@ -68,6 +68,8 @@ class PlotCanvas(FigureCanvas):
                 QSizePolicy.Expanding,
                 QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
+        self.toolbar=self.add_toolbar()
+        self.toolbar.hide()
 
 #define the user-defined format for datatime display: HH:MM:SS:ms        
     def my_format(self, x, pos=None):
