@@ -1,15 +1,38 @@
 # -*- coding: utf-8 -*-
-
 # =============================================================================
 # =======概述
+# 文件名：datafile_model.py
+# 简述：文件类
+#
+# =======内容
+# 包含类：
+# class DataFile(object)
+# class Normal_DataFile(DataFile)
+#
+# =======使用说明
+# 参考类的使用说明
+#
+# =======日志
+
+# =======备注
+# note1: in python 3 recommend change file open mode as 'r' instead of 'rb', 
+# as return str not bytes
+# =============================================================================
+
+
+# =============================================================================
+# =======imports
+import pandas as pd
+
+# =======类基本信息
+#class DataFile
 #说明：通用文件类，是所有其它文件类的基类
 #功能：数据文件的导入导出功能
-#properties：
+# =====properties：
 #filedir: 文件路径
 #sep: 定义文件的分隔符，sep='\s+' '\t' ',' ';' 'all', 其中'all'为匹配任意分隔符
 #filename: 文件名
-
-#functions:
+# =====functions:
 #get_name(filedir=""):返回文件路径中的文件名
 #all_input(self,filedir="",sep=""):一次直接读入整个文件，返回dataframe
 #chunkAll_input(self,filedir="",sep="",chunksize=50000)：分段读入整个文件，返回dataframe
@@ -17,14 +40,7 @@
 #save_file(self,filedir,df,sep='\t')：dataframe数据保存为文本文件
 #df_tolist(self,df)：dataframe转为列表
 # =======使用说明
-# 
-#
-# =======日志
-#
-#
-# =============================================================================
-
-import pandas as pd
+# 实例化类
 
 class DataFile(object):
     def __init__(self,filedir="",sep="\s+"):
@@ -119,18 +135,18 @@ class DataFile(object):
 #DftoList:  将dataframe类型数据转换为二维列表[[],[],...]        
     def df_tolist(self,df):
         return df.values.tolist()
-    
-#——————class normal_DataFile————————
+
+# =======类基本信息    
+# class normal_DataFile
 #说明：一般试飞数据文件类，继承自DtaFile类
 #功能：一般试飞数据文件的导入导出和配置功能
-#properties：
-#父类属性
+# =====properties：
+#父类属性 （Datafile.properties）
 #info_list: 数据文件信息列表
 #paras_in_file: 数据文件包含的参数名列表
 #time_range: 数据文件的起止时间列表[begin,end]
 #sample_frequency： 数据文件的采样频率
-
-#functions:
+# =====functions:
 #父类函数 （DataFile.function）
 #def get_info(self,filedir=""):获取数据文件名信息，返回信息列表
 #def get_paraslist(self,filedir=""):获取文件中所有的的参数列表，返回参数列表
@@ -139,7 +155,9 @@ class DataFile(object):
 #def cols_input(self,filedir="",cols=[],sep="\s+")：按列读取数据文件，cols指定参数名列表，按cols指定的参数名列读取数据
 #def save_file(self,filedir,df,sep='\t')：dataframe数据保存为文本文件
 #def df_tolist(self,df)：dataframe转为列表
-
+# =======使用说明
+# 实例化类
+        
 class Normal_DataFile(DataFile):
     def __init__(self,filedir="",sep="\s+"):
         super(Normal_DataFile,self).__init__(filedir,sep)
@@ -206,5 +224,5 @@ class Normal_DataFile(DataFile):
                 df=pd.read_excel(f,usecols=cols)
         return df
 
-#note: in python 3 change file open mode as 'r' instead of 'rb', as return str not bytes
+
     

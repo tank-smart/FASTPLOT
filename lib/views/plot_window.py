@@ -67,18 +67,18 @@ class PlotWindow(QWidget):
         self.verticalLayout.setSpacing(0)
         self.verticalLayout.setObjectName("verticalLayout")
 #        创建放大缩小按钮并加入工具栏
-#        self.button_home = QToolButton(self.widget_plot_tools)
-#        self.button_home.setMinimumSize(QSize(32, 32))
-#        self.button_home.setMaximumSize(QSize(32, 32))
-#        self.button_home.setObjectName("button_home")
-#        self.button_home.setIcon(QIcon(r"E:\DAGUI\lib\icon\home.ico"))
-#        self.verticalLayout.addWidget(self.button_home)
-#        self.button_pan = QToolButton(self.widget_plot_tools)
-#        self.button_pan.setMinimumSize(QSize(32, 32))
-#        self.button_pan.setMaximumSize(QSize(32, 32))
-#        self.button_pan.setObjectName("button_pan")
-#        self.button_pan.setIcon(QIcon(r"E:\DAGUI\lib\icon\pan.ico"))
-#        self.verticalLayout.addWidget(self.button_pan)
+        self.button_home = QToolButton(self.widget_plot_tools)
+        self.button_home.setMinimumSize(QSize(32, 32))
+        self.button_home.setMaximumSize(QSize(32, 32))
+        self.button_home.setObjectName("button_home")
+        self.button_home.setIcon(QIcon(r"E:\DAGUI\lib\icon\home.ico"))
+        self.verticalLayout.addWidget(self.button_home)
+        self.button_pan = QToolButton(self.widget_plot_tools)
+        self.button_pan.setMinimumSize(QSize(32, 32))
+        self.button_pan.setMaximumSize(QSize(32, 32))
+        self.button_pan.setObjectName("button_pan")
+        self.button_pan.setIcon(QIcon(r"E:\DAGUI\lib\icon\pan.ico"))
+        self.verticalLayout.addWidget(self.button_pan)
         self.button_zoom = QToolButton(self.widget_plot_tools)
         self.button_zoom.setMinimumSize(QSize(32, 32))
         self.button_zoom.setMaximumSize(QSize(32, 32))
@@ -91,18 +91,24 @@ class PlotWindow(QWidget):
         self.button_edit.setObjectName("button_edit")
         self.button_edit.setIcon(QIcon(r"E:\DAGUI\lib\icon\edit.ico"))
         self.verticalLayout.addWidget(self.button_edit)
-#        self.button_back = QToolButton(self.widget_plot_tools)
-#        self.button_back.setMinimumSize(QSize(32, 32))
-#        self.button_back.setMaximumSize(QSize(32, 32))
-#        self.button_back.setObjectName("button_back")
-#        self.button_back.setIcon(QIcon(r"E:\DAGUI\lib\icon\back.ico"))
-#        self.verticalLayout.addWidget(self.button_back)
-#        self.button_forward = QToolButton(self.widget_plot_tools)
-#        self.button_forward.setMinimumSize(QSize(32, 32))
-#        self.button_forward.setMaximumSize(QSize(32, 32))
-#        self.button_forward.setObjectName("button_forward")
-#        self.button_forward.setIcon(QIcon(r"E:\DAGUI\lib\icon\forward.ico"))
-#        self.verticalLayout.addWidget(self.button_forward)    
+        self.button_config = QToolButton(self.widget_plot_tools)
+        self.button_config.setMinimumSize(QSize(32, 32))
+        self.button_config.setMaximumSize(QSize(32, 32))
+        self.button_config.setObjectName("button_config")
+        self.button_config.setIcon(QIcon(r"E:\DAGUI\lib\icon\config.ico"))
+        self.verticalLayout.addWidget(self.button_config)
+        self.button_back = QToolButton(self.widget_plot_tools)
+        self.button_back.setMinimumSize(QSize(32, 32))
+        self.button_back.setMaximumSize(QSize(32, 32))
+        self.button_back.setObjectName("button_back")
+        self.button_back.setIcon(QIcon(r"E:\DAGUI\lib\icon\back.ico"))
+        self.verticalLayout.addWidget(self.button_back)
+        self.button_forward = QToolButton(self.widget_plot_tools)
+        self.button_forward.setMinimumSize(QSize(32, 32))
+        self.button_forward.setMaximumSize(QSize(32, 32))
+        self.button_forward.setObjectName("button_forward")
+        self.button_forward.setIcon(QIcon(r"E:\DAGUI\lib\icon\forward.ico"))
+        self.verticalLayout.addWidget(self.button_forward)    
         self.button_save = QToolButton(self.widget_plot_tools)
         self.button_save.setMinimumSize(QSize(32, 32))
         self.button_save.setMaximumSize(QSize(32, 32))
@@ -143,48 +149,41 @@ class PlotWindow(QWidget):
 # =============================================================================
 #        self.button_move_left.triggered.connect()
 #        self.button_move_right.triggered.connect()
-#        self.button_home.clicked.connect(self.slot_home)
-#        self.button_pan.clicked.connect(self.slot_pan)
+        self.button_home.clicked.connect(self.slot_home)
+        self.button_pan.clicked.connect(self.slot_pan)
         self.button_zoom.clicked.connect(self.slot_zoom)
         self.button_edit.clicked.connect(self.slot_edit)
+        self.button_config.clicked.connect(self.slot_config_subplots)
         self.button_save.clicked.connect(self.slot_save)
-#        self.button_back.clicked.connect(self.slot_back)
-#        self.button_forward.clicked.connect(self.slot_forward)
+        self.button_back.clicked.connect(self.slot_back)
+        self.button_forward.clicked.connect(self.slot_forward)
 
 # =============================================================================
 # slots模块
 # =============================================================================
     def slot_home(self):
-        toolbar = self.plotcanvas.add_toolbar()
-        toolbar.home()
+        self.plotcanvas.toolbar.home()
         
     def slot_pan(self):
-        toolbar = self.plotcanvas.add_toolbar()
-        toolbar.pan()
+        self.plotcanvas.toolbar.pan()
         
     def slot_zoom(self):
-        toolbar = self.plotcanvas.add_toolbar()
-        toolbar.zoom()
+        self.plotcanvas.toolbar.zoom()
         
     def slot_config_subplots(self):
-        toolbar = self.plotcanvas.add_toolbar()
-        toolbar.config_subplots()
+        self.plotcanvas.toolbar.configure_subplots()
         
     def slot_save(self):
-        toolbar = self.plotcanvas.add_toolbar()
-        toolbar.save_figure()
+        self.plotcanvas.toolbar.save_figure()
         
-    def slot_back(self):
-        toolbar = self.plotcanvas.add_toolbar()
-        toolbar.back()
+    def slot_back(self):        
+        self.plotcanvas.toolbar.back()
         
     def slot_forward(self):
-        toolbar = self.plotcanvas.add_toolbar()
-        toolbar.forward()
+        self.plotcanvas.toolbar.forward()
         
     def slot_edit(self):
-        toolbar = self.plotcanvas.add_toolbar()
-        toolbar.edit_parameters()
+        self.plotcanvas.toolbar.edit_parameters()
        
 #    def slot_save(self):
 #        
