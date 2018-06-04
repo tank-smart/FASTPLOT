@@ -2,7 +2,7 @@
 
 # =============================================================================
 # =======概述
-# 简述：自定义绘图窗口中的滑块
+# 简述：自定义绘图窗口中的滚动条类
 #
 # =======使用说明
 # 
@@ -15,9 +15,10 @@
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtWidgets import QFrame
-from PyQt5.QtGui import QPaintEvent, QMouseEvent, QPainter, QBrush, QColor
-from PyQt5.QtCore import Qt, QPoint
+from PyQt5.QtWidgets import QFrame, QWidget, QHBoxLayout, QToolButton
+from PyQt5.QtGui import (QPaintEvent, QMouseEvent, QPainter, QBrush,
+                         QColor, QIcon)
+from PyQt5.QtCore import Qt, QPoint, QSize
 
 # =============================================================================
 # Slider
@@ -48,6 +49,7 @@ class Slider(QFrame):
         self.slider_left = 0
         self.slider_width = 0
         self.slider_height = 0
+        self.slider_width_limit = 0
         
 #        三个用百分比表示的区域，滑块前、中、后区域，三者之和定为100
         self.per_forward_length = 0
@@ -93,31 +95,31 @@ class Slider(QFrame):
 # =============================================================================
     def mouseMoveEvent(self, event : QMouseEvent):
 
+        self.slider_width_limit = int(0.01 * self.width())
         if self.mouse_press_in_left_margin:
             length = self.slider_left + self.slider_width
             width = length - event.x()
-            if (width < 2 * self.MARGIN):
-                self.slider_left = length - 2 * self.MARGIN
-                self.slider_width = 2 * self.MARGIN
+            if (width < self.slider_width_limit):
+                self.slider_left = length - self.slider_width_limit
+                self.slider_width = self.slider_width_limit
             else:
                 if (event.x() < 0):
                     self.slider_left = 0
                 else:
                     self.slider_left = event.x()
                 self.slider_width = length - self.slider_left
-            self.per_forward_length = round(float(self.slider_left) / self.frame_width, 2) * 100
-            self.per_slider_length = round(float(self.slider_width) / self.frame_width, 2) * 100
-            self.per_back_length = 100 - self.per_forward_length - self.per_slider_length
+            self.update_per_length()
             self.update()
         elif self.mouse_press_in_right_margin:
             width = event.x() - self.slider_left
-            if (width < 2 * self.MARGIN):
-                self.slider_width = 2 * self.MARGIN
+            if (width < self.slider_width_limit):
+                self.slider_width = self.slider_width_limit
             else:
                 if (event.x() < self.width()):
                     self.slider_width = event.x() - self.slider_left
                 else:
                     self.slider_width = self.width()- self.slider_left
+            self.update_per_length()
             self.update()
         elif self.mouse_press_in_slider:
             left = self.slider_left_press_in_slider + (event.x() -
@@ -128,6 +130,7 @@ class Slider(QFrame):
                 self.slider_left = self.width() - self.slider_width
             else:
                 self.slider_left = left
+            self.update_per_length()
             self.update()
         else:
             self.update()
@@ -188,8 +191,51 @@ class Slider(QFrame):
             self.per_slider_length = slider_len
             self.per_back_length = 100 - self.per_forward_length - self.per_slider_length
             self.update()
+
+    def update_per_length(self):
+        self.per_forward_length = round(float(self.slider_left) / self.frame_width, 2) * 100
+        self.per_slider_length = round(float(self.slider_width) / self.frame_width, 2) * 100
+        self.per_back_length = 100 - self.per_forward_length - self.per_slider_length
+        
+# =============================================================================
+# Scroll  
+# =============================================================================
+class Scroll(QWidget):
     
-    
-    
-    
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self.setup()
+        
+    def setup(self):
+        self.horizontalLayout = QHBoxLayout(self)
+        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout.setSpacing(2)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.button_move_left = QToolButton(self)
+        self.button_move_left.setMinimumSize(QSize(24, 24))
+        self.button_move_left.setMaximumSize(QSize(24, 24))
+        self.button_move_left.setObjectName("button_move_left")
+        self.button_move_left.setIcon(QIcon(r"E:\DAGUI\lib\icon\move_left.ico"))
+        self.horizontalLayout.addWidget(self.button_move_left)
+#        创建自定义的滑块部件
+        self.slider = Slider(self)
+        self.slider.setMinimumSize(QSize(0, 22))
+        self.slider.setMaximumSize(QSize(16777215, 22))
+        self.slider.setObjectName("slider")
+        self.horizontalLayout.addWidget(self.slider)
+        self.button_move_right = QToolButton(self)
+        self.button_move_right.setMinimumSize(QSize(24, 24))
+        self.button_move_right.setMaximumSize(QSize(24, 24))
+        self.button_move_right.setObjectName("button_move_right")
+        self.button_move_right.setIcon(QIcon(r"E:\DAGUI\lib\icon\move_right.ico"))
+        self.horizontalLayout.addWidget(self.button_move_right)
+
+
+
+
+
+
+
+
+ 
     

@@ -18,8 +18,7 @@ sys.path.append(r"E:\DAGUI\lib")
 # Qt imports
 # =============================================================================
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem, QFrame, 
-                             QVBoxLayout, QHBoxLayout, QSizePolicy,
-                             QFileDialog)
+                             QVBoxLayout, QHBoxLayout, QSizePolicy)
 from PyQt5.QtCore import QCoreApplication, QSize
 from PyQt5.QtGui import QIcon
 
@@ -27,7 +26,7 @@ from PyQt5.QtGui import QIcon
 # Package views imports
 # =============================================================================
 from models.figure_model import PlotCanvas
-from slider import Slider
+from scroll import Scroll
 
 # =============================================================================
 # PlotWindow
@@ -51,7 +50,7 @@ class PlotWindow(QWidget):
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_2.setSpacing(2)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")        
-#        子布局器，垂直，布局画布，水平子布局器
+#        子布局器，垂直，布局画布，滚动条
         self.verticalLayout_2 = QVBoxLayout()
         self.verticalLayout_2.setSpacing(2)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
@@ -59,31 +58,11 @@ class PlotWindow(QWidget):
         self.plotcanvas = PlotCanvas(self)
         self.plotcanvas.setObjectName("plotcanvas")
         self.verticalLayout_2.addWidget(self.plotcanvas)
-#        子布局器，布局左移/右移按钮和滑块
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setSpacing(2)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.button_move_left = QToolButton(self)
-        self.button_move_left.setMinimumSize(QSize(24, 24))
-        self.button_move_left.setMaximumSize(QSize(24, 24))
-        self.button_move_left.setObjectName("button_move_left")
-        self.button_move_left.setIcon(QIcon(r"E:\DAGUI\lib\icon\move_left.ico"))
-        self.horizontalLayout.addWidget(self.button_move_left)
-#        创建自定义的滑块部件
-        self.slider = Slider(self)
-        self.slider.setMinimumSize(QSize(0, 22))
-        self.slider.setMaximumSize(QSize(16777215, 22))
-        self.slider.setFrameShape(QFrame.StyledPanel)
-        self.slider.setFrameShadow(QFrame.Raised)
-        self.slider.setObjectName("slider")
-        self.horizontalLayout.addWidget(self.slider)
-        self.button_move_right = QToolButton(self)
-        self.button_move_right.setMinimumSize(QSize(24, 24))
-        self.button_move_right.setMaximumSize(QSize(24, 24))
-        self.button_move_right.setObjectName("button_move_right")
-        self.button_move_right.setIcon(QIcon(r"E:\DAGUI\lib\icon\move_right.ico"))
-        self.horizontalLayout.addWidget(self.button_move_right)
-        self.verticalLayout_2.addLayout(self.horizontalLayout)
+#        创建滚动条
+        self.scroll = Scroll(self)
+        self.scroll.setMinimumSize(QSize(0, 24))
+        self.scroll.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout_2.addWidget(self.scroll)
 #        创建右侧的工具栏
         self.widget_plot_tools = QWidget(self)
         self.widget_plot_tools.setMinimumSize(QSize(32, 0))
@@ -105,7 +84,7 @@ class PlotWindow(QWidget):
         self.button_pan.setMinimumSize(QSize(32, 32))
         self.button_pan.setMaximumSize(QSize(32, 32))
         self.button_pan.setObjectName("button_pan")
-        self.button_pan.setIcon(QIcon(r"E:\DAGUI\lib\icon\pan.ico"))
+        self.button_pan.setIcon(QIcon(r"E:\DAGUI\lib\icon\pan.png"))
         self.verticalLayout.addWidget(self.button_pan)
         self.button_zoom = QToolButton(self.widget_plot_tools)
         self.button_zoom.setMinimumSize(QSize(32, 32))
@@ -123,7 +102,7 @@ class PlotWindow(QWidget):
         self.button_config.setMinimumSize(QSize(32, 32))
         self.button_config.setMaximumSize(QSize(32, 32))
         self.button_config.setObjectName("button_config")
-        self.button_config.setIcon(QIcon(r"E:\DAGUI\lib\icon\config.ico"))
+        self.button_config.setIcon(QIcon(r"E:\DAGUI\lib\icon\config.png"))
         self.verticalLayout.addWidget(self.button_config)
         self.button_back = QToolButton(self.widget_plot_tools)
         self.button_back.setMinimumSize(QSize(32, 32))
@@ -189,13 +168,6 @@ class PlotWindow(QWidget):
         
     def slot_edit(self):
         self.plotcanvas.toolbar.edit_parameters()
-       
-#    def slot_save(self):
-#        
-#        filename, null = QFileDialog.getSaveFileName(self, "Save picture",
-#                                    r"E:\\untitled.png",
-#                                    "PNG (*.png);;EPS (*.eps)")
-#        self.plotcanvas.fig.savefig(filename, dpi = 300)
         
 # =============================================================================
 # 功能函数模块
@@ -205,7 +177,7 @@ class PlotWindow(QWidget):
         if filegroup:         
             for file in filegroup:
                 self.plotcanvas.plot_para(file, filegroup[file])
-                self.slider.set_slider(0, 100)
+                self.scroll.slider.set_slider(0, 100)
                 
     
     
@@ -216,5 +188,3 @@ class PlotWindow(QWidget):
         _translate = QCoreApplication.translate
         self.setWindowTitle(_translate("PlotWindow", "Plot"))
         self.button_zoom.setText(_translate("PlotWindow", "..."))
-        self.button_move_left.setText(_translate("PlotWindow", "..."))
-        self.button_move_right.setText(_translate("PlotWindow", "..."))
