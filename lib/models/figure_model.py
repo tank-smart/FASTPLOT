@@ -1,14 +1,28 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sun May 20 21:53:22 2018
+# =============================================================================
+# =======概述
+# 文件名：figure_model.py
+# 简述：绘图类
+#
+# =======内容
+# 包含类：
+# class PlotCanvas(FigureCanvas):
+#
+# =======使用说明
+# 参考类的使用说明
+#
+# =======日志
 
-@author: Yan Hua
-"""
+# =======备注
+
+# =============================================================================
+
+# =======imports
 import sys
-sys.path.append(r"E:\DAGUI\lib")
+sys.path.append(r"D:\Program Files\git\DAGUI\lib")
 
 import matplotlib
-#matplotlib.use('Qt5Agg')
+matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -19,14 +33,24 @@ from matplotlib.dates import AutoDateLocator
 from matplotlib.ticker import FuncFormatter
 import pandas as pd
 from models.datafile_model import Normal_DataFile
-#from datafile_model import Normal_DataFile
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
 
+# =======类基本信息
+#class PlotCanvas
+#说明：绘图类，继承自FigureCanvas
+#功能：完成绘图相关功能
+# =====properties：
 
-#------------
-#use plot_para() to plot 4*1 figure
-#use add_toolbar(self,parent=None) to add toolbar, toolbar is qt widget, set parent of toolbar
-#use show_toolbar(self,toolbar) or toolbar.show() display the toolbar
+# =====functions:
+#my_format(self, x, pos=None):自定义时间轴的显示格式
+#plot_para(self,source=None,para_list=[]):绘图函数，将para_list参数列表中额参数读入
+#并在PlotCanvas画出；可接受的数据源source包括参数的文件路径或参数dataframe
+#add_toolbar(self,parent=None)：增加绘图工具
+#show_toolbar(self,toolbar)：显示qt NavigationTool
+#hide_toolbar(self,toolbar)：隐藏qt NavigationTool
+# =======使用说明
+# 实例化类
+
 class PlotCanvas(FigureCanvas):
     
     def __init__(self,parent=None,width=10,height=4,dpi=100):
@@ -44,6 +68,8 @@ class PlotCanvas(FigureCanvas):
                 QSizePolicy.Expanding,
                 QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
+        self.toolbar=self.add_toolbar()
+        self.toolbar.hide()
 
 #define the user-defined format for datatime display: HH:MM:SS:ms        
     def my_format(self, x, pos=None):
@@ -83,27 +109,6 @@ class PlotCanvas(FigureCanvas):
             self.pos=0
 
         
-#    def plot_para_time(self,source=None,para_list=[]):
-#        if isinstance(source,(str,unicode)): #！！！！python 2
-#            file_plot=Normal_DataFile(source)
-#            para_list.insert(0,file_plot.paras_in_file[0])
-#            df=file_plot.cols_input(source,para_list)
-#        elif isinstance(source,pd.DataFrame):
-#            df=source
-#        else:
-#            return
-#        df[para_list[0]]=pd.to_datetime(df[para_list[0]],format='%H:%M:%S:%f')
-#        ax1 = self.fig.add_subplot(1,1,1)
-#        ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S:%f'))#设置时间标签显示格式
-#        #plt.xticks(pd.date_range('2014-09-01','2014-09-30'),rotation=90)
-#        #plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S.%f')) # 显示时间坐标的格式
-#    
-#        #autodates= AutoDateLocator()                # 时间间隔自动选取
-#        #plt.gca().xaxis.set_major_locator(autodates)
-#        df.plot(para_list[0],ax=ax1,grid=True,fontsize=6)
-#        ax1.legend(fontsize=6,loc='lower center', bbox_to_anchor=(0.5,1.01),ncol=2)
-#        #self.draw()
-#        self.show()
 #        
 #    def plot_para(self,source=None,para_list=[]):
 #        if isinstance(source,(str,unicode)): #！！！！python 2
@@ -132,9 +137,8 @@ class PlotCanvas(FigureCanvas):
     
 
 if __name__ == "__main__":
-    #filename=u"D:/flightdata/FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
+    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
     #filename=u"D:/flightdata/FTPD-C919-10101-PD-170318-G-02-CAOWEN-664003-16.txt"
-    filename=r"E:\\data.txt"
     #filename=u"C:/Users/admin/Desktop/5008问题汇总.xlsx"
     #df=chunk_input(filename,sep='all')
     #df=all_input(filename)
