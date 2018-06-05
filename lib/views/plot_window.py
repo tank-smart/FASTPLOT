@@ -147,7 +147,7 @@ class PlotWindow(QWidget):
         self.retranslateUi()
 # =======连接信号与槽
 # =============================================================================
-#        self.button_move_left.triggered.connect()
+        self.button_move_left.clicked.connect(self.slot_move_left)
 #        self.button_move_right.triggered.connect()
         self.button_home.clicked.connect(self.slot_home)
         self.button_pan.clicked.connect(self.slot_pan)
@@ -191,6 +191,9 @@ class PlotWindow(QWidget):
 #                                    r"E:\\untitled.png",
 #                                    "PNG (*.png);;EPS (*.eps)")
 #        self.plotcanvas.fig.savefig(filename, dpi = 300)
+        
+    def slot_move_left(self):
+        self.plotcanvas.toolbar.custom_pan_left()
         
 # =============================================================================
 # 功能函数模块

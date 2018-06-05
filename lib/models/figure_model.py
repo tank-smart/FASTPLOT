@@ -68,7 +68,8 @@ class PlotCanvas(FigureCanvas):
                 QSizePolicy.Expanding,
                 QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.toolbar=self.add_toolbar()
+#        self.toolbar=self.add_toolbar()
+        self.toolbar=CustomToolbar(self,parent=None)
         self.toolbar.hide()
 
 #define the user-defined format for datatime display: HH:MM:SS:ms        
@@ -133,6 +134,22 @@ class PlotCanvas(FigureCanvas):
         
     def hide_toolbar(self,toolbar):
         toolbar.hide()
+
+class CustomToolbar(NavigationToolbar):
+    
+     def __init__(self, canvas, parent, coordinates=True):
+         super().__init__(canvas, parent, coordinates)
+         
+     def custom_pan_left(self):
+         
+         ONE_SCREEN = 1
+         for axes in self.canvas.figure.axes:
+             
+#         axes = self.canvas.figure.axes[1]
+             x1,x2 = axes.get_xlim()
+             ONE_SCREEN = x2 - x1
+             axes.set_xlim(x1 - ONE_SCREEN, x2 - ONE_SCREEN)
+         self.canvas.draw()
         
     
 
