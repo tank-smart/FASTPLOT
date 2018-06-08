@@ -202,7 +202,7 @@ class PlotWindow(QWidget):
         
         if filegroup:         
             for file in filegroup:
-                self.plotcanvas.plot_para(file, filegroup[file])
+                self.plotcanvas.subplot_para(file, filegroup[file])
                 
     
     

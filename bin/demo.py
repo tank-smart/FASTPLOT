@@ -21,6 +21,8 @@ import sys
 #需要解决自定义包访问的问题，通过改变工作路径
 sys.path.append(r"E:\DAGUI\lib")
 sys.path.append(r"E:\DAGUI\lib\views")
+sys.path.append(r"E:\git repository\DAGUI\lib")
+sys.path.append(r"E:\git repository\DAGUI\lib\views")
 
 from app.start import main
 
