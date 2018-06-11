@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import matplotlib.dates as mdates
 from matplotlib.dates import AutoDateLocator
-from matplotlib.ticker import FuncFormatter, AutoMinorLocator
+from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator
 import pandas as pd
 from models.datafile_model import Normal_DataFile
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
@@ -132,6 +132,8 @@ class PlotCanvas(FigureCanvas):
             eachax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
             eachax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
             eachax.xaxis.set_minor_locator(AutoMinorLocator())
+            eachax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+            eachax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
             for label in eachax.xaxis.get_ticklabels():
                 label.set_horizontalalignment('center')
                 label.set_rotation('horizontal')
