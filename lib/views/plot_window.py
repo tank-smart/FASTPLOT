@@ -26,7 +26,7 @@ from PyQt5.QtGui import QIcon
 # Package views imports
 # =============================================================================
 from models.figure_model import PlotCanvas
-from scroll import Scroll
+#from scroll import Scroll
 
 # =============================================================================
 # PlotWindow
@@ -38,6 +38,8 @@ class PlotWindow(QWidget):
 # =============================================================================
     def __init__(self, parent = None):
         super().__init__(parent)
+        self.pan_on = False
+        self.zoom_on = False
 
 # =============================================================================
 # UI模块        
@@ -59,10 +61,10 @@ class PlotWindow(QWidget):
         self.plotcanvas.setObjectName("plotcanvas")
         self.verticalLayout_2.addWidget(self.plotcanvas)
 #        创建滚动条
-        self.scroll = Scroll(self)
-        self.scroll.setMinimumSize(QSize(0, 24))
-        self.scroll.setMaximumSize(QSize(16777215, 24))
-        self.verticalLayout_2.addWidget(self.scroll)
+#        self.scroll = Scroll(self)
+#        self.scroll.setMinimumSize(QSize(0, 24))
+#        self.scroll.setMaximumSize(QSize(16777215, 24))
+#        self.verticalLayout_2.addWidget(self.scroll)
 #        创建右侧的工具栏
         self.widget_plot_tools = QWidget(self)
         self.widget_plot_tools.setMinimumSize(QSize(32, 0))
@@ -83,12 +85,14 @@ class PlotWindow(QWidget):
         self.button_pan = QToolButton(self.widget_plot_tools)
         self.button_pan.setMinimumSize(QSize(32, 32))
         self.button_pan.setMaximumSize(QSize(32, 32))
+        self.button_pan.setCheckable(True)
         self.button_pan.setObjectName("button_pan")
         self.button_pan.setIcon(QIcon(r"E:\DAGUI\lib\icon\pan.png"))
         self.verticalLayout.addWidget(self.button_pan)
         self.button_zoom = QToolButton(self.widget_plot_tools)
         self.button_zoom.setMinimumSize(QSize(32, 32))
         self.button_zoom.setMaximumSize(QSize(32, 32))
+        self.button_zoom.setCheckable(True)
         self.button_zoom.setObjectName("button_zoom")
         self.button_zoom.setIcon(QIcon(r"E:\DAGUI\lib\icon\zoom.ico"))
         self.verticalLayout.addWidget(self.button_zoom)
@@ -96,13 +100,13 @@ class PlotWindow(QWidget):
         self.button_edit.setMinimumSize(QSize(32, 32))
         self.button_edit.setMaximumSize(QSize(32, 32))
         self.button_edit.setObjectName("button_edit")
-        self.button_edit.setIcon(QIcon(r"E:\DAGUI\lib\icon\edit.ico"))
+        self.button_edit.setIcon(QIcon(r"E:\DAGUI\lib\icon\edit.png"))
         self.verticalLayout.addWidget(self.button_edit)
         self.button_config = QToolButton(self.widget_plot_tools)
         self.button_config.setMinimumSize(QSize(32, 32))
         self.button_config.setMaximumSize(QSize(32, 32))
         self.button_config.setObjectName("button_config")
-        self.button_config.setIcon(QIcon(r"E:\DAGUI\lib\icon\config.png"))
+        self.button_config.setIcon(QIcon(r"E:\DAGUI\lib\icon\config.ico"))
         self.verticalLayout.addWidget(self.button_config)
         self.button_back = QToolButton(self.widget_plot_tools)
         self.button_back.setMinimumSize(QSize(32, 32))
@@ -131,8 +135,6 @@ class PlotWindow(QWidget):
         self.retranslateUi()
 # =======连接信号与槽
 # =============================================================================
-#        self.button_move_left.triggered.connect()
-#        self.button_move_right.triggered.connect()
         self.button_home.clicked.connect(self.slot_home)
         self.button_pan.clicked.connect(self.slot_pan)
         self.button_zoom.clicked.connect(self.slot_zoom)
@@ -150,9 +152,31 @@ class PlotWindow(QWidget):
         
     def slot_pan(self):
         self.plotcanvas.toolbar.pan()
+#        完成按钮按下和弹起的效果
+        if self.pan_on:
+            self.button_pan.setChecked(False)
+            self.pan_on = False
+        else:
+            self.button_pan.setChecked(True)
+            self.pan_on = True
+#            保证pan按钮和zoom按钮不能同时按下
+            if self.zoom_on:
+                self.button_zoom.setChecked(False)
+                self.zoom_on = False
         
     def slot_zoom(self):
         self.plotcanvas.toolbar.zoom()
+#        完成按钮按下和弹起的效果
+        if self.zoom_on:
+            self.button_zoom.setChecked(False)
+            self.zoom_on = False
+        else:
+            self.button_zoom.setChecked(True)
+            self.zoom_on = True
+#            保证pan按钮和zoom按钮不能同时按下
+            if self.pan_on:
+                self.button_pan.setChecked(False)
+                self.pan_on = False
         
     def slot_config_subplots(self):
         self.plotcanvas.toolbar.configure_subplots()
@@ -176,8 +200,7 @@ class PlotWindow(QWidget):
         
         if filegroup:         
             for file in filegroup:
-                self.plotcanvas.plot_para(file, filegroup[file])
-                self.scroll.slider.set_slider(0, 100)
+                self.plotcanvas.subplot_para(file, filegroup[file])
                 
     
     
@@ -187,4 +210,11 @@ class PlotWindow(QWidget):
     def retranslateUi(self):
         _translate = QCoreApplication.translate
         self.setWindowTitle(_translate("PlotWindow", "Plot"))
-        self.button_zoom.setText(_translate("PlotWindow", "..."))
+        self.button_home.setToolTip(_translate("PlotWindow", "初始状态"))
+        self.button_pan.setToolTip(_translate("PlotWindow", "移动与缩放"))
+        self.button_zoom.setToolTip(_translate("PlotWindow", "框选缩放"))
+        self.button_config.setToolTip(_translate("PlotWindow", "画布设置"))
+        self.button_edit.setToolTip(_translate("PlotWindow", "图表设置"))
+        self.button_forward.setToolTip(_translate("PlotWindow", "前进"))
+        self.button_back.setToolTip(_translate("PlotWindow", "后退"))
+        self.button_save.setToolTip(_translate("PlotWindow", "保存"))

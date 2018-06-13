@@ -6,75 +6,41 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>510</width>
-    <height>500</height>
+    <width>782</width>
+    <height>581</height>
    </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>微软雅黑</family>
+   </font>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="2,0,3,0,0">
+   <property name="spacing">
+    <number>4</number>
+   </property>
+   <property name="leftMargin">
+    <number>4</number>
+   </property>
+   <property name="topMargin">
+    <number>4</number>
+   </property>
+   <property name="rightMargin">
+    <number>4</number>
+   </property>
+   <property name="bottomMargin">
+    <number>4</number>
+   </property>
    <item>
-    <widget class="QLabel" name="sel_para">
-     <property name="text">
-      <string>Selected parameters</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QTreeWidget" name="sel_para_tree">
-     <property name="columnCount">
+    <layout class="QVBoxLayout" name="vlayout_sel_testpoints">
+     <property name="spacing">
       <number>2</number>
      </property>
-     <attribute name="headerDefaultSectionSize">
-      <number>240</number>
-     </attribute>
-     <attribute name="headerMinimumSectionSize">
-      <number>240</number>
-     </attribute>
-     <column>
-      <property name="text">
-       <string>Original Name</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Output Name</string>
-      </property>
-     </column>
-    </widget>
-   </item>
-   <item>
-    <widget class="QLabel" name="sel_testpoint">
-     <property name="text">
-      <string>Select testpoint</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>164</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <widget class="QLabel" name="export_loc">
-     <property name="text">
-      <string>Export location</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QLineEdit" name="location_view">
+      <widget class="QLabel" name="label_sel_testpoint">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -87,33 +53,374 @@
          <height>24</height>
         </size>
        </property>
+       <property name="text">
+        <string>Selected testpoints</string>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="sel_dir">
-       <property name="minimumSize">
-        <size>
-         <width>24</width>
-         <height>24</height>
-        </size>
+      <layout class="QHBoxLayout" name="hlayout_sel_testpoints_tool">
+       <property name="spacing">
+        <number>2</number>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>24</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
+       <item>
+        <widget class="QToolButton" name="tool_button_add">
+         <property name="minimumSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="tool_button_delete">
+         <property name="minimumSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="tool_button_copy">
+         <property name="minimumSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QTableWidget" name="table_testpoint">
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>230</number>
+       </attribute>
+       <attribute name="horizontalHeaderMinimumSectionSize">
+        <number>230</number>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>Testpoint name</string>
+        </property>
+        <property name="textAlignment">
+         <set>AlignLeading|AlignVCenter</set>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Start time</string>
+        </property>
+        <property name="textAlignment">
+         <set>AlignLeading|AlignVCenter</set>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Stop time</string>
+        </property>
+        <property name="textAlignment">
+         <set>AlignLeading|AlignVCenter</set>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Output filename</string>
+        </property>
+        <property name="textAlignment">
+         <set>AlignLeading|AlignVCenter</set>
+        </property>
+       </column>
       </widget>
      </item>
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <widget class="Line" name="line_h1">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="hlayout_seltest_and_output">
      <property name="spacing">
-      <number>20</number>
+      <number>4</number>
+     </property>
+     <item>
+      <layout class="QVBoxLayout" name="vlayout_sel_para">
+       <item>
+        <widget class="QLabel" name="label_sel_para">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Selected parameters</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTreeWidget" name="tree_sel_para_tree">
+         <property name="columnCount">
+          <number>2</number>
+         </property>
+         <attribute name="headerDefaultSectionSize">
+          <number>230</number>
+         </attribute>
+         <attribute name="headerMinimumSectionSize">
+          <number>230</number>
+         </attribute>
+         <column>
+          <property name="text">
+           <string>Original name</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Output name</string>
+          </property>
+         </column>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="Line" name="line_v">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="vlayout_output_config">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Output setting</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="hlayout_out_filetype">
+         <item>
+          <widget class="QLabel" name="label_file_type">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Output file type</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="combo_box_file_type">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>24</height>
+            </size>
+           </property>
+           <item>
+            <property name="text">
+             <string>TXT file</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>CSV file</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>MAT file</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="hlayout_out_loc">
+         <item>
+          <widget class="QLabel" name="label_output_loc">
+           <property name="minimumSize">
+            <size>
+             <width>100</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Output location</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="line_edit_location">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="button_sel_dir">
+           <property name="minimumSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>24</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="Line" name="line_h2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="hlayout_output_btn">
+     <property name="spacing">
+      <number>10</number>
      </property>
      <item>
       <spacer name="horizontalSpacer">
@@ -130,21 +437,61 @@
      </item>
      <item>
       <widget class="QPushButton" name="button_confirm">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>24</height>
+        </size>
+       </property>
        <property name="text">
         <string>Confirm</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="button_cancel">
+      <widget class="QPushButton" name="button_reset">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>24</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Cancel</string>
+        <string>Reset</string>
        </property>
       </widget>
      </item>
     </layout>
    </item>
   </layout>
+  <zorder>label_sel_para</zorder>
+  <zorder>tree_sel_para_tree</zorder>
+  <zorder>label_output_loc</zorder>
+  <zorder>label_sel_testpoint</zorder>
+  <zorder></zorder>
+  <zorder>tableView</zorder>
+  <zorder>label_sel_testpoint</zorder>
+  <zorder>combo_box_file_type</zorder>
+  <zorder>label_file_type</zorder>
+  <zorder>verticalSpacer</zorder>
+  <zorder>line_h1</zorder>
+  <zorder>line_v</zorder>
+  <zorder>line_h2</zorder>
+  <zorder>horizontalSpacer_3</zorder>
+  <zorder>line_h1</zorder>
+  <zorder></zorder>
  </widget>
  <resources/>
  <connections/>

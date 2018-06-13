@@ -68,7 +68,7 @@ class ProjectModel(object):
         
         return result
         
-                
+#    整合文件的文件路径、参数列表用于文件树显示
     def get_datafile_for_tree(self):
         
         datafiles = {}

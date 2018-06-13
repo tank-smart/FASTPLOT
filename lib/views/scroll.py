@@ -18,7 +18,7 @@
 from PyQt5.QtWidgets import QFrame, QWidget, QHBoxLayout, QToolButton
 from PyQt5.QtGui import (QPaintEvent, QMouseEvent, QPainter, QBrush,
                          QColor, QIcon)
-from PyQt5.QtCore import Qt, QPoint, QSize
+from PyQt5.QtCore import Qt, QPoint, QSize, pyqtSignal
 
 # =============================================================================
 # Slider
@@ -37,7 +37,7 @@ class Slider(QFrame):
         self.mouse_press_in_left_margin = False
         self.mouse_press_in_right_margin = False
         self.mouse_press_in_slider = False
-#        记住当鼠标按住滑块时，滑块左侧的位置
+#        记住当鼠标按住滑块时滑块左侧的位置
         self.slider_left_press_in_slider = 0
 #        记住鼠标按住滑块时的位置
         self.mouse_pos_press_in_slider = QPoint(0, 0)
@@ -95,7 +95,7 @@ class Slider(QFrame):
 # =============================================================================
     def mouseMoveEvent(self, event : QMouseEvent):
 
-        self.slider_width_limit = int(0.01 * self.width())
+        self.slider_width_limit = int(0.01 * self.frame_width)
         if self.mouse_press_in_left_margin:
             length = self.slider_left + self.slider_width
             width = length - event.x()
@@ -115,10 +115,10 @@ class Slider(QFrame):
             if (width < self.slider_width_limit):
                 self.slider_width = self.slider_width_limit
             else:
-                if (event.x() < self.width()):
+                if (event.x() < self.frame_width):
                     self.slider_width = event.x() - self.slider_left
                 else:
-                    self.slider_width = self.width()- self.slider_left
+                    self.slider_width = self.frame_width- self.slider_left
             self.update_per_length()
             self.update()
         elif self.mouse_press_in_slider:
@@ -126,8 +126,8 @@ class Slider(QFrame):
                                     self.mouse_pos_press_in_slider.x())
             if (left < 0):
                 self.slider_left = 0
-            elif ((left + self.slider_width) > self.width()):
-                self.slider_left = self.width() - self.slider_width
+            elif ((left + self.slider_width) > self.frame_width):
+                self.slider_left = self.frame_width - self.slider_width
             else:
                 self.slider_left = left
             self.update_per_length()
@@ -159,6 +159,18 @@ class Slider(QFrame):
         self.mouse_press_in_slider = False
         self.mouse_pos_press_in_slider = QPoint(0, 0)
             
+    def slot_move(self, step):
+        
+        left = self.slider_left + int(self.frame_width * step)
+        if (left < 0):
+            self.slider_left = 0
+        elif ((left + self.slider_width) > self.frame_width):
+            self.slider_left = self.frame_width - self.slider_width
+        else:
+            self.slider_left = left
+        self.update_per_length()
+        self.update()   
+        
     
 # =============================================================================
 # 功能函数    
@@ -201,11 +213,23 @@ class Slider(QFrame):
 # Scroll  
 # =============================================================================
 class Scroll(QWidget):
-    
+
+    signal_move_left = pyqtSignal(float)
+    signal_move_right = pyqtSignal(float)
+# =============================================================================
+# 初始化    
+# =============================================================================
     def __init__(self, parent = None):
         super().__init__(parent)
-        self.setup()
         
+#        当按下移动按钮时，滑块移动的距离，单位是总长度的百分比
+        self.slider_step_move = 0.01
+
+        self.setup()
+
+# =============================================================================
+# UI模块        
+# =============================================================================
     def setup(self):
         self.horizontalLayout = QHBoxLayout(self)
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
@@ -230,10 +254,22 @@ class Scroll(QWidget):
         self.button_move_right.setIcon(QIcon(r"E:\DAGUI\lib\icon\move_right.ico"))
         self.horizontalLayout.addWidget(self.button_move_right)
 
+# =======连接信号与槽
+# =============================================================================
+        self.button_move_left.clicked.connect(self.slot_move_l)
+        self.signal_move_left.connect(self.slider.slot_move)
+        self.button_move_right.clicked.connect(self.slot_move_r)
+        self.signal_move_right.connect(self.slider.slot_move)
 
+# =============================================================================
+# Slots模块
+# =============================================================================
 
-
-
+    def slot_move_l(self):
+        self.signal_move_left.emit(-1 * self.slider_step_move)
+        
+    def slot_move_r(self):
+        self.signal_move_right.emit(self.slider_step_move)
 
 
 

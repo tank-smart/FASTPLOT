@@ -22,7 +22,7 @@ import sys
 sys.path.append(r"D:\Program Files\git\DAGUI\lib")
 
 import matplotlib
-#matplotlib.use('Qt5Agg')
+matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import matplotlib.dates as mdates
 from matplotlib.dates import AutoDateLocator
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator
 import pandas as pd
 from models.datafile_model import Normal_DataFile
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
@@ -56,7 +56,7 @@ class PlotCanvas(FigureCanvas):
     def __init__(self,parent=None,width=10,height=4,dpi=100):
         self.fig=Figure(figsize=(width,height),dpi=dpi)
         #self.fig=plt.figure()
-        self.poslist=[[0.1, 0.77, 0.75, 0.18],[0.1, 0.53, 0.75, 0.18],[0.1, 0.29, 0.75, 0.18],[0.1, 0.05, 0.75, 0.18]]
+        self.poslist=[[0.1, 0.77, 0.8, 0.18],[0.1, 0.53, 0.8, 0.18],[0.1, 0.29, 0.8, 0.18],[0.1, 0.05, 0.8, 0.18]]
         #self.poslist=[[0.1,0.75,0.8,0.23],[0.1,0.5,0.8,0.23],[0.1,0.25,0.8,0.23],[0.1,0,0.8,0.23]]
         self.pos=0
         #self.axes = fig.add_subplot(111)# 调用figure下面的add_subplot方法，类似于matplotlib.pyplot下面的subplot方法
@@ -68,7 +68,8 @@ class PlotCanvas(FigureCanvas):
                 QSizePolicy.Expanding,
                 QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
-        self.toolbar=self.add_toolbar()
+#        self.toolbar=self.add_toolbar()
+        self.toolbar=CustomToolbar(self,parent=None)
         self.toolbar.hide()
 
 #define the user-defined format for datatime display: HH:MM:SS:ms        
@@ -107,6 +108,52 @@ class PlotCanvas(FigureCanvas):
             self.pos+=1
         else:
             self.pos=0
+            
+    def subplot_para(self,source=None,para_list=[]):
+        if isinstance(source,(str)): #python 2 add unicode
+            file_plot=Normal_DataFile(source)
+            para_list.insert(0,file_plot.paras_in_file[0])
+            df=file_plot.cols_input(source,para_list)
+        elif isinstance(source,pd.DataFrame):
+            df=source
+        else:
+            return
+        df[para_list[0]]=pd.to_datetime(df[para_list[0]],format='%H:%M:%S:%f')
+        self.fig.clf()
+        #ax1 = self.fig.add_subplot(4,1,self.pos)
+        self.ax=self.fig.add_axes([0.1,0.2,0.8,0.6])
+#        self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)
+        #self.fig.subplots_adjust(0.1,0.5,0.9,0.95,0.3)
+#        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+        matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+        matplotlib.rcParams['ytick.direction'] = 'in'
+        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
+        for eachax in axes:
+            eachax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
+            eachax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+            eachax.xaxis.set_minor_locator(AutoMinorLocator())
+            eachax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+            eachax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+            for label in eachax.xaxis.get_ticklabels():
+                label.set_horizontalalignment('center')
+                label.set_rotation('horizontal')
+            eachax.grid(which='both',linestyle='--')
+#        self.ax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
+#        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format)) 
+        self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)
+#        for label in self.ax.xaxis.get_ticklabels():
+#            print(label.get_rotation())
+#            label.set_horizontalalignment('center')
+#            label.set_rotation('horizontal')
+
+#            print(label.horizontalalignment)
+        self.draw()
+#        self.show()
+        #plt.show()
+        if self.pos<3:
+            self.pos+=1
+        else:
+            self.pos=0
 
         
 #        
@@ -133,6 +180,22 @@ class PlotCanvas(FigureCanvas):
         
     def hide_toolbar(self,toolbar):
         toolbar.hide()
+
+class CustomToolbar(NavigationToolbar):
+    
+     def __init__(self, canvas, parent, coordinates=True):
+         super().__init__(canvas, parent, coordinates)
+         
+     def custom_pan_left(self):
+         
+         ONE_SCREEN = 1
+         for axes in self.canvas.figure.axes:
+             
+#         axes = self.canvas.figure.axes[1]
+             x1,x2 = axes.get_xlim()
+             ONE_SCREEN = x2 - x1
+             axes.set_xlim(x1 - ONE_SCREEN, x2 - ONE_SCREEN)
+         self.canvas.draw()
         
     
 

@@ -20,7 +20,7 @@ import sys
 # Qt imports
 # =============================================================================
 from PyQt5.QtCore import QObject,QSize, QRect, Qt, QCoreApplication
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar, 
                              QFileDialog, QMessageBox, QMenu, QToolBar, 
                              QAction, QStatusBar, QHBoxLayout)
@@ -56,9 +56,12 @@ class MainWindow(QMainWindow):
 # =============================================================================
     def setup(self):
 #        定义主窗口
+#        主窗口内统一使用一种字体
+        font = QFont()
+        font.setFamily("微软雅黑")
+        self.setFont(font)
         self.setEnabled(True)
-        self.resize(800, 600)
-        self.setMinimumSize(QSize(800, 600))
+        self.setMinimumSize(QSize(900, 600))
         self.setWindowState(Qt.WindowMaximized)
 
 #        创建堆叠窗口        

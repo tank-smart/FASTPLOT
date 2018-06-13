@@ -14,18 +14,37 @@
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import Qt, pyqtSignal, QCoreApplication
+from PyQt5.QtCore import (Qt, pyqtSignal, QCoreApplication, QMimeData, 
+                          QByteArray, QDataStream, QIODevice)
 from PyQt5.QtGui import QCloseEvent, QIcon
 from PyQt5.QtWidgets import (QWidget, QDockWidget,QLineEdit, QMenu, 
                              QTreeWidget, QTreeWidgetItem, QAction,
-                             QSizePolicy, QVBoxLayout, QAbstractItemView,
-                             QHeaderView)
+                             QSizePolicy, QVBoxLayout, QAbstractItemView)
 
+# =============================================================================
+# ParasTree
+# =============================================================================
+class ParasTree(QTreeWidget):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+    
+#    自定义MIME type的结构，将参数名和参数所在的文件名存入
+    def mimeData(self, items):
+        mime_data = QMimeData()
+        byte_array = QByteArray()
+        stream = QDataStream(byte_array, QIODevice.WriteOnly)
+        for item in items:
+            if item:
+                if item.parent():
+                    stream.writeQString(item.text(0))
+                    stream.writeQString(item.parent().data(0, Qt.UserRole))
+        mime_data.setData('application/x-parasname', byte_array)
+        return mime_data
+        
 # =============================================================================
 # ParalistWindow
 # =============================================================================
 class ParalistWindow(QDockWidget):
-
 # =============================================================================
 # 自定义信号模块
 # =============================================================================
@@ -78,9 +97,11 @@ class ParalistWindow(QDockWidget):
         self.vlayout_paralist_dock.addWidget(self.line_edit_search_para)
         
 #        文件树显示部件的定义
-        self.tree_widget_display_datafile = QTreeWidget(self.layout_paralist_dock)
+        self.tree_widget_display_datafile = ParasTree(self.layout_paralist_dock)
         self.tree_widget_display_datafile.setObjectName(
                 "tree_widget_display_datafile")
+#        可拖出树部件中的项
+        self.tree_widget_display_datafile.setDragEnabled(True)
         self.tree_widget_display_datafile.header().setVisible(False)
 #        设置每个item是可以被选择的
         self.tree_widget_display_datafile.setSelectionMode(

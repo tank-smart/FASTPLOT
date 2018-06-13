@@ -23,6 +23,9 @@
 # =============================================================================
 # =======imports
 import pandas as pd
+import scipy.io as sio
+import re
+import time_model as Time
 
 # =======类基本信息
 #class DataFile
@@ -131,6 +134,9 @@ class DataFile(object):
 #save_file: 保存数据到文件，保存的数据格式为df:pandas dataframe或series    
     def save_file(self,filedir,df,sep='\t'):
         df.to_csv(filedir,sep,index=False,encoding="utf-8")
+        
+    def save_matfile(self, filedir, df):
+        sio.savemat(filedir, df.to_dict('list'))
 
 #DftoList:  将dataframe类型数据转换为二维列表[[],[],...]        
     def df_tolist(self,df):
@@ -163,8 +169,8 @@ class Normal_DataFile(DataFile):
         super(Normal_DataFile,self).__init__(filedir,sep)
         self.info_list=self.get_info(filedir)
         self.paras_in_file=self.get_paraslist(filedir)
-#        self.time_range=self.get_timerange(filedir)  #！可能造成IO过多，使得速度变慢
-        self.sample_frequency=self.info_list[-1]
+        self.time_range=self.get_timerange(filedir)  #！可能造成IO过多，使得速度变慢
+        self.sample_frequency = self.get_sample_frequency(filedir)
 
 #get_paralist:获取文件中所有的的参数列表        
     def get_paraslist(self,filedir=""):
@@ -176,9 +182,48 @@ class Normal_DataFile(DataFile):
     def get_timerange(self,filedir=""):
         if filedir=="":
             filedir=self.filedir
-        df_time=self.cols_input(filedir,cols=[self.paras_in_file[0]],sep='\s+')
-        time_range=[df_time.iat[0,0],df_time.iat[-1,0]]
+#        等同于try...finally，保证无论是否出错都能正确关闭文件
+#            rb+模式打开是按二进制方式读取数据的，Python3读取得到的数据类型为byte，
+#            需要转码成str型。之所以用rb+模式是因为seek函数只在此模式有效
+        with open(filedir, 'rb+') as file:
+#            获取起始时间
+            start_line = file.readline()
+            start_line = file.readline()
+#            转码
+            start_line = start_line.decode()
+            start_time = re.split('\s+', start_line)[0]
+#            获取终止时间
+            stop_line = ""
+            offset = -120
+            while True:
+                file.seek(offset, 2)
+                lines = file.readlines()
+                if (len(lines) >= 2):
+                    stop_line = lines[-1]
+                    stop_line = stop_line.decode()
+                    break
+                offset = offset * 2
+            stop_time = re.split('\s+', stop_line)[0]
+        time_range=[start_time, stop_time]
         return time_range
+
+    def get_sample_frequency(self,filedir=""):
+        if filedir=="":
+            filedir=self.filedir
+        
+        fre = 0
+        with open(filedir,'r') as f:
+            start_line = f.readline()
+            start_line = f.readline()
+            start_time = re.split('\s+', start_line)[0]
+            sec = Time.str_to_intlist(start_time)[3]
+            t_sec = -1
+            while sec != t_sec:
+                line = f.readline()
+                t = re.split('\s+', line)[0]
+                t_sec = Time.str_to_intlist(t)[3]
+                fre += 1
+        return fre       
         
 #get_info:根据一般试飞数据文件的文件名获取，试飞数据相关信息，返回信息列表        
     def get_info(self,filedir=""):
@@ -209,7 +254,7 @@ class Normal_DataFile(DataFile):
         return df       
 
 #cols_input: 按列读取数据文件，cols指定参数名列表，按cols指定的参数名列读取数据    
-    def cols_input(self,filedir="",cols=[],sep="\s+"):  #without chunkinput now!!
+    def cols_input(self,filedir="",cols=[],sep="\s+",start_time='',stop_time=''):  #without chunkinput now!!
         if filedir=="":
             filedir=self.filedir
         if sep=="":
@@ -222,7 +267,11 @@ class Normal_DataFile(DataFile):
                     df=pd.read_table(f,sep=sep,usecols=cols,engine='c')
             if filedir.endswith(('.xls','.xlsx')):
                 df=pd.read_excel(f,usecols=cols)
-        return df
-
-
-    
+            if (start_time and stop_time):
+                start_rows = Time.lines_between_times(self.time_range[0],
+                                      start_time, self.sample_frequency)
+                stop_rows = Time.lines_between_times(self.time_range[0],
+                                     stop_time, self.sample_frequency)
+                return df[start_rows : stop_rows].copy()
+            else:
+                return df 
