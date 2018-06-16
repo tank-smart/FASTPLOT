@@ -57,6 +57,8 @@ class ParalistWindow(QDockWidget):
 #    搜索参数的信号
     signal_search_para = pyqtSignal(str)
     
+    signal_delete_files = pyqtSignal(list)
+    
 # =============================================================================
 # 初始化
 # =============================================================================
@@ -116,8 +118,8 @@ class ParalistWindow(QDockWidget):
         self.action_quick_plot = QAction(self.tree_widget_display_datafile)
         self.action_quick_plot.setText(QCoreApplication.
                                        translate("ParalistDock", "快速绘图"))
-        self.action_delete_file = QAction(self.tree_widget_display_datafile)
-        self.action_delete_file.setText(QCoreApplication.
+        self.action_delete_files = QAction(self.tree_widget_display_datafile)
+        self.action_delete_files.setText(QCoreApplication.
                                        translate("ParalistDock", "删除文件"))
         
         self.setWidget(self.layout_paralist_dock)
@@ -130,7 +132,7 @@ class ParalistWindow(QDockWidget):
         
         self.action_export.triggered.connect(self.slot_export_para)
         self.action_quick_plot.triggered.connect(self.slot_quick_plot)
-        self.action_delete_file.triggered.connect(self.slot_delete_file)
+        self.action_delete_files.triggered.connect(self.slot_delete_files)
         
         self.line_edit_search_para.textChanged.connect(self.slot_search_para)
 
@@ -149,11 +151,15 @@ class ParalistWindow(QDockWidget):
             menu = QMenu(self.tree_widget_display_datafile)
             menu.addAction(self.action_export)
             menu.addAction(self.action_quick_plot)
-            menu.addAction(self.action_delete_file)
+            menu.addAction(self.action_delete_files)
             if sel_item.parent():
-                self.action_delete_file.setDisabled(True)
+                self.action_export.setDisabled(False)
+                self.action_quick_plot.setDisabled(False)
+                self.action_delete_files.setDisabled(True)
             else:
-                self.action_delete_file.setDisabled(False)
+                self.action_export.setDisabled(True)
+                self.action_quick_plot.setDisabled(True)
+                self.action_delete_files.setDisabled(False)
             menu.exec_(self.tree_widget_display_datafile.mapToGlobal(pos))
             
     def slot_export_para(self):
@@ -169,9 +175,20 @@ class ParalistWindow(QDockWidget):
 #        传递出去
         self.signal_quick_plot.emit(sel_items)
 
-    def slot_delete_file(self):
+    def slot_delete_files(self):
         
-        pass
+        result = []
+#        获取选中的item列表
+        sel_items = self.tree_widget_display_datafile.selectedItems()
+        if sel_items:
+            for item in sel_items:
+    #            判断选中的是参数还是文件
+                if item.parent():
+                    pass
+                else:
+                    file_dir = item.data(0, Qt.UserRole)
+                    result.append(file_dir)
+        self.signal_delete_files.emit(result)
     
 #    当参数搜索行有用户输入时将搜索参数的信号发出
     def slot_search_para(self, paraname):
@@ -201,6 +218,7 @@ class ParalistWindow(QDockWidget):
                 root.setText(0, filename) #set text of treewidget
 #                将路径作为数据存入item中
                 root.setData(0, Qt.UserRole, file_dir)
+                root.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
                 for para in file_group[file_dir]:
                     child = QTreeWidgetItem(root)  #child of root
                     child.setIcon(0,self.paraicon)

@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import matplotlib.dates as mdates
 from matplotlib.dates import AutoDateLocator
-from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator
+from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator, LinearLocator
 import pandas as pd
 from models.datafile_model import Normal_DataFile
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
@@ -127,17 +127,19 @@ class PlotCanvas(FigureCanvas):
 #        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
         matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
         matplotlib.rcParams['ytick.direction'] = 'in'
-        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
+        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=8,subplots=True,sharex=True)
         for eachax in axes:
             eachax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
             eachax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-            eachax.xaxis.set_minor_locator(AutoMinorLocator())
-            eachax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+            eachax.xaxis.set_major_locator(LinearLocator(numticks=10))
+            eachax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+            eachax.yaxis.set_major_locator(LinearLocator(numticks=5))
             eachax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
             for label in eachax.xaxis.get_ticklabels():
                 label.set_horizontalalignment('center')
                 label.set_rotation('horizontal')
-            eachax.grid(which='both',linestyle='--')
+            eachax.grid(which='major',linestyle='--',color = '0.45')
+            eachax.grid(which='minor',linestyle='--',color = '0.75')
 #        self.ax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
 #        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format)) 
         self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)

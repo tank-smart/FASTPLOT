@@ -49,7 +49,7 @@ class PlotWindow(QWidget):
         self.setObjectName("PlotWindow")
 #        该窗口的主布局器，水平
         self.horizontalLayout_2 = QHBoxLayout(self)
-        self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.horizontalLayout_2.setContentsMargins(4, 0, 4, 0)
         self.horizontalLayout_2.setSpacing(2)
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")        
 #        子布局器，垂直，布局画布，滚动条

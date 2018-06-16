@@ -15,6 +15,7 @@
 # Stdlib imports
 # =============================================================================
 import sys
+import re
 
 # =============================================================================
 # Qt imports
@@ -30,8 +31,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar,
 # =============================================================================
 from stacked_window import StackedWindow
 from paralist_window import ParalistWindow
-from models.project_model import ProjectModel
-
+from models.datafile_model import Normal_DataFile
 # =============================================================================
 # Main Window
 # =============================================================================
@@ -49,7 +49,11 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
 #        设置窗口图标
         self.setWindowIcon(QIcon(r"E:\DAGUI\lib\icon\window.png"))
-        self.project = ProjectModel()
+        
+#        所涉及的数据文件的路径，列表类型，
+        self.datafile_group = {}
+#        所涉及的结果文件，列表类型
+        self.resultfile_group = []
 
 # =============================================================================
 # UI模块
@@ -222,25 +226,40 @@ class MainWindow(QMainWindow):
                 self.slot_search_para)
         self.mw_paralist_window.signal_close.connect(
                 self.slot_paralist_dock_close)
+        self.mw_paralist_window.signal_delete_files.connect(self.slot_delete_files)
+        
 
 # =============================================================================
 # Slots模块            
 # =============================================================================
 #    搜索参数并显示在参数窗口里
-    def slot_search_para(self, paraname):
+    def slot_search_para(self, para_name):
         
-        result = self.project.search_para(paraname)
+        result = {}
+        if (para_name and self.datafile_group):
+            pattern = re.compile('.*' + para_name + '.*')
+            for file_dir in self.datafile_group:
+#                字典的推导式
+                 search_paras = [para for para
+                                 in self.datafile_group[file_dir]
+                                 if re.match(pattern, para)]
+                 if search_paras:
+                     result[file_dir] = search_paras
+        else:
+            result = self.datafile_group
         self.mw_paralist_window.display_file_group(result, True)
 
-#    打开数据文件并将文件信息存入project中
+#    打开数据文件并将文件信息存入
     def slot_open_normal_datafile(self):
         
-        file_name, ok = QFileDialog.getOpenFileNames(
+        file_dir_list, ok = QFileDialog.getOpenFileNames(
                 self, 'Open', r'E:\\', "Datafiles (*.txt *.csv *.dat)")
-        file_name = [file.replace('/','\\') for file in file_name]
-        self.project.open_normal_datafiles(file_name)
-        self.mw_paralist_window.display_file_group(
-                self.project.get_datafile_for_tree())
+        file_dir_list = [file.replace('/','\\') for file in file_dir_list]
+        if file_dir_list:
+            for file_dir in file_dir_list:
+                nor_file = Normal_DataFile(file_dir)
+                self.datafile_group[file_dir] = nor_file.paras_in_file
+        self.mw_paralist_window.display_file_group(self.datafile_group)
 
 #    与关于退出有关的显示
     def slot_exit(self):
@@ -251,8 +270,8 @@ class MainWindow(QMainWindow):
     def slot_about(self):
         
         QMessageBox.about(self,
-            QCoreApplication.translate("MainWindow", "关于演示程序"),
-            QCoreApplication.translate("MainWindow", """<b>演示程序</b>
+            QCoreApplication.translate("MainWindow", "关于FastPlot"),
+            QCoreApplication.translate("MainWindow", """<b>FastPlot</b>
             <br>试飞数据绘图软件
             <br>Copyright &copy; FTCC
             <p>由试飞中心试飞工程部绘图软件开发团队开发维护
@@ -336,18 +355,32 @@ class MainWindow(QMainWindow):
                     self.last_page.setChecked(False)
                     self.mw_stacked_window.show_page(4)
                     self.last_page = self.action_data_manage
+                    
+    def slot_delete_files(self, files):
+        
+        message = QMessageBox.warning(self,
+                      QCoreApplication.translate("MainWindow", "删除文件"),
+                      QCoreApplication.translate("MainWindow",
+                                                 """<p>确定要删除文件吗？"""),
+                      QMessageBox.Yes | QMessageBox.No)
+        if (message == QMessageBox.Yes):
+            if files:
+                for file in files:
+                    if (file in self.datafile_group):
+                        self.datafile_group.pop(file)
+            self.mw_paralist_window.display_file_group(self.datafile_group)
+    
 
 # =============================================================================
 # 功能函数模块
 # =============================================================================
-
 
 # =============================================================================
 # 汉化
 # =============================================================================
     def retranslate(self):
         _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate("MainWindow", "演示程序"))
+        self.setWindowTitle(_translate("MainWindow", "FastPlot"))
         self.menu_file.setTitle(_translate("MainWindow", "文件"))
         self.menu_open.setTitle(_translate("MainWindow", "打开"))
         self.menu_edit.setTitle(_translate("MainWindow", "编辑"))

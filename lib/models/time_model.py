@@ -57,4 +57,4 @@ def is_std_format(time : str):
         return False
     
 if __name__ == '__main__':
-    print(is_in_range('09:29:25:354','12:13:47:291','11:13:47:291'))
+    print(is_in_range('09:29:25:354','12:13:47:291','12:12:47:291'))
