@@ -15,12 +15,11 @@
 # Stdlib imports
 # =============================================================================
 import sys
-import re
 
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import QObject,QSize, QRect, Qt, QCoreApplication
+from PyQt5.QtCore import QObject,QSize, QRect, Qt, QCoreApplication, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar, 
                              QFileDialog, QMessageBox, QMenu, QToolBar, 
@@ -37,11 +36,7 @@ from models.datafile_model import Normal_DataFile
 # =============================================================================
 class MainWindow(QMainWindow):   
 
-# =============================================================================
-# 自定义信号模块
-# =============================================================================
-
-    
+    signal_import_datafiles = pyqtSignal(dict)
 # =============================================================================
 # 初始化
 # =============================================================================
@@ -49,16 +44,19 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
 #        设置窗口图标
         self.setWindowIcon(QIcon(r"E:\DAGUI\lib\icon\window.png"))
-        
-#        所涉及的数据文件的路径，列表类型，
-        self.datafile_group = {}
+
 #        所涉及的结果文件，列表类型
         self.resultfile_group = []
+#        导出参数的模板
+        self.para_export_temps = {}
 
 # =============================================================================
 # UI模块
 # =============================================================================
     def setup(self):
+        
+#        加载参数模板到内存，给para_export_temps赋值
+        self.load_para_export_temps()
 #        定义主窗口
 #        主窗口内统一使用一种字体
         font = QFont()
@@ -210,56 +208,38 @@ class MainWindow(QMainWindow):
         self.action_about.triggered.connect(self.slot_about)
 #        程序退出
         self.action_exit.triggered.connect(self.slot_exit)
+        
+        self.signal_import_datafiles.connect(self.mw_paralist_window.slot_import_datafiles)
 # =============================================================================
 #       参数窗口的信号连接
 #        将参数窗口中选中的参数传递给导出窗口中显示
         self.mw_paralist_window.signal_export_para.connect(
                 self.action_export_data.trigger)
         self.mw_paralist_window.signal_export_para.connect(
-                self.mw_stacked_window.qwidget_data_export.import_para)
+                self.mw_stacked_window.qwidget_data_export.slot_import_para)
 #        绘图
         self.mw_paralist_window.signal_quick_plot.connect(
                 self.action_plot.trigger)
         self.mw_paralist_window.signal_quick_plot.connect(
-                self.mw_stacked_window.qwidget_plot.plot)
-        self.mw_paralist_window.signal_search_para.connect(
-                self.slot_search_para)
+                self.mw_stacked_window.qwidget_plot.slot_plot)
         self.mw_paralist_window.signal_close.connect(
                 self.slot_paralist_dock_close)
-        self.mw_paralist_window.signal_delete_files.connect(self.slot_delete_files)
-        
 
 # =============================================================================
 # Slots模块            
 # =============================================================================
-#    搜索参数并显示在参数窗口里
-    def slot_search_para(self, para_name):
-        
-        result = {}
-        if (para_name and self.datafile_group):
-            pattern = re.compile('.*' + para_name + '.*')
-            for file_dir in self.datafile_group:
-#                字典的推导式
-                 search_paras = [para for para
-                                 in self.datafile_group[file_dir]
-                                 if re.match(pattern, para)]
-                 if search_paras:
-                     result[file_dir] = search_paras
-        else:
-            result = self.datafile_group
-        self.mw_paralist_window.display_file_group(result, True)
-
 #    打开数据文件并将文件信息存入
     def slot_open_normal_datafile(self):
         
+        file_dirs = {}
         file_dir_list, ok = QFileDialog.getOpenFileNames(
                 self, 'Open', r'E:\\', "Datafiles (*.txt *.csv *.dat)")
         file_dir_list = [file.replace('/','\\') for file in file_dir_list]
         if file_dir_list:
             for file_dir in file_dir_list:
                 nor_file = Normal_DataFile(file_dir)
-                self.datafile_group[file_dir] = nor_file.paras_in_file
-        self.mw_paralist_window.display_file_group(self.datafile_group)
+                file_dirs[file_dir] = nor_file.paras_in_file
+        self.signal_import_datafiles.emit(file_dirs)
 
 #    与关于退出有关的显示
     def slot_exit(self):
@@ -355,26 +335,18 @@ class MainWindow(QMainWindow):
                     self.last_page.setChecked(False)
                     self.mw_stacked_window.show_page(4)
                     self.last_page = self.action_data_manage
-                    
-    def slot_delete_files(self, files):
-        
-        message = QMessageBox.warning(self,
-                      QCoreApplication.translate("MainWindow", "删除文件"),
-                      QCoreApplication.translate("MainWindow",
-                                                 """<p>确定要删除文件吗？"""),
-                      QMessageBox.Yes | QMessageBox.No)
-        if (message == QMessageBox.Yes):
-            if files:
-                for file in files:
-                    if (file in self.datafile_group):
-                        self.datafile_group.pop(file)
-            self.mw_paralist_window.display_file_group(self.datafile_group)
-    
 
 # =============================================================================
 # 功能函数模块
 # =============================================================================
-
+#    从文件中加载参数模板进入内存
+    def load_para_export_temps(self):
+        pass
+    
+#    将内存中的模板导出到文件
+    def out_para_export_temps(self):
+        pass
+    
 # =============================================================================
 # 汉化
 # =============================================================================

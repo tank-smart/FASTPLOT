@@ -42,7 +42,6 @@ class SelectedParasTree(QTreeWidget):
         super().__init__(parent)
 #        接受拖放
         self.setAcceptDrops(True)
-        self.paras = {}
         
 #    重写拖放相关的事件
 #    设置部件可接受的MIME type列表，此处的类型是自定义的
@@ -58,19 +57,19 @@ class SelectedParasTree(QTreeWidget):
 #     放下事件处理   
     def dropEvent(self, event : QDropEvent):
         
+        paras = {}
         if event.mimeData().hasFormat('application/x-parasname'):
             item_data = event.mimeData().data('application/x-parasname')
             item_stream = QDataStream(item_data, QIODevice.ReadOnly)
             while (not item_stream.atEnd()):
                 paraname = item_stream.readQString()
                 file_dir = item_stream.readQString()
-                if not (file_dir in self.paras):
-                    self.paras[file_dir] = []
-                    self.paras[file_dir].append(paraname)
+                if not (file_dir in paras):
+                    paras[file_dir] = []
+                    paras[file_dir].append(paraname)
                 else:
-                    self.paras[file_dir].append(paraname)  
-            self.signal_import_para.emit(self.paras)
-            self.paras = {}
+                    paras[file_dir].append(paraname)  
+            self.signal_import_para.emit(paras)
             event.acceptProposedAction()
         else:
             event.ignore()
@@ -84,13 +83,11 @@ class DataExportWindow(QWidget):
 # 初始化
 # =============================================================================
     def __init__(self, parent = None):
+        
         super().__init__(parent)
-#        选择的参数，键为文件路径，值为参数列表
-        self.sel_paras = {}
-#        存储试验点信息，第一个固定存储完整时间跨度
-        self.testpoints_info = []
 #        判断是否删除缺省试验点（即整段时间）
         self.default_testpoint_del = False
+        self.testpoint_count = 0
 #        设置文件与参数的图标
         self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
         self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
@@ -288,7 +285,7 @@ class DataExportWindow(QWidget):
 #        使右键时能弹出菜单
         self.tree_sel_para.customContextMenuRequested.connect(
                 self.on_tree_context_menu)
-        self.tree_sel_para.signal_import_para.connect(self.import_para)
+        self.tree_sel_para.signal_import_para.connect(self.slot_import_para)
         self.table_testpoint.cellChanged.connect(self.slot_table_item_changed)
         self.action_delete.triggered.connect(self.slot_delete_paras)
         self.button_confirm.clicked.connect(self.slot_confirm)
@@ -314,6 +311,63 @@ class DataExportWindow(QWidget):
             menu.addAction(self.action_delete)
             menu.exec_(self.tree_sel_para.mapToGlobal(pos))
 
+    def slot_import_para(self, paras_dict):
+        
+        if paras_dict:
+            for file_dir in paras_dict:
+#                判断是否导入的文件已经存在
+                index = self.index_in_files_tree(file_dir)
+                if  index != -1:
+                    ex_paras = []
+                    for para in paras_dict[file_dir]:
+#                        判断导入的参数是否已存在
+                        if self.is_in_sel_paras(para):
+                            ex_paras.append(para)
+                        else:
+                            child = QTreeWidgetItem(self.tree_sel_para.topLevelItem(index))
+                            child.setIcon(0,self.paraicon)
+                            child.setText(0,para)
+                            child.setText(1,para)
+                    if ex_paras:
+                        print_para = "<br>以下参数已存在："
+                        for pa in ex_paras:
+                            print_para += ("<br>" + pa)
+                        QMessageBox.information(self,
+                                QCoreApplication.translate("DataExportWindow", "导入提示"),
+                                QCoreApplication.translate("DataExportWindow",
+                                                           print_para))
+                else:
+                    tr = Normal_DataFile(file_dir).time_range
+                    row_count = self.table_testpoint.rowCount()
+                    if row_count == 0:
+                        self.table_testpoint.insertRow(0)
+                        name = QTableWidgetItem("Default(total time)")
+                        name.setData(Qt.UserRole, "Default(total time)")
+                        name.setFlags(Qt.NoItemFlags)
+                        self.table_testpoint.setItem(0, 0, name)
+                        start = QTableWidgetItem(tr[0])
+                        start.setData(Qt.UserRole, tr[0])
+                        start.setFlags(Qt.NoItemFlags) 
+                        self.table_testpoint.setItem(0, 1, start)
+                        end = QTableWidgetItem(tr[1])
+                        end.setData(Qt.UserRole, tr[1])
+                        end.setFlags(Qt.NoItemFlags) 
+                        self.table_testpoint.setItem(0, 2, end)
+                        filename = QTableWidgetItem("Untitled")
+                        filename.setData(Qt.UserRole, "Untitled")
+                        self.table_testpoint.setItem(0, 3, filename)
+
+                        self.add_file_para(file_dir, paras_dict[file_dir])
+                    else:
+                        if (self.table_testpoint.item(0, 1).data(Qt.UserRole) == tr[0] and 
+                            self.table_testpoint.item(0, 2).data(Qt.UserRole) == tr[1]):
+                            self.add_file_para(file_dir, paras_dict[file_dir])
+                        else:
+                            QMessageBox.information(self,
+                                    QCoreApplication.translate("DataExportWindow", "导入错误"),
+                                    QCoreApplication.translate("DataExportWindow", "文件时间不一致"))
+        self.tree_sel_para.expandAll()
+
 #    让用户选择项目的路径
     def slot_sel_dir(self):
         
@@ -333,32 +387,43 @@ class DataExportWindow(QWidget):
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:
-                    if item.parent():
-                        file = item.parent().data(0, Qt.UserRole)
-                        self.sel_paras[file].remove(item.text(0))
-#                        删除参数后，清除已没有参数的文件
-                        if len(self.sel_paras[file]) == 0:
-                            self.sel_paras.pop(file)
-                            if len(self.sel_paras) == 0:
-                                self.testpoints_info = []
-                self.display_sel_para()
-                self.display_testpoints()
+#                    判断选中的是参数还是文件
+                    parent = item.parent() 
+                    if parent:
+                        child_index = parent.indexOfChild(item)
+                        parent.takeChild(child_index)
+                        if parent.childCount():
+                            index = self.tree_sel_para.indexOfTopLevelItem(parent)
+                            self.tree_sel_para.takeTopLevelItem(index)
+                            if self.tree_sel_para.topLevelItemCount():
+                                self.table_testpoint.clearContents()
+                                self.table_testpoint.setRowCount(0)
                 
 #    确认导出            
     def slot_confirm(self):
 
         if self.can_export():
             filetype_index = self.combo_box_file_type.currentIndex()
-            for test_p in self.testpoints_info:
+            row_count = self.table_testpoint.rowCount()
+            for i in range(row_count):
+                filename = self.table_testpoint.item(i, 3).data(Qt.UserRole)
                 filepath = (self.line_edit_location.text() +
-                            test_p[3] +
+                            filename +
                             self.combo_box_file_type.currentData(Qt.UserRole))
-                if test_p[3]:
+                if filename != ' ':
                     df_list = []
-                    for filedir in self.sel_paras:
+                    count = self.tree_sel_para.topLevelItemCount()
+                    for i in range(count):
+                        filedir = self.tree_sel_para.topLevelItem(i).data(0, Qt.UserRole)
                         file = Normal_DataFile(filedir)
-                        cols = self.sel_paras[filedir]
-                        df = file.cols_input(filedir, cols, '\s+', test_p[1], test_p[2])
+                        cols = []
+                        paras_count = self.tree_sel_para.topLevelItem(i).childCount()
+                        for child_index in range(paras_count):
+                            paraname = self.tree_sel_para.topLevelItem(i).child(child_index).text(0)
+                            cols.append(paraname)
+                        df = file.cols_input(filedir, cols, '\s+', 
+                                             self.table_testpoint.item(i, 1).data(Qt.UserRole),
+                                             self.table_testpoint.item(i, 2).data(Qt.UserRole))
                         df_list.append(df)
                     df_all = pd.concat(df_list,axis = 1,join = 'outer',
                                        ignore_index = False) #merge different dataframe
@@ -381,8 +446,7 @@ class DataExportWindow(QWidget):
                 QCoreApplication.translate("DataExportWindow", "没有选择参数或文件"))            
 #    重置
     def slot_reset(self):
-        self.sel_paras = {}
-        self.testpoints_info = []
+        
         self.default_testpoint_del = False
         self.tree_sel_para.clear()
         self.table_testpoint.clearContents()
@@ -393,163 +457,181 @@ class DataExportWindow(QWidget):
     def slot_table_item_changed(self, row, col):
         
         item = self.table_testpoint.item(row, col)
+        def_start_item = self.table_testpoint.item(0, 1)
+        def_end_item = self.table_testpoint.item(0, 2)
+        start_item = self.table_testpoint.item(row, 1)
+        end_item = self.table_testpoint.item(row, 2)
         changed_str =  item.data(Qt.DisplayRole)
-        if changed_str:
-    #        第一行存储的试验点名和起止时间不能改变
-            if (row != 0 or col == 3):
-                if col == 1 or col == 2:
-                    if Time.is_std_format(changed_str):
-                        if col == 1:
-                            is_in = Time.is_in_range(self.testpoints_info[0][1],
-                                                     self.testpoints_info[row][2],
-                                                     changed_str)
-                        if col == 2:
-                            is_in = Time.is_in_range(self.testpoints_info[row][1],
-                                                     self.testpoints_info[0][2],
-                                                     changed_str)
-                        if is_in:
-                            self.testpoints_info[row][col] = changed_str
-                        else:
-                            QMessageBox.information(self,
-                                    QCoreApplication.translate("DataExportWindow", "时间错误"),
-                                    QCoreApplication.translate("DataExportWindow", "时间不在范围内"))
-                            item.setData(Qt.DisplayRole, self.testpoints_info[row][col])
+#        这样判断是为了保证后面的语句不会访问不存在变量
+        if changed_str and def_start_item and def_end_item and start_item and end_item:
+            if (col == 1 or col == 2):
+                if Time.is_std_format(changed_str): 
+                    if col == 1:
+                        lim_start = def_start_item.data(Qt.UserRole)
+                        lim_end = end_item.data(Qt.UserRole)
+                        is_in = Time.is_in_range(lim_start,
+                                                 lim_end,
+                                                 changed_str)
+                    if col == 2:
+                        lim_start = start_item.data(Qt.UserRole)
+                        lim_end = def_end_item.data(Qt.UserRole)
+                        is_in = Time.is_in_range(lim_start,
+                                                 lim_end,
+                                                 changed_str)
+                    if is_in:
+                        item.setText(changed_str)
+                        item.setData(Qt.UserRole, changed_str)
                     else:
                         QMessageBox.information(self,
                                 QCoreApplication.translate("DataExportWindow", "时间错误"),
-                                QCoreApplication.translate("DataExportWindow", "时间格式错误"))
-                        item.setData(Qt.DisplayRole, self.testpoints_info[row][col])
+                                QCoreApplication.translate("DataExportWindow", "时间不在范围内"))
+                        item.setData(Qt.DisplayRole, item.data(Qt.UserRole))
                 else:
-                    self.testpoints_info[row][col] = changed_str
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("DataExportWindow", "时间错误"),
+                            QCoreApplication.translate("DataExportWindow", "时间格式错误"))
+                    item.setData(Qt.DisplayRole, item.data(Qt.UserRole))
             else:
-                item.setData(Qt.DisplayRole, self.testpoints_info[row][col])
+                item.setText(changed_str)
+                item.setData(Qt.UserRole, changed_str)
         else:
-            item.setData(Qt.DisplayRole, self.testpoints_info[row][col])
+            item.setData(Qt.DisplayRole, item.data(Qt.UserRole))
             
     def slot_add_testpoint(self):
-        
-        if self.testpoints_info:
-            t_name = 'Testpoint' + str(len(self.testpoints_info))
-            self.testpoints_info.append([t_name, self.testpoints_info[0][1],
-                                         self.testpoints_info[0][2],
-                                         t_name + ' datafile'])
-            self.display_testpoints()
+
+        row_count = self.table_testpoint.rowCount()
+        if row_count:
+            self.testpoint_count += 1
+            self.table_testpoint.insertRow(row_count)
+            t_name = 'Testpoint' + str(self.testpoint_count)
+            lim_start = self.table_testpoint.item(0, 1).data(Qt.UserRole)
+            lim_end = self.table_testpoint.item(0, 2).data(Qt.UserRole)
+            
+            name = QTableWidgetItem(t_name)
+            name.setData(Qt.UserRole, t_name)
+            self.table_testpoint.setItem(row_count, 0, name)
+            start = QTableWidgetItem(lim_start)
+            start.setData(Qt.UserRole, lim_start)
+            self.table_testpoint.setItem(row_count, 1, start)
+            end = QTableWidgetItem(lim_end)
+            end.setData(Qt.UserRole, lim_end)
+            self.table_testpoint.setItem(row_count, 2, end)
+            filename = QTableWidgetItem(t_name + ' datafile')
+            filename.setData(Qt.UserRole, t_name + ' datafile')
+            self.table_testpoint.setItem(row_count, 3, filename)
     
     def slot_copy_testpoint(self):
         
         row = self.table_testpoint.currentRow()
-#        不能使用testpoint = self.testpoints_info[row]代替下面这条语句，
-#        因为上面这条相等于引用而不是拷贝对象
-        t_name = 'Testpoint' + str(len(self.testpoints_info))
-        testpoint = [t_name, self.testpoints_info[row][1],
-                     self.testpoints_info[row][2],t_name + ' datafile']
+
         if row >= 0:
-            self.testpoints_info.append(testpoint)
-            self.display_testpoints()
+            self.testpoint_count += 1
+            row_count = self.table_testpoint.rowCount()
+            self.table_testpoint.insertRow(row_count)
+            t_name = 'Testpoint' + str(self.testpoint_count)
+            lim_start = self.table_testpoint.item(row, 1).data(Qt.UserRole)
+            lim_end = self.table_testpoint.item(row, 2).data(Qt.UserRole)
+            
+            name = QTableWidgetItem(t_name)
+            name.setData(Qt.UserRole, t_name)
+            self.table_testpoint.setItem(row_count, 0, name)
+            start = QTableWidgetItem(lim_start)
+            start.setData(Qt.UserRole, lim_start)
+            self.table_testpoint.setItem(row_count, 1, start)
+            end = QTableWidgetItem(lim_end)
+            end.setData(Qt.UserRole, lim_end)
+            self.table_testpoint.setItem(row_count, 2, end)
+            filename = QTableWidgetItem(t_name + ' datafile')
+            filename.setData(Qt.UserRole, t_name + ' datafile')
+            self.table_testpoint.setItem(row_count, 3, filename)
     
     def slot_delete_testpoint(self):
         
         row = self.table_testpoint.currentRow()
         if row > 0:
-            self.testpoints_info.pop(row)
+            self.table_testpoint.removeRow(row)
         if row == 0:
             self.default_testpoint_del = True
-            self.testpoints_info[0][3] = ''
-        self.display_testpoints()
+            self.table_testpoint.item(0, 3).setText(' ')
+            self.table_testpoint.item(0, 3).setData(Qt.UserRole, ' ')
+            self.table_testpoint.item(0, 3).setFlags(Qt.NoItemFlags)
     
 # =============================================================================
 # 功能函数模块
 # =============================================================================
-    def import_para(self, paras_with_file):
+    def index_in_files_tree(self, file_dir):
         
-        if paras_with_file:
-            for file in paras_with_file:
-#                判断是否导入的文件已经存在
-                if (file in self.sel_paras):
-#                    此变量用于判断导入的参数是否已存在，存在的话提示用户
-                    is_exit = False
-                    for para in paras_with_file[file]:
-#                        判断导入的参数是否已存在
-                        if (self.sel_paras[file].count(para) == 0):
-                            self.sel_paras[file].append(para)
-                        else:
-                            is_exit = True
-                    if is_exit:
-                        QMessageBox.information(self,
-                                QCoreApplication.translate("DataExportWindow", "导入提示"),
-                                QCoreApplication.translate("DataExportWindow", "参数已存在")) 
-                else:
-                    tr = Normal_DataFile(file).time_range
-                    if not self.testpoints_info:
-                        self.testpoints_info.append([])
-                        self.testpoints_info[0].append("Default(total time)")
-                        self.testpoints_info[0].append(tr[0])
-                        self.testpoints_info[0].append(tr[1])
-                        self.testpoints_info[0].append("Untitled")
-                        self.sel_paras[file] = paras_with_file[file]
-                    else:
-                        if (self.testpoints_info[0][1] == tr[0] and 
-                            self.testpoints_info[0][2] == tr[1]):
-                            self.sel_paras[file] = paras_with_file[file]
-                        else:
-                            QMessageBox.information(self,
-                                    QCoreApplication.translate("DataExportWindow", "导入错误"),
-                                    QCoreApplication.translate("DataExportWindow", "文件时间不一致"))
-                            
-#        每次导入参数后都需要更新已选参数的显示
-        self.display_sel_para()
-        self.display_testpoints()
+        count = self.tree_sel_para.topLevelItemCount()
+        for index in range(count):
+            fd = self.tree_sel_para.topLevelItem(index).data(0, Qt.UserRole)
+            if file_dir == fd:
+                return index
+        return -1
     
-    def display_sel_para(self):
+    def is_in_sel_paras(self, para):
 
-#        不确定是否真的删除了
-        self.tree_sel_para.clear()        
-        if self.sel_paras:  #file_name is a dict
-            for file_dir in self.sel_paras:
-                if (len(self.sel_paras[file_dir]) > 0):
-                    root = QTreeWidgetItem(self.tree_sel_para) #QTreeWidgetItem object: root
-    #                设置图标
-                    root.setIcon(0,self.fileicon)
-    #                显示文件名而不是路径
-                    pos = file_dir.rindex('\\')
-                    filename = file_dir[pos+1:]
-                    root.setText(0, filename) #set text of treewidget
-    #                将路径作为数据存入item中
-                    root.setData(0, Qt.UserRole, file_dir)
-                    for para in self.sel_paras[file_dir]:
-                        child = QTreeWidgetItem(root)  #child of root
-                        child.setIcon(0,self.paraicon)
-                        child.setText(0,para)
-                        child.setText(1,para)
-                        
-                    self.tree_sel_para.expandAll()
-                    
-    def display_testpoints(self):
+        count = self.tree_sel_para.topLevelItemCount()
+        for i in range(count):
+            item = self.tree_sel_para.topLevelItem(i)
+            child_count = item.childCount()
+            for child_index in range(child_count):
+                paraname = item.child(child_index).text(0)
+                if para == paraname:
+                    return True
+        return False
+
+    def add_file_para(self, file_dir, paras):
+
+        root = QTreeWidgetItem(self.tree_sel_para)
+        root.setIcon(0,self.fileicon)
+        pos = file_dir.rindex('\\')
+        filename = file_dir[pos+1:]
+        root.setText(0, filename)
+        root.setData(0, Qt.UserRole, file_dir)
+        root.setFlags(Qt.ItemIsEnabled)
         
-        i = 0
-        j = 0
-        self.table_testpoint.clearContents()
-        self.table_testpoint.setRowCount(len(self.testpoints_info))
-        if self.testpoints_info:
-            for test_p in self.testpoints_info:
-                j = 0
-                for info in test_p:
-                    info_item = QTableWidgetItem(info)
-#                    缺省的试验点被删除后设置不可用
-                    if i == 0:
-                        if j != 3 or self.default_testpoint_del:
-                            info_item.setFlags(Qt.NoItemFlags)
-                    self.table_testpoint.setItem(i, j, info_item)
-                    j += 1
-                i += 1
+        for para in paras:
+            child = QTreeWidgetItem(root)
+            child.setIcon(0,self.paraicon)
+            child.setText(0,para)
+            child.setText(1,para)
+        
+    def get_dict_sel_paras(self):
+        
+        result = {}
+        if self.tree_sel_para:
+            count = self.tree_sel_para.topLevelItemCount()
+            for i in range(count):
+                item = self.tree_sel_para.topLevelItem(i)
+                file_dir = item.data(0, Qt.UserRole)
+                result[file_dir] = []
+                child_count = item.childCount()
+                for child_index in range(child_count):
+                    paraname = item.child(child_index).text(0)
+                    result[file_dir].append(paraname)
+        return result
+  
+    def get_list_testpoints(self):
+        
+        result = []
+        if self.table_testpoint:
+            row_count = self.table_testpoint.rowCount()
+            for i in range(row_count):
+                testpoint = []
+                testpoint.append(self.table_testpoint.item(i, 0).data(Qt.UserRole))
+                testpoint.append(self.table_testpoint.item(i, 1).data(Qt.UserRole))
+                testpoint.append(self.table_testpoint.item(i, 2).data(Qt.UserRole))
+                testpoint.append(self.table_testpoint.item(i, 3).data(Qt.UserRole))
+                result.append(testpoint)
+        return result
     
 #    判断是否可以导出
     def can_export(self):
         
-        if (self.sel_paras and self.line_edit_location.text()):
-            if ((not self.default_testpoint_del) and len(self.testpoints_info) >= 1):
+        if (self.tree_sel_para.topLevelItemCount and self.line_edit_location.text()):
+            if ((not self.default_testpoint_del) and self.table_testpoint.rowCount() >= 1):
                 return True
-            if (self.default_testpoint_del and len(self.testpoints_info) > 1):
+            if (self.default_testpoint_del and self.table_testpoint.rowCount() > 1):
                 return True
         else:
             return False

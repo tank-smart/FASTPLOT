@@ -17,7 +17,7 @@ sys.path.append(r"E:\DAGUI\lib")
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem, QFrame, 
+from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy)
 from PyQt5.QtCore import QCoreApplication, QSize
 from PyQt5.QtGui import QIcon
@@ -147,6 +147,12 @@ class PlotWindow(QWidget):
 # =============================================================================
 # slots模块
 # =============================================================================
+    def slot_plot(self, filegroup):
+        
+        if filegroup:         
+            for file in filegroup:
+                self.plotcanvas.subplot_para(file, filegroup[file])
+
     def slot_home(self):
         self.plotcanvas.toolbar.home()
         
@@ -196,11 +202,6 @@ class PlotWindow(QWidget):
 # =============================================================================
 # 功能函数模块
 # =============================================================================
-    def plot(self, filegroup):
-        
-        if filegroup:         
-            for file in filegroup:
-                self.plotcanvas.subplot_para(file, filegroup[file])
                 
     
     
