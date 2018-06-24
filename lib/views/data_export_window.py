@@ -21,16 +21,17 @@ from PyQt5.QtCore import (Qt, QCoreApplication, QSize, pyqtSignal,
 from PyQt5.QtGui import QIcon, QDropEvent, QDragEnterEvent
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QTreeWidget, 
                              QTreeWidgetItem, QSpacerItem, QLineEdit, 
-                             QMenu, QMessageBox, QToolButton, QFileDialog,
-                             QAction, QSizePolicy, QVBoxLayout,QHBoxLayout,
+                             QMessageBox, QToolButton, QFileDialog,
+                             QSizePolicy, QVBoxLayout,QHBoxLayout,
                              QAbstractItemView, QFrame, QTableWidget,
-                             QTableWidgetItem, QComboBox)
+                             QTableWidgetItem, QComboBox, QDialog)
 
 # =============================================================================
 # Package models imports
 # =============================================================================
 from models.datafile_model import DataFile, Normal_DataFile
 import models.time_model as Time
+from custom_dialog import SelectTemplateDialog, SaveTemplateDialog
 # =============================================================================
 # SelectedParasTree
 # =============================================================================
@@ -78,7 +79,9 @@ class SelectedParasTree(QTreeWidget):
 # DataExportWindow
 # =============================================================================
 class DataExportWindow(QWidget):
- 
+
+    signal_get_export_temps = pyqtSignal()
+    signal_save_temp = pyqtSignal(dict)
 # =============================================================================
 # 初始化
 # =============================================================================
@@ -169,16 +172,41 @@ class DataExportWindow(QWidget):
         self.label_sel_para.setMaximumSize(QSize(16777215, 24))
         self.label_sel_para.setObjectName("label_sel_para")
         self.vlayout_sel_para.addWidget(self.label_sel_para)
+        
+        self.hlayout_paras_tool = QHBoxLayout()
+        self.hlayout_paras_tool.setSpacing(2)
+        self.hlayout_paras_tool.setObjectName("hlayout_paras_tool")
+        self.tool_button_sel_temp = QToolButton(self)
+        self.tool_button_sel_temp.setMinimumSize(QSize(24, 24))
+        self.tool_button_sel_temp.setMaximumSize(QSize(24, 24))
+        self.tool_button_sel_temp.setObjectName("tool_button_sel_temp")
+        self.tool_button_sel_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\use_template.ico"))
+        self.hlayout_paras_tool.addWidget(self.tool_button_sel_temp)
+        self.tool_button_save_temp = QToolButton(self)
+        self.tool_button_save_temp.setMinimumSize(QSize(24, 24))
+        self.tool_button_save_temp.setMaximumSize(QSize(24, 24))
+        self.tool_button_save_temp.setObjectName("tool_button_save_temp")
+        self.tool_button_save_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\save_template.ico"))
+        self.hlayout_paras_tool.addWidget(self.tool_button_save_temp)
+        self.tool_button_del_para = QToolButton(self)
+        self.tool_button_del_para.setMinimumSize(QSize(24, 24))
+        self.tool_button_del_para.setMaximumSize(QSize(24, 24))
+        self.tool_button_del_para.setObjectName("tool_button_del_para")
+        self.tool_button_del_para.setIcon(QIcon(r"E:\DAGUI\lib\icon\delete.ico"))
+        self.hlayout_paras_tool.addWidget(self.tool_button_del_para)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hlayout_paras_tool.addItem(spacerItem)
+        self.vlayout_sel_para.addLayout(self.hlayout_paras_tool)
+        
 #        使用自定义的树控件
         self.tree_sel_para = SelectedParasTree(self)
         self.tree_sel_para.setColumnCount(2)
         self.tree_sel_para.setObjectName("tree_sel_para")
         self.tree_sel_para.header().setDefaultSectionSize(225)
         self.tree_sel_para.header().setMinimumSectionSize(225)
-#        让树可支持右键菜单
-        self.tree_sel_para.setContextMenuPolicy(Qt.CustomContextMenu)
         self.tree_sel_para.setSelectionMode(
                 QAbstractItemView.ExtendedSelection)
+        
         self.vlayout_sel_para.addWidget(self.tree_sel_para)
         self.hlayout_selpara_and_output.addLayout(self.vlayout_sel_para)        
         self.line_2 = QFrame(self)
@@ -275,67 +303,45 @@ class DataExportWindow(QWidget):
         self.line.raise_()
         self.line_2.raise_()
         self.line_3.raise_()
- 
-        self.action_delete = QAction(self)
-
 
 # =======连接信号与槽
 # =============================================================================
         self.button_sel_dir.clicked.connect(self.slot_sel_dir)
-#        使右键时能弹出菜单
-        self.tree_sel_para.customContextMenuRequested.connect(
-                self.on_tree_context_menu)
+        
         self.tree_sel_para.signal_import_para.connect(self.slot_import_para)
         self.table_testpoint.cellChanged.connect(self.slot_table_item_changed)
-        self.action_delete.triggered.connect(self.slot_delete_paras)
         self.button_confirm.clicked.connect(self.slot_confirm)
         self.button_reset.clicked.connect(self.slot_reset)
         self.tool_button_add.clicked.connect(self.slot_add_testpoint)
         self.tool_button_copy.clicked.connect(self.slot_copy_testpoint)
         self.tool_button_delete.clicked.connect(self.slot_delete_testpoint)
         
+        self.tool_button_del_para.clicked.connect(self.slot_delete_paras)
+        self.tool_button_save_temp.clicked.connect(self.slot_save_temp)
+        self.tool_button_sel_temp.clicked.connect(self.signal_get_export_temps)
+        
         self.retranslateUi()
 
 # =============================================================================
 # Slots模块
 # =============================================================================
-#    右键菜单的事件处理
-    def on_tree_context_menu(self, pos):
-        #        记录右击时鼠标所在的item
-        sel_item = self.tree_sel_para.itemAt(pos)
-        
-#        如果鼠标不在item上，不显示右键菜单
-        if sel_item:
-#            创建菜单，添加动作，显示菜单
-            menu = QMenu(self.tree_sel_para)
-            menu.addAction(self.action_delete)
-            menu.exec_(self.tree_sel_para.mapToGlobal(pos))
-
     def slot_import_para(self, paras_dict):
         
         if paras_dict:
+            ex_paras = []
             for file_dir in paras_dict:
 #                判断是否导入的文件已经存在
                 index = self.index_in_files_tree(file_dir)
                 if  index != -1:
-                    ex_paras = []
                     for para in paras_dict[file_dir]:
 #                        判断导入的参数是否已存在
-                        if self.is_in_sel_paras(para):
+                        if self.is_in_sel_paras(file_dir, para):
                             ex_paras.append(para)
                         else:
                             child = QTreeWidgetItem(self.tree_sel_para.topLevelItem(index))
                             child.setIcon(0,self.paraicon)
                             child.setText(0,para)
                             child.setText(1,para)
-                    if ex_paras:
-                        print_para = "<br>以下参数已存在："
-                        for pa in ex_paras:
-                            print_para += ("<br>" + pa)
-                        QMessageBox.information(self,
-                                QCoreApplication.translate("DataExportWindow", "导入提示"),
-                                QCoreApplication.translate("DataExportWindow",
-                                                           print_para))
                 else:
                     tr = Normal_DataFile(file_dir).time_range
                     row_count = self.table_testpoint.rowCount()
@@ -366,6 +372,14 @@ class DataExportWindow(QWidget):
                             QMessageBox.information(self,
                                     QCoreApplication.translate("DataExportWindow", "导入错误"),
                                     QCoreApplication.translate("DataExportWindow", "文件时间不一致"))
+            if ex_paras:
+                print_para = "<br>以下参数已存在："
+                for pa in ex_paras:
+                    print_para += ("<br>" + pa)
+                QMessageBox.information(self,
+                        QCoreApplication.translate("DataExportWindow", "导入提示"),
+                        QCoreApplication.translate("DataExportWindow",
+                                                   print_para))
         self.tree_sel_para.expandAll()
 
 #    让用户选择项目的路径
@@ -392,12 +406,73 @@ class DataExportWindow(QWidget):
                     if parent:
                         child_index = parent.indexOfChild(item)
                         parent.takeChild(child_index)
-                        if parent.childCount():
+                        if parent.childCount() == 0:
                             index = self.tree_sel_para.indexOfTopLevelItem(parent)
                             self.tree_sel_para.takeTopLevelItem(index)
-                            if self.tree_sel_para.topLevelItemCount():
+                            if self.tree_sel_para.topLevelItemCount() == 0:
                                 self.table_testpoint.clearContents()
                                 self.table_testpoint.setRowCount(0)
+
+#    选择参数导出模板
+    def slot_sel_temp(self, dict_files, templates):
+
+        if templates:
+            export_paras = {}
+            dialog = SelectTemplateDialog(self, templates)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                if dict_files:
+        #            遍历文件，搜索是否存在模板中的参数
+        #            不同文件下的同一参数都会找出（这样耗时较长）
+        #            也可以找到第一个就停止
+                    for paraname in templates[dialog.sel_temp]:
+                        for file_dir in dict_files:
+                            if paraname in dict_files[file_dir]:
+                                if file_dir in export_paras:
+                                    export_paras[file_dir].append(paraname)
+                                else:
+                                    export_paras[file_dir] = []
+                                    export_paras[file_dir].append(paraname)
+        #                        加入以下语句实现找到第一个就停止的功能
+        #                        break
+                    self.slot_import_para(export_paras)
+                else:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("DataExportWindow", "导入模板错误"),
+                            QCoreApplication.translate("DataExportWindow", "没有发现数据文件"))
+        else:
+            QMessageBox.information(self,
+                    QCoreApplication.translate("DataExportWindow", "导入模板错误"),
+                    QCoreApplication.translate("DataExportWindow", "没有模板"))            
+
+#    保存参数导出模板
+    def slot_save_temp(self):
+        
+        count = self.tree_sel_para.topLevelItemCount()
+        if count:
+            temp = {}
+            dialog = SaveTemplateDialog(self)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                temp_name = dialog.temp_name
+                if temp_name:
+                    temp[temp_name] = []
+                    dict_paras = self.get_dict_sel_paras()
+                    for file_dir in dict_paras:
+                        for paraname in dict_paras[file_dir]:
+                            if paraname in temp[temp_name]:
+                                pass
+                            else:
+                                temp[temp_name].append(paraname)
+                    self.signal_save_temp.emit(temp)
+                else:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("DataExportWindow", "输入提示"),
+                            QCoreApplication.translate("DataExportWindow", "未输入模板名"))
+        else:
+            QMessageBox.information(self,
+                    QCoreApplication.translate("DataExportWindow", "保存错误"),
+                    QCoreApplication.translate("DataExportWindow", "没有发现参数"))
                 
 #    确认导出            
     def slot_confirm(self):
@@ -568,15 +643,16 @@ class DataExportWindow(QWidget):
                 return index
         return -1
     
-    def is_in_sel_paras(self, para):
+    def is_in_sel_paras(self, file_dir, para):
 
         count = self.tree_sel_para.topLevelItemCount()
         for i in range(count):
             item = self.tree_sel_para.topLevelItem(i)
+            filename = item.data(0, Qt.UserRole)
             child_count = item.childCount()
             for child_index in range(child_count):
                 paraname = item.child(child_index).text(0)
-                if para == paraname:
+                if para == paraname and file_dir == filename:
                     return True
         return False
 
@@ -646,9 +722,9 @@ class DataExportWindow(QWidget):
         self.tree_sel_para.headerItem().setText(0, _translate("DataExportWindow", "初始参数名"))
         self.tree_sel_para.headerItem().setText(1, _translate("DataExportWindow", "参数输出名"))
         self.label_sel_testpoint.setText(_translate("DataExportWindow", "已选试验点"))
-        self.tool_button_add.setText(_translate("DataExportWindow", "ADD"))
-        self.tool_button_delete.setText(_translate("DataExportWindow", "DEL"))
-        self.tool_button_copy.setText(_translate("DataExportWindow", "COPY"))
+        self.tool_button_add.setToolTip(_translate("DataExportWindow", "新增试验点"))
+        self.tool_button_delete.setToolTip(_translate("DataExportWindow", "删除试验点"))
+        self.tool_button_copy.setToolTip(_translate("DataExportWindow", "拷贝试验点"))
         item = self.table_testpoint.horizontalHeaderItem(0)
         item.setText(_translate("DataExportWindow", "试验点"))
         item = self.table_testpoint.horizontalHeaderItem(1)
@@ -666,4 +742,6 @@ class DataExportWindow(QWidget):
         self.button_sel_dir.setText(_translate("DataExportWindow", "..."))
         self.button_confirm.setText(_translate("DataExportWindow", "确认导出"))
         self.button_reset.setText(_translate("DataExportWindow", "重置"))
-        self.action_delete.setText(_translate("DataExport", "删除参数"))
+        self.tool_button_del_para.setToolTip(_translate("DataExportWindow", "删除参数"))
+        self.tool_button_save_temp.setToolTip(_translate("DataExportWindow", "保存模板"))
+        self.tool_button_sel_temp.setToolTip(_translate("DataExportWindow", "选择模板"))

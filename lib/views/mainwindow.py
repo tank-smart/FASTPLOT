@@ -20,23 +20,27 @@ import sys
 # Qt imports
 # =============================================================================
 from PyQt5.QtCore import QObject,QSize, QRect, Qt, QCoreApplication, pyqtSignal
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtGui import QIcon, QFont, QCloseEvent
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar, 
                              QFileDialog, QMessageBox, QMenu, QToolBar, 
-                             QAction, QStatusBar, QHBoxLayout)
+                             QAction, QStatusBar, QHBoxLayout, QStackedWidget)
 
 # =============================================================================
 # Package views imports
 # =============================================================================
-from stacked_window import StackedWindow
+from data_export_window import DataExportWindow
+from plot_window import PlotWindow
 from paralist_window import ParalistWindow
 from models.datafile_model import Normal_DataFile
+from data_manage_window import DataManageWindow
 # =============================================================================
 # Main Window
 # =============================================================================
 class MainWindow(QMainWindow):   
 
     signal_import_datafiles = pyqtSignal(dict)
+    signal_send_export_temps = pyqtSignal(dict, dict)
+    signal_send_plot_temps = pyqtSignal(dict, dict)
 # =============================================================================
 # 初始化
 # =============================================================================
@@ -49,6 +53,8 @@ class MainWindow(QMainWindow):
         self.resultfile_group = []
 #        导出参数的模板
         self.para_export_temps = {}
+#        绘图的模板
+        self.plot_temps = {}
 
 # =============================================================================
 # UI模块
@@ -56,7 +62,7 @@ class MainWindow(QMainWindow):
     def setup(self):
         
 #        加载参数模板到内存，给para_export_temps赋值
-        self.load_para_export_temps()
+        self.load_temps()
 #        定义主窗口
 #        主窗口内统一使用一种字体
         font = QFont()
@@ -67,8 +73,21 @@ class MainWindow(QMainWindow):
         self.setWindowState(Qt.WindowMaximized)
 
 #        创建堆叠窗口        
-        self.mw_stacked_window = StackedWindow(self)
-        self.mw_stacked_window.setup()
+        self.mw_stacked_window = QStackedWidget(self)
+        self.data_export_page = DataExportWindow(self)
+        self.data_export_page.setup()
+        self.mw_stacked_window.addWidget(self.data_export_page)
+        self.plot_page = PlotWindow(self)
+        self.plot_page.setup()
+        self.mw_stacked_window.addWidget(self.plot_page)
+        self.mathematics_page = QWidget(self)
+        self.mw_stacked_window.addWidget(self.mathematics_page)
+        self.data_analysis_page = QWidget(self)
+        self.mw_stacked_window.addWidget(self.data_analysis_page)
+        self.data_manage_page = DataManageWindow(self)
+        self.data_manage_page.setup()
+        self.mw_stacked_window.addWidget(self.data_manage_page)
+        self.mw_stacked_window.setCurrentIndex(0)
         self.mw_stacked_window.hide()
 
 #        创建参数列表窗口
@@ -132,10 +151,10 @@ class MainWindow(QMainWindow):
         self.action_mathematics.setObjectName("action_mathematics")
         self.action_mathematics.setIcon(QIcon(r"E:\DAGUI\lib\icon\caculator.ico"))
         self.action_mathematics.setCheckable(True)
-        self.action_data_manipulation = QAction(self)
-        self.action_data_manipulation.setObjectName("action_data_manipulation")
-        self.action_data_manipulation.setIcon(QIcon(r"E:\DAGUI\lib\icon\datamanipulate.ico"))
-        self.action_data_manipulation.setCheckable(True)
+        self.action_data_analysis = QAction(self)
+        self.action_data_analysis.setObjectName("action_data_analysis")
+        self.action_data_analysis.setIcon(QIcon(r"E:\DAGUI\lib\icon\datamanipulate.ico"))
+        self.action_data_analysis.setCheckable(True)
         self.action_data_manage = QAction(self)
         self.action_data_manage.setObjectName("action_data_manage")
         self.action_data_manage.setIcon(QIcon(r"E:\DAGUI\lib\icon\datamanage.ico"))
@@ -165,7 +184,7 @@ class MainWindow(QMainWindow):
         self.menu_view.addAction(self.action_paralist_dock_isclosed)
         self.menu_tools.addAction(self.action_plot)
         self.menu_tools.addAction(self.action_mathematics)
-        self.menu_tools.addAction(self.action_data_manipulation)
+        self.menu_tools.addAction(self.action_data_analysis)
         self.menu_tools.addAction(self.action_data_manage)
         self.menu_tools.addAction(self.action_options)
         self.menu_help.addAction(self.action_about)
@@ -183,7 +202,7 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.action_export_data)
         self.toolbar.addAction(self.action_plot)
         self.toolbar.addAction(self.action_mathematics)
-        self.toolbar.addAction(self.action_data_manipulation)
+        self.toolbar.addAction(self.action_data_analysis)
         self.toolbar.addAction(self.action_data_manage)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.action_about)
@@ -199,7 +218,7 @@ class MainWindow(QMainWindow):
         self.action_export_data.triggered.connect(self.slot_show_page)
         self.action_plot.triggered.connect(self.slot_show_page)
         self.action_mathematics.triggered.connect(self.slot_show_page)
-        self.action_data_manipulation.triggered.connect(self.slot_show_page)
+        self.action_data_analysis.triggered.connect(self.slot_show_page)
         self.action_data_manage.triggered.connect(self.slot_show_page)
 #        按下视图菜单栏下的关闭动作
         self.action_paralist_dock_isclosed.triggered.connect(
@@ -216,18 +235,37 @@ class MainWindow(QMainWindow):
         self.mw_paralist_window.signal_export_para.connect(
                 self.action_export_data.trigger)
         self.mw_paralist_window.signal_export_para.connect(
-                self.mw_stacked_window.qwidget_data_export.slot_import_para)
+                self.data_export_page.slot_import_para)
 #        绘图
         self.mw_paralist_window.signal_quick_plot.connect(
                 self.action_plot.trigger)
         self.mw_paralist_window.signal_quick_plot.connect(
-                self.mw_stacked_window.qwidget_plot.slot_plot)
+                self.plot_page.slot_plot)
         self.mw_paralist_window.signal_close.connect(
                 self.slot_paralist_dock_close)
+#        数据导出窗口与主窗口的信号与槽连接
+        self.data_export_page.signal_get_export_temps.connect(
+                self.slot_send_export_temps)
+        self.signal_send_export_temps.connect(
+                self.data_export_page.slot_sel_temp)
+        self.data_export_page.signal_save_temp.connect(
+                self.slot_save_export_temp)
+#        数据导出窗口与主窗口的信号与槽连接 
+        self.plot_page.signal_get_plot_temps.connect(
+                self.slot_send_plot_temps)
+        self.signal_send_plot_temps.connect(
+                self.plot_page.slot_sel_temp)
+        self.plot_page.signal_save_temp.connect(
+                self.slot_save_plot_temp)
+        
 
 # =============================================================================
 # Slots模块            
 # =============================================================================
+    def closeEvent(self, event : QCloseEvent):
+        self.output_temps()
+        event.accept()
+
 #    打开数据文件并将文件信息存入
     def slot_open_normal_datafile(self):
         
@@ -280,20 +318,20 @@ class MainWindow(QMainWindow):
             self.mw_stacked_window.setHidden(False)
             if (sender == self.action_export_data):
 #                显示页面
-                self.mw_stacked_window.show_page(0)
+                self.show_page(0)
 #                将此次选择记住
                 self.last_page = self.action_export_data
             if (sender == self.action_plot):
-                self.mw_stacked_window.show_page(1)
+                self.show_page(1)
                 self.last_page = self.action_plot
             if (sender == self.action_mathematics):
-                self.mw_stacked_window.show_page(2)
+                self.show_page(2)
                 self.last_page = self.action_mathematics
-            if (sender == self.action_data_manipulation):
-                self.mw_stacked_window.show_page(3)
-                self.last_page = self.action_data_manipulation
+            if (sender == self.action_data_analysis):
+                self.show_page(3)
+                self.last_page = self.action_data_analysis
             if (sender == self.action_data_manage):
-                self.mw_stacked_window.show_page(4)
+                self.show_page(4)
                 self.last_page = self.action_data_manage               
         else:
             if (sender == self.action_export_data):
@@ -304,7 +342,7 @@ class MainWindow(QMainWindow):
                 else:
 #                    将上一选中动作按钮弹起
                     self.last_page.setChecked(False)
-                    self.mw_stacked_window.show_page(0)
+                    self.show_page(0)
 #                    将新的选择记住
                     self.last_page = self.action_export_data
             if (sender == self.action_plot):
@@ -312,40 +350,138 @@ class MainWindow(QMainWindow):
                     self.action_plot.setChecked(True)                  
                 else:
                     self.last_page.setChecked(False)
-                    self.mw_stacked_window.show_page(1)
+                    self.show_page(1)
                     self.last_page = self.action_plot
             if (sender == self.action_mathematics):
                 if (self.last_page == self.action_mathematics):
                     self.action_mathematics.setChecked(True)                  
                 else:
                     self.last_page.setChecked(False)
-                    self.mw_stacked_window.show_page(2)
+                    self.show_page(2)
                     self.last_page = self.action_mathematics
-            if (sender == self.action_data_manipulation):
-                if (self.last_page == self.action_data_manipulation):
-                    self.action_data_manipulation.setChecked(True)                  
+            if (sender == self.action_data_analysis):
+                if (self.last_page == self.action_data_analysis):
+                    self.action_data_analysis.setChecked(True)                  
                 else:
                     self.last_page.setChecked(False)
-                    self.mw_stacked_window.show_page(3)
-                    self.last_page = self.action_data_manipulation
+                    self.show_page(3)
+                    self.last_page = self.action_data_analysis
             if (sender == self.action_data_manage):
                 if (self.last_page == self.action_data_manage):
                     self.action_data_manage.setChecked(True)                  
                 else:
                     self.last_page.setChecked(False)
-                    self.mw_stacked_window.show_page(4)
+                    self.show_page(4)
                     self.last_page = self.action_data_manage
+    
+    def slot_save_export_temp(self, temp):
+
+        if temp:
+            for name in temp:
+                self.para_export_temps[name] = temp[name]
+    
+    def slot_send_export_temps(self):
+        
+        dict_files = self.mw_paralist_window.get_dict_files_tree()
+        self.signal_send_export_temps.emit(dict_files, self.para_export_temps)
+        
+    def slot_save_plot_temp(self, temp):
+
+        if temp:
+            for name in temp:
+                self.plot_temps[name] = temp[name]
+    
+    def slot_send_plot_temps(self):
+        
+        dict_files = self.mw_paralist_window.get_dict_files_tree()
+        self.signal_send_plot_temps.emit(dict_files, self.plot_temps)
 
 # =============================================================================
 # 功能函数模块
 # =============================================================================
 #    从文件中加载参数模板进入内存
-    def load_para_export_temps(self):
-        pass
+    def load_temps(self):
+        
+#        导入导出参数的模板
+        try:
+            with open(r"E:\\DAGUI\\data\\templates_export_paras.txt", 'r') as file:
+                while file.readline():
+    #                readline函数会把'\n'也读进来
+                     name = file.readline()
+    #                 去除'\n'
+                     name = name.strip('\n')
+                     str_paralist = file.readline()
+                     str_paralist = str_paralist.strip('\n')
+                     paralist = str_paralist.split(' ')
+                     self.para_export_temps[name] = paralist
+        except IOError:
+#            对抛出的文件错误，不予理睬
+            pass
+        
+#        导入绘图模板
+        try:
+            with open(r"E:\\DAGUI\\data\\templates_plot.txt", 'r') as file:
+                while file.readline():
+    #                readline函数会把'\n'也读进来
+                     name = file.readline()
+    #                 去除'\n'
+                     name = name.strip('\n')
+                     str_paralist = file.readline()
+                     str_paralist = str_paralist.strip('\n')
+                     paralist = str_paralist.split(' ')
+                     self.plot_temps[name] = paralist
+        except IOError:
+            pass        
     
 #    将内存中的模板导出到文件
-    def out_para_export_temps(self):
-        pass
+    def output_temps(self):
+
+#        判断是否有模板存在
+        if self.para_export_temps:
+#                打开保存模板的文件（将从头写入，覆盖之前的内容）
+            with open(r"E:\\DAGUI\\data\\templates_export_paras.txt", 'w') as file:
+#                将内存中的模板一一写入文件
+                for temp in self.para_export_temps:
+                    file.write("========\n")
+                    file.write(temp)
+                    file.write('\n')
+                    paralist = ''
+                    index = 1
+                    length = len(self.para_export_temps[temp])
+                    for para in self.para_export_temps[temp]:
+                        if index == length:
+                            paralist += (para + '\n')
+                        else:
+                            paralist += (para + ' ')
+                        index += 1
+                    file.write(paralist)
+                    
+#        判断是否有模板存在
+        if self.plot_temps:
+#                打开保存模板的文件（将从头写入，覆盖之前的内容）
+            with open(r"E:\\DAGUI\\data\\templates_plot.txt", 'w') as file:
+#                将内存中的模板一一写入文件
+                for temp in self.plot_temps:
+                    file.write("========\n")
+                    file.write(temp)
+                    file.write('\n')
+                    paralist = ''
+                    index = 1
+                    length = len(self.plot_temps[temp])
+                    for para in self.plot_temps[temp]:
+                        if index == length:
+                            paralist += (para + '\n')
+                        else:
+                            paralist += (para + ' ')
+                        index += 1
+                    file.write(paralist)
+
+    def show_page(self, pageindex):
+        if self.mw_stacked_window.isHidden():
+            self.mw_stacked_window.show()
+            self.mw_stacked_window.setCurrentIndex(pageindex)
+        else:
+            self.mw_stacked_window.setCurrentIndex(pageindex)
     
 # =============================================================================
 # 汉化
@@ -369,7 +505,7 @@ class MainWindow(QMainWindow):
         self.action_export_data.setToolTip(_translate("MainWindow", "导出数据文件"))
         self.action_exit.setText(_translate("MainWindow", "退出"))
         self.action_mathematics.setText(_translate("MainWindow", "数学计算"))
-        self.action_data_manipulation.setText(_translate("MainWindow", "数据操作"))
+        self.action_data_analysis.setText(_translate("MainWindow", "数据分析"))
         self.action_data_manage.setText(_translate("MainWindow", "数据管理"))
         self.action_options.setText(_translate("MainWindow", "选项"))
         self.action_about.setText(_translate("MainWindow", "关于"))

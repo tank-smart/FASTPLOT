@@ -26,6 +26,11 @@ matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+#------王--改动开始
+from matplotlib.lines import Line2D
+from matplotlib.text import Annotation
+from PyQt5.QtCore import pyqtSignal, QDataStream, QIODevice
+#------王--改动结束
 import matplotlib.pyplot as plt
 from datetime import datetime
 import matplotlib.dates as mdates
@@ -33,8 +38,7 @@ from matplotlib.dates import AutoDateLocator
 from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator, LinearLocator
 import pandas as pd
 from models.datafile_model import Normal_DataFile
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
-
+from PyQt5.QtWidgets import QSizePolicy
 # =======类基本信息
 #class PlotCanvas
 #说明：绘图类，继承自FigureCanvas
@@ -52,6 +56,12 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSize
 # 实例化类
 
 class PlotCanvas(FigureCanvas):
+
+#------王--改动开始
+    signal_disconnect_addline = pyqtSignal()
+#    临时信号，用于把拖进来的参数传给绘图窗口绘图
+    signal_temp = pyqtSignal(dict)
+#------王--改动结束
     
     def __init__(self,parent=None,width=10,height=4,dpi=100):
         self.fig=Figure(figsize=(width,height),dpi=dpi)
@@ -71,6 +81,85 @@ class PlotCanvas(FigureCanvas):
 #        self.toolbar=self.add_toolbar()
         self.toolbar=CustomToolbar(self,parent=None)
         self.toolbar.hide()
+#------王--改动开始
+        self.setAcceptDrops(True)
+#        定义下面这个变量是为了存入模板
+        self.paralist = []
+        self.line = None
+        self.signal_disconnect_addline.connect(self.slot_disconnect_addline)
+
+#    重写拖放相关的事件
+#    设置部件可接受的MIME type列表，此处的类型是自定义的
+    def mimeTypes(self):
+        return ['application/x-parasname']
+#    拖进事件处理    
+    def dragEnterEvent(self, event):
+#        如果拖进来的时树列表才接受
+        if event.mimeData().hasFormat('application/x-parasname'):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+#     放下事件处理   
+    def dropEvent(self, event):
+        
+        paras = {}
+        if event.mimeData().hasFormat('application/x-parasname'):
+            item_data = event.mimeData().data('application/x-parasname')
+            item_stream = QDataStream(item_data, QIODevice.ReadOnly)
+            while (not item_stream.atEnd()):
+                paraname = item_stream.readQString()
+                file_dir = item_stream.readQString()
+                if not (file_dir in paras):
+                    paras[file_dir] = []
+                    paras[file_dir].append(paraname)
+                else:
+                    paras[file_dir].append(paraname)  
+            self.signal_temp.emit(paras)
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+
+    def slot_create_connect(self):
+        self.cid_press = self.fig.canvas.mpl_connect('button_press_event',
+                                                     self.slot_press_mouse)
+        self.cid_move = self.fig.canvas.mpl_connect('motion_notify_event', 
+                                                    self.slot_move_mouse)
+        self.cid_release = self.fig.canvas.mpl_connect('button_release_event',
+                                                    self.slot_release_mouse)        
+    
+    def slot_press_mouse(self, event):
+        
+        x = event.xdata
+#        y = event.ydata
+        ybottom, ytop = event.inaxes.get_ylim()
+        xdata = [x, x]
+        ydata = [ybottom, ytop]
+        if self.line:
+            pass
+        else:
+            self.line = Line2D(xdata, ydata, linestyle = '--')
+        event.inaxes.add_line(self.line)
+#        event.inaxes.add_artist(Annotation('OK', [x, y]))
+        event.canvas.draw()
+        
+    def slot_move_mouse(self, event):
+        
+        if event.button == 1:
+            x = event.xdata
+            self.line.set_xdata([x, x])
+            event.canvas.draw()
+            
+    def slot_release_mouse(self, event):
+        
+        self.signal_disconnect_addline.emit()
+        
+    def slot_disconnect_addline(self):
+        self.fig.canvas.mpl_disconnect(self.cid_move)
+        self.fig.canvas.mpl_disconnect(self.cid_press)
+        self.fig.canvas.mpl_disconnect(self.cid_release)
+        
+        
+#------王--改动结束
 
 #define the user-defined format for datatime display: HH:MM:SS:ms        
     def my_format(self, x, pos=None):
@@ -108,7 +197,7 @@ class PlotCanvas(FigureCanvas):
             self.pos+=1
         else:
             self.pos=0
-            
+
     def subplot_para(self,source=None,para_list=[]):
         if isinstance(source,(str)): #python 2 add unicode
             file_plot=Normal_DataFile(source)
@@ -127,19 +216,17 @@ class PlotCanvas(FigureCanvas):
 #        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
         matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
         matplotlib.rcParams['ytick.direction'] = 'in'
-        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=8,subplots=True,sharex=True)
+        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
         for eachax in axes:
             eachax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
             eachax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-            eachax.xaxis.set_major_locator(LinearLocator(numticks=10))
-            eachax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
-            eachax.yaxis.set_major_locator(LinearLocator(numticks=5))
+            eachax.xaxis.set_minor_locator(AutoMinorLocator())
+            eachax.yaxis.set_major_locator(MaxNLocator(nbins=5))
             eachax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
             for label in eachax.xaxis.get_ticklabels():
                 label.set_horizontalalignment('center')
                 label.set_rotation('horizontal')
-            eachax.grid(which='major',linestyle='--',color = '0.45')
-            eachax.grid(which='minor',linestyle='--',color = '0.75')
+            eachax.grid(which='both',linestyle='--')
 #        self.ax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
 #        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format)) 
         self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)
@@ -157,7 +244,75 @@ class PlotCanvas(FigureCanvas):
         else:
             self.pos=0
 
+#------王--改动开始            
+    def subplot_para_wxl(self,source=None,para_list=[]):
+
+        self.paralist = para_list.copy()
         
+        if isinstance(source,(str)): #python 2 add unicode
+            file_plot=Normal_DataFile(source)
+            para_list.insert(0,file_plot.paras_in_file[0])
+            df=file_plot.cols_input(source,para_list)
+        elif isinstance(source,pd.DataFrame):
+            df=source
+        else:
+            return
+        df[para_list[0]]=pd.to_datetime(df[para_list[0]],format='%H:%M:%S:%f')
+        self.fig.clf()
+        #ax1 = self.fig.add_subplot(4,1,self.pos)
+        self.ax=self.fig.add_axes([0.1,0.1,0.8,0.8])
+#        self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)
+        #self.fig.subplots_adjust(0.1,0.5,0.9,0.95,0.3)
+#        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+        matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+        matplotlib.rcParams['ytick.direction'] = 'in'
+#        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
+        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
+        for eachax in axes:
+            eachax.legend(fontsize=8,loc=(0,1) , ncol=1 , frameon=False,
+                          markerscale = 2, edgecolor = "inherit")
+            eachax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+            eachax.xaxis.set_major_locator(LinearLocator(numticks=10))
+            eachax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+            eachax.yaxis.set_major_locator(LinearLocator(numticks=5))
+            eachax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+            for label in eachax.xaxis.get_ticklabels():
+                label.set_horizontalalignment('center')
+                label.set_rotation('horizontal')
+            eachax.grid(which='major',linestyle='--',color = '0.45')
+            eachax.grid(which='minor',linestyle='--',color = '0.75')
+#        self.ax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
+#        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format)) 
+        self.fig.subplots_adjust(left=0.07,bottom=0.07,right=0.95,top=0.95,hspace=0.2)
+#        for label in self.ax.xaxis.get_ticklabels():
+#            print(label.get_rotation())
+#            label.set_horizontalalignment('center')
+#            label.set_rotation('horizontal')
+
+#            print(label.horizontalalignment)
+        self.draw()
+#        self.show()
+        #plt.show()
+        if self.pos<3:
+            self.pos+=1
+        else:
+            self.pos=0
+
+    def slot_resize_canvas(self, size):
+
+        if self.fig.axes:
+            print("\nXXX\nScrollArea")
+            print("Width" + str(size.width()) + " Height" + str(size.height()))
+            print("PlotArea")
+            print("Width" + str(self.width()) + " Height" + str(self.height()))
+            print('')
+            self.resize(size.width(), self.height())
+        else:
+            print("Initial")
+            print("Width" + str(size.width()) + " Height" + str(size.height()))
+            self.resize(size)
+
+#------王--改动结束        
 #        
 #    def plot_para(self,source=None,para_list=[]):
 #        if isinstance(source,(str,unicode)): #！！！！python 2

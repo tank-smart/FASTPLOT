@@ -271,6 +271,21 @@ class ParalistWindow(QDockWidget):
                         result[file_dir].append(item.text(0))
         return result
 
+    def get_dict_files_tree(self):
+        
+        result = {}
+        count = self.datafiles_tree.topLevelItemCount()
+        if count > 0:            
+            for i in range(count):
+                item = self.datafiles_tree.topLevelItem(i)
+                file_dir = item.data(0, Qt.UserRole)
+                result[file_dir] = []
+                child_count = item.childCount()
+                for child_index in range(child_count):
+                    paraname = item.child(child_index).text(0)
+                    result[file_dir].append(paraname)
+        return result
+
     def is_in_files_tree(self, file_dir):
         
         count = self.datafiles_tree.topLevelItemCount()

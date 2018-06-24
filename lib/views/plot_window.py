@@ -18,21 +18,38 @@ sys.path.append(r"E:\DAGUI\lib")
 # Qt imports
 # =============================================================================
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
-                             QVBoxLayout, QHBoxLayout, QSizePolicy)
-from PyQt5.QtCore import QCoreApplication, QSize
+                             QVBoxLayout, QHBoxLayout, QSizePolicy,
+                             QDialog, QMessageBox, QScrollArea)
+from PyQt5.QtCore import QCoreApplication, QSize, pyqtSignal
 from PyQt5.QtGui import QIcon
 
 # =============================================================================
 # Package views imports
 # =============================================================================
 from models.figure_model import PlotCanvas
-#from scroll import Scroll
+from custom_dialog import SelectTemplateDialog, SaveTemplateDialog
+# =============================================================================
+# CustomScrollArea
+# =============================================================================
+class CustomScrollArea(QScrollArea):
 
+    signal_resize = pyqtSignal(QSize)
+    
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        
+    def resizeEvent(self, event):
+        
+        self.signal_resize.emit(event.size())
+        QScrollArea.resizeEvent(self, event)
+        
 # =============================================================================
 # PlotWindow
 # =============================================================================
 class PlotWindow(QWidget):
 
+    signal_get_plot_temps = pyqtSignal()
+    signal_save_temp = pyqtSignal(dict)
 # =============================================================================
 # 初始化    
 # =============================================================================
@@ -51,20 +68,11 @@ class PlotWindow(QWidget):
         self.horizontalLayout_2 = QHBoxLayout(self)
         self.horizontalLayout_2.setContentsMargins(4, 0, 4, 0)
         self.horizontalLayout_2.setSpacing(2)
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")        
-#        子布局器，垂直，布局画布，滚动条
-        self.verticalLayout_2 = QVBoxLayout()
-        self.verticalLayout_2.setSpacing(2)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
 #        创建画布部件
-        self.plotcanvas = PlotCanvas(self)
-        self.plotcanvas.setObjectName("plotcanvas")
-        self.verticalLayout_2.addWidget(self.plotcanvas)
-#        创建滚动条
-#        self.scroll = Scroll(self)
-#        self.scroll.setMinimumSize(QSize(0, 24))
-#        self.scroll.setMaximumSize(QSize(16777215, 24))
-#        self.verticalLayout_2.addWidget(self.scroll)
+        self.scrollarea = CustomScrollArea(self)
+        self.plotcanvas = PlotCanvas(self.scrollarea)
+        self.scrollarea.setWidget(self.plotcanvas)
 #        创建右侧的工具栏
         self.widget_plot_tools = QWidget(self)
         self.widget_plot_tools.setMinimumSize(QSize(32, 0))
@@ -125,12 +133,34 @@ class PlotWindow(QWidget):
         self.button_save.setMaximumSize(QSize(32, 32))
         self.button_save.setObjectName("button_save")
         self.button_save.setIcon(QIcon(r"E:\DAGUI\lib\icon\save.ico"))
-        self.verticalLayout.addWidget(self.button_save)        
+        self.verticalLayout.addWidget(self.button_save)
+        self.button_sel_temp = QToolButton(self.widget_plot_tools)
+        self.button_sel_temp.setMinimumSize(QSize(32, 32))
+        self.button_sel_temp.setMaximumSize(QSize(32, 32))
+        self.button_sel_temp.setObjectName("button_sel_temp")
+        self.button_sel_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\use_template.ico"))
+        self.verticalLayout.addWidget(self.button_sel_temp)
+        self.button_save_temp = QToolButton(self.widget_plot_tools)
+        self.button_save_temp.setMinimumSize(QSize(32, 32))
+        self.button_save_temp.setMaximumSize(QSize(32, 32))
+        self.button_save_temp.setObjectName("button_save_temp")
+        self.button_save_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\save_template.ico"))
+        self.verticalLayout.addWidget(self.button_save_temp)
+        self.button_add_line_marker = QToolButton(self.widget_plot_tools)
+        self.button_add_line_marker.setMinimumSize(QSize(32, 32))
+        self.button_add_line_marker.setMaximumSize(QSize(32, 32))
+        self.button_add_line_marker.setIcon(QIcon(r"E:\DAGUI\lib\icon\line_marker.ico"))
+        self.verticalLayout.addWidget(self.button_add_line_marker)
+        self.button_add_text = QToolButton(self.widget_plot_tools)
+        self.button_add_text.setMinimumSize(QSize(32, 32))
+        self.button_add_text.setMaximumSize(QSize(32, 32))
+        self.button_add_text.setIcon(QIcon(r"E:\DAGUI\lib\icon\text.ico"))
+        self.verticalLayout.addWidget(self.button_add_text)
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
 #        先添加工具栏在添加包括画布/滑块的水平子布局器
         self.horizontalLayout_2.addWidget(self.widget_plot_tools)
-        self.horizontalLayout_2.addLayout(self.verticalLayout_2)
+        self.horizontalLayout_2.addWidget(self.scrollarea)
 
         self.retranslateUi()
 # =======连接信号与槽
@@ -143,15 +173,42 @@ class PlotWindow(QWidget):
         self.button_save.clicked.connect(self.slot_save)
         self.button_back.clicked.connect(self.slot_back)
         self.button_forward.clicked.connect(self.slot_forward)
+        self.button_sel_temp.clicked.connect(self.signal_get_plot_temps)
+        self.button_save_temp.clicked.connect(self.slot_save_temp)
+        self.button_add_line_marker.clicked.connect(self.plotcanvas.slot_create_connect)
+        
+        self.scrollarea.signal_resize.connect(self.slot_resize_canvas)
+#        临时连接
+        self.plotcanvas.signal_temp.connect(self.slot_plot)
 
 # =============================================================================
 # slots模块
-# =============================================================================
+# =============================================================================   
     def slot_plot(self, filegroup):
         
-        if filegroup:         
-            for file in filegroup:
-                self.plotcanvas.subplot_para(file, filegroup[file])
+        if filegroup:
+            for filedir in filegroup:
+                cols = len(filegroup[filedir])
+                if cols > 4:
+                    self.scrollarea.setWidgetResizable(False)
+#                    乘以1.05是估计的，刚好能放下四张图，
+#                    减去的19是滚动条的宽度
+                    height = int(self.scrollarea.height() * 1.05) / 4
+                    self.plotcanvas.resize(self.scrollarea.width() - 19,
+                                           cols * height)
+                else:
+                    self.scrollarea.setWidgetResizable(True)
+                self.plotcanvas.subplot_para_wxl(filedir, filegroup[filedir])
+
+    def slot_resize_canvas(self, scroll_area_size):
+        
+        if not self.scrollarea.widgetResizable():
+            if scroll_area_size.height() > self.plotcanvas.size().height():
+                self.plotcanvas.resize(scroll_area_size.width(), 
+                                       scroll_area_size.height())
+            else:
+                self.plotcanvas.resize(scroll_area_size.width(),
+                                       self.plotcanvas.size().height())
 
     def slot_home(self):
         self.plotcanvas.toolbar.home()
@@ -199,6 +256,57 @@ class PlotWindow(QWidget):
     def slot_edit(self):
         self.plotcanvas.toolbar.edit_parameters()
         
+    def slot_sel_temp(self, dict_files, templates):
+
+        if templates:
+            export_paras = {}
+            dialog = SelectTemplateDialog(self, templates)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                if dict_files:
+        #            遍历文件，搜索是否存在模板中的参数
+        #            不同文件下的同一参数都会找出（这样耗时较长）
+        #            也可以找到第一个就停止
+                    for paraname in templates[dialog.sel_temp]:
+                        for file_dir in dict_files:
+                            if paraname in dict_files[file_dir]:
+                                if file_dir in export_paras:
+                                    export_paras[file_dir].append(paraname)
+                                else:
+                                    export_paras[file_dir] = []
+                                    export_paras[file_dir].append(paraname)
+        #                        加入以下语句实现找到第一个就停止的功能
+        #                        break
+                    self.slot_plot(export_paras)
+                else:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("DataExportWindow", "导入模板错误"),
+                            QCoreApplication.translate("DataExportWindow", "没有发现数据文件"))
+        else:
+            QMessageBox.information(self,
+                    QCoreApplication.translate("DataExportWindow", "导入模板错误"),
+                    QCoreApplication.translate("DataExportWindow", "没有模板")) 
+    
+    def slot_save_temp(self):
+        
+        if self.plotcanvas.paralist:
+            temp = {}
+            dialog = SaveTemplateDialog(self)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                temp_name = dialog.temp_name
+                if temp_name:
+                    temp[temp_name] = self.plotcanvas.paralist
+                    self.signal_save_temp.emit(temp)
+                else:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("DataExportWindow", "输入提示"),
+                            QCoreApplication.translate("DataExportWindow", "未输入模板名"))
+        else:
+            QMessageBox.information(self,
+                    QCoreApplication.translate("DataExportWindow", "保存错误"),
+                    QCoreApplication.translate("DataExportWindow", "没有发现图表"))        
+        
 # =============================================================================
 # 功能函数模块
 # =============================================================================
@@ -219,3 +327,6 @@ class PlotWindow(QWidget):
         self.button_forward.setToolTip(_translate("PlotWindow", "前进"))
         self.button_back.setToolTip(_translate("PlotWindow", "后退"))
         self.button_save.setToolTip(_translate("PlotWindow", "保存"))
+        self.button_save_temp.setToolTip(_translate("PlotWindow", "保存模板"))
+        self.button_sel_temp.setToolTip(_translate("PlotWindow", "选择模板"))
+        self.button_add_line_marker.setToolTip(_translate("PlotWindow", "增加辅助线"))
