@@ -13,6 +13,7 @@
 # =============================================================================
 
 import sys
+import pandas as pd
 sys.path.append(r"E:\DAGUI\lib")
 # =============================================================================
 # Qt imports
@@ -28,6 +29,7 @@ from PyQt5.QtGui import QIcon
 # =============================================================================
 from models.figure_model import PlotCanvas
 from custom_dialog import SelectTemplateDialog, SaveTemplateDialog
+from models.datafile_model import Normal_DataFile
 # =============================================================================
 # CustomScrollArea
 # =============================================================================
@@ -184,28 +186,64 @@ class PlotWindow(QWidget):
 # =============================================================================
 # slots模块
 # =============================================================================   
+#    def slot_plot(self, filegroup):
+#        
+#        if filegroup:
+#            for filedir in filegroup:
+#                cols = len(filegroup[filedir])
+#                if cols > 4:
+#                    self.scrollarea.setWidgetResizable(False)
+##                    乘以1.05是估计的，刚好能放下四张图，
+##                    减去的19是滚动条的宽度
+#                    height = int(self.scrollarea.height() * 1.05) / 4
+#                    self.plotcanvas.resize(self.scrollarea.width() - 19,
+#                                           cols * height)
+#                else:
+#                    self.scrollarea.setWidgetResizable(True)
+#                self.plotcanvas.subplot_para_wxl(filedir, filegroup[filedir])
+        
     def slot_plot(self, filegroup):
         
         if filegroup:
+            
+            df_list = []
+            flag = True
             for filedir in filegroup:
-                cols = len(filegroup[filedir])
-                if cols > 4:
-                    self.scrollarea.setWidgetResizable(False)
+
+                file = Normal_DataFile(filedir)
+                if flag:
+                    filegroup[filedir].insert(0, file.paras_in_file[0])
+                    flag = False
+                df = file.cols_input(filedir, filegroup[filedir], '\s+')
+            df_list.append(df)
+            df_all = pd.concat(df_list,axis = 1,join = 'outer',
+                               ignore_index = False)
+            sort_list = []
+            for file_dir in filegroup:
+                for paraname in filegroup[file_dir]:
+                    if paraname in sort_list:
+                        pass
+                    else:
+                        sort_list.append(paraname)
+            df_all = df_all.ix[:, sort_list]
+            
+            cols = df_all.columns.size - 1
+            if cols > 4:
+                self.scrollarea.setWidgetResizable(False)
 #                    乘以1.05是估计的，刚好能放下四张图，
 #                    减去的19是滚动条的宽度
-                    height = int(self.scrollarea.height() * 1.05) / 4
-                    self.plotcanvas.resize(self.scrollarea.width() - 19,
-                                           cols * height)
-                else:
-                    self.scrollarea.setWidgetResizable(True)
-                self.plotcanvas.subplot_para_wxl(filedir, filegroup[filedir])
+                height = int(self.scrollarea.height() * 1.05) / 4
+                self.plotcanvas.resize(self.scrollarea.width() - 19,
+                                       cols * height)
+            else:
+                self.scrollarea.setWidgetResizable(True)
+            self.plotcanvas.subplot_para_wxl(df_all, df_all.columns.values.tolist())
 
     def slot_resize_canvas(self, scroll_area_size):
         
         if not self.scrollarea.widgetResizable():
             if scroll_area_size.height() > self.plotcanvas.size().height():
-                self.plotcanvas.resize(scroll_area_size.width(), 
-                                       scroll_area_size.height())
+                self.plotcanvas.resize(scroll_area_size)
             else:
                 self.plotcanvas.resize(scroll_area_size.width(),
                                        self.plotcanvas.size().height())

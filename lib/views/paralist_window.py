@@ -226,14 +226,20 @@ class ParalistWindow(QDockWidget):
             count = self.datafiles_tree.topLevelItemCount()
             pattern = re.compile('.*' + para_name + '.*')
             for i in range(count):
+                num_para_in_show = 0
                 item = self.datafiles_tree.topLevelItem(i)
                 child_count = item.childCount()
                 for child_index in range(child_count):
                     paraname = item.child(child_index).text(0)
                     if re.match(pattern, paraname):
                         item.child(child_index).setHidden(False)
+                        num_para_in_show += 1
                     else:
                         item.child(child_index).setHidden(True)
+                if num_para_in_show == 0:
+                    item.setHidden(True)
+                else:
+                    item.setHidden(False)
             self.datafiles_tree.expandAll()
     
     def slot_export_para(self):

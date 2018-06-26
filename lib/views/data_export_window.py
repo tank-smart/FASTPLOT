@@ -502,6 +502,18 @@ class DataExportWindow(QWidget):
                         df_list.append(df)
                     df_all = pd.concat(df_list,axis = 1,join = 'outer',
                                        ignore_index = False) #merge different dataframe
+                    
+#                    按照选择列表中参数的顺序导出数据
+                    sort_list = []
+                    dict_df = self.get_dict_sel_paras()
+                    for file_dir in dict_df:
+                        for paraname in dict_df[file_dir]:
+                            if paraname in sort_list:
+                                pass
+                            else:
+                                sort_list.append(paraname)
+                    df_all = df_all.ix[:, sort_list]
+                    
                     file_outpout = DataFile(filepath)
     #                导出TXT文件
                     if filetype_index == 0:

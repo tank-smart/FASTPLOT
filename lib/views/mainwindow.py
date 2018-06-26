@@ -15,6 +15,7 @@
 # Stdlib imports
 # =============================================================================
 import sys
+import os
 
 # =============================================================================
 # Qt imports
@@ -55,6 +56,8 @@ class MainWindow(QMainWindow):
         self.para_export_temps = {}
 #        绘图的模板
         self.plot_temps = {}
+#        软件的配置信息
+        self.config_info = {"INIT DIR OF IMPORTING FILES" : ""}
 
 # =============================================================================
 # UI模块
@@ -270,10 +273,17 @@ class MainWindow(QMainWindow):
     def slot_open_normal_datafile(self):
         
         file_dirs = {}
-        file_dir_list, ok = QFileDialog.getOpenFileNames(
-                self, 'Open', r'E:\\', "Datafiles (*.txt *.csv *.dat)")
-        file_dir_list = [file.replace('/','\\') for file in file_dir_list]
+        init_dir = self.config_info["INIT DIR OF IMPORTING FILES"]
+        if init_dir:
+            file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
+                    self, 'Open', init_dir, "Datafiles (*.txt *.csv *.dat)")
+        else:
+            file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
+                    self, 'Open', r'E:\\', "Datafiles (*.txt *.csv *.dat)")
         if file_dir_list:
+            file_dir_list = [file.replace('/','\\') for file in file_dir_list]
+            if os.path.exists(file_dir_list[0]):
+                self.config_info["INIT DIR OF IMPORTING FILES"] = os.path.dirname(file_dir_list[0])
             for file_dir in file_dir_list:
                 nor_file = Normal_DataFile(file_dir)
                 file_dirs[file_dir] = nor_file.paras_in_file
@@ -431,7 +441,27 @@ class MainWindow(QMainWindow):
                      paralist = str_paralist.split(' ')
                      self.plot_temps[name] = paralist
         except IOError:
-            pass        
+            pass
+        
+#        导入配置信息
+        try:
+            with open(r"E:\\DAGUI\\data\\config_info.txt", 'r') as file:
+                while file.readline():
+    #                readline函数会把'\n'也读进来
+                     name = file.readline()
+    #                 去除'\n'
+                     name = name.strip('\n')
+                     config = file.readline()
+                     config = config.strip('\n')
+                     if name == "INIT DIR OF IMPORTING FILES":
+                         if os.path.exists(config):
+                             self.config_info[name] = config
+                         else:
+                             self.config_info[name] = ""
+                     else:
+                         self.config_info[name] = config
+        except IOError:
+            pass 
     
 #    将内存中的模板导出到文件
     def output_temps(self):
@@ -475,6 +505,18 @@ class MainWindow(QMainWindow):
                             paralist += (para + ' ')
                         index += 1
                     file.write(paralist)
+
+#        判断是否有模板存在
+        if self.config_info:
+#                打开保存模板的文件（将从头写入，覆盖之前的内容）
+            with open(r"E:\\DAGUI\\data\\config_info.txt", 'w') as file:
+#                将内存中的模板一一写入文件
+                for name in self.config_info:
+                    file.write("========\n")
+                    file.write(name)
+                    file.write('\n')
+                    file.write(self.config_info[name])
+                    file.write('\n')
 
     def show_page(self, pageindex):
         if self.mw_stacked_window.isHidden():

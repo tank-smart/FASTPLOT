@@ -267,7 +267,7 @@ class PlotCanvas(FigureCanvas):
         matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
         matplotlib.rcParams['ytick.direction'] = 'in'
 #        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
-        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
+        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=8,subplots=True,sharex=True)
         for eachax in axes:
             eachax.legend(fontsize=8,loc=(0,1) , ncol=1 , frameon=False,
                           markerscale = 2, edgecolor = "inherit")
