@@ -254,7 +254,31 @@ class Normal_DataFile(DataFile):
         return df       
 
 #cols_input: 按列读取数据文件，cols指定参数名列表，按cols指定的参数名列读取数据    
+#    def cols_input(self,filedir="",cols=[],sep="\s+",start_time='',stop_time=''):  #without chunkinput now!!
+#        if filedir=="":
+#            filedir=self.filedir
+#        if sep=="":
+#            sep=self.sep
+#        with open(filedir,'r') as f:
+#            if filedir.endswith(('.txt','.csv')):
+#                if sep=='all':
+#                    df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,engine='python')
+#                else:
+#                    df=pd.read_table(f,sep=sep,usecols=cols,engine='c')
+#            if filedir.endswith(('.xls','.xlsx')):
+#                df=pd.read_excel(f,usecols=cols)
+#            if (start_time and stop_time):
+#                start_rows = Time.lines_between_times(self.time_range[0],
+#                                      start_time, self.sample_frequency)
+#                stop_rows = Time.lines_between_times(self.time_range[0],
+#                                     stop_time, self.sample_frequency)
+#                return df[start_rows : stop_rows].copy()
+#            else:
+#                return df 
+        
     def cols_input(self,filedir="",cols=[],sep="\s+",start_time='',stop_time=''):  #without chunkinput now!!
+        
+        result_df = None
         if filedir=="":
             filedir=self.filedir
         if sep=="":
@@ -272,6 +296,8 @@ class Normal_DataFile(DataFile):
                                       start_time, self.sample_frequency)
                 stop_rows = Time.lines_between_times(self.time_range[0],
                                      stop_time, self.sample_frequency)
-                return df[start_rows : stop_rows].copy()
+                result_df =  df[start_rows : stop_rows].copy()
             else:
-                return df 
+                result_df =  df 
+            result_df = result_df.ix[:, cols]
+        return result_df

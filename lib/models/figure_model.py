@@ -86,7 +86,6 @@ class PlotCanvas(FigureCanvas):
 #        定义下面这个变量是为了存入模板
         self.paralist = []
         self.line = None
-        self.signal_disconnect_addline.connect(self.slot_disconnect_addline)
 
 #    重写拖放相关的事件
 #    设置部件可接受的MIME type列表，此处的类型是自定义的
@@ -119,27 +118,24 @@ class PlotCanvas(FigureCanvas):
         else:
             event.ignore()
 
-    def slot_create_connect(self):
-        self.cid_press = self.fig.canvas.mpl_connect('button_press_event',
-                                                     self.slot_press_mouse)
-        self.cid_move = self.fig.canvas.mpl_connect('motion_notify_event', 
-                                                    self.slot_move_mouse)
-        self.cid_release = self.fig.canvas.mpl_connect('button_release_event',
-                                                    self.slot_release_mouse)        
+    def slot_use_subline(self, isconnect):
+        
+        if isconnect:
+            self.cid_press = self.fig.canvas.mpl_connect('button_press_event',
+                                                         self.slot_press_mouse)
+            self.cid_move = self.fig.canvas.mpl_connect('motion_notify_event', 
+                                                        self.slot_move_mouse)
+        else:
+            self.fig.canvas.mpl_disconnect(self.cid_move)
+            self.fig.canvas.mpl_disconnect(self.cid_press)     
     
     def slot_press_mouse(self, event):
         
         x = event.xdata
-#        y = event.ydata
-        ybottom, ytop = event.inaxes.get_ylim()
-        xdata = [x, x]
-        ydata = [ybottom, ytop]
         if self.line:
             pass
         else:
-            self.line = Line2D(xdata, ydata, linestyle = '--')
-        event.inaxes.add_line(self.line)
-#        event.inaxes.add_artist(Annotation('OK', [x, y]))
+            self.line = event.inaxes.axvline(x, linestyle = '--')
         event.canvas.draw()
         
     def slot_move_mouse(self, event):
@@ -148,15 +144,6 @@ class PlotCanvas(FigureCanvas):
             x = event.xdata
             self.line.set_xdata([x, x])
             event.canvas.draw()
-            
-    def slot_release_mouse(self, event):
-        
-        self.signal_disconnect_addline.emit()
-        
-    def slot_disconnect_addline(self):
-        self.fig.canvas.mpl_disconnect(self.cid_move)
-        self.fig.canvas.mpl_disconnect(self.cid_press)
-        self.fig.canvas.mpl_disconnect(self.cid_release)
         
         
 #------王--改动结束

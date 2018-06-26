@@ -52,6 +52,7 @@ class PlotWindow(QWidget):
 
     signal_get_plot_temps = pyqtSignal()
     signal_save_temp = pyqtSignal(dict)
+    signal_use_subline = pyqtSignal(bool)
 # =============================================================================
 # 初始化    
 # =============================================================================
@@ -59,6 +60,7 @@ class PlotWindow(QWidget):
         super().__init__(parent)
         self.pan_on = False
         self.zoom_on = False
+        self.use_subline = False
 
 # =============================================================================
 # UI模块        
@@ -149,6 +151,7 @@ class PlotWindow(QWidget):
         self.button_save_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\save_template.ico"))
         self.verticalLayout.addWidget(self.button_save_temp)
         self.button_add_line_marker = QToolButton(self.widget_plot_tools)
+        self.button_add_line_marker.setCheckable(True)
         self.button_add_line_marker.setMinimumSize(QSize(32, 32))
         self.button_add_line_marker.setMaximumSize(QSize(32, 32))
         self.button_add_line_marker.setIcon(QIcon(r"E:\DAGUI\lib\icon\line_marker.ico"))
@@ -177,7 +180,9 @@ class PlotWindow(QWidget):
         self.button_forward.clicked.connect(self.slot_forward)
         self.button_sel_temp.clicked.connect(self.signal_get_plot_temps)
         self.button_save_temp.clicked.connect(self.slot_save_temp)
-        self.button_add_line_marker.clicked.connect(self.plotcanvas.slot_create_connect)
+#        添加辅助线
+        self.button_add_line_marker.clicked.connect(self.slot_subline_connect)
+        self.signal_use_subline.connect(self.plotcanvas.slot_use_subline)
         
         self.scrollarea.signal_resize.connect(self.slot_resize_canvas)
 #        临时连接
@@ -209,7 +214,6 @@ class PlotWindow(QWidget):
             df_list = []
             flag = True
             for filedir in filegroup:
-
                 file = Normal_DataFile(filedir)
                 if flag:
                     filegroup[filedir].insert(0, file.paras_in_file[0])
@@ -217,16 +221,7 @@ class PlotWindow(QWidget):
                 df = file.cols_input(filedir, filegroup[filedir], '\s+')
             df_list.append(df)
             df_all = pd.concat(df_list,axis = 1,join = 'outer',
-                               ignore_index = False)
-            sort_list = []
-            for file_dir in filegroup:
-                for paraname in filegroup[file_dir]:
-                    if paraname in sort_list:
-                        pass
-                    else:
-                        sort_list.append(paraname)
-            df_all = df_all.ix[:, sort_list]
-            
+                               ignore_index = False)            
             cols = df_all.columns.size - 1
             if cols > 4:
                 self.scrollarea.setWidgetResizable(False)
@@ -343,7 +338,18 @@ class PlotWindow(QWidget):
         else:
             QMessageBox.information(self,
                     QCoreApplication.translate("DataExportWindow", "保存错误"),
-                    QCoreApplication.translate("DataExportWindow", "没有发现图表"))        
+                    QCoreApplication.translate("DataExportWindow", "没有发现图表")) 
+    
+    def slot_subline_connect(self):
+        
+        if self.use_subline:
+            self.button_add_line_marker.setChecked(False)
+            self.use_subline = False
+            self.signal_use_subline.emit(False)
+        else:
+            self.button_add_line_marker.setChecked(True)
+            self.use_subline = True
+            self.signal_use_subline.emit(True)
         
 # =============================================================================
 # 功能函数模块
