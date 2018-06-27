@@ -71,7 +71,7 @@ class PlotCanvas(FigureCanvas):
 #        self.toolbar=self.add_toolbar()
         self.toolbar=CustomToolbar(self,parent=None)
         self.toolbar.hide()
-
+#        self.fig.canvas.mpl_connect("button_press_event", self.on_press)
 #define the user-defined format for datatime display: HH:MM:SS:ms        
     def my_format(self, x, pos=None):
         x = matplotlib.dates.num2date(x)
@@ -138,6 +138,7 @@ class PlotCanvas(FigureCanvas):
                 label.set_horizontalalignment('center')
                 label.set_rotation('horizontal')
             eachax.grid(which='both',linestyle='--')
+
 #        self.ax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
 #        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format)) 
         self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)
@@ -180,6 +181,15 @@ class PlotCanvas(FigureCanvas):
         
     def hide_toolbar(self,toolbar):
         toolbar.hide()
+        
+#    def on_press(self,event):
+#        if event.button==1:
+#            event.inaxes.scatter(event.xdata, event.ydata)
+#            plt.plot([event.xdata, event.xdata], [event.ydata, 600])
+#            plt.plot([event.xdata, 0], [event.ydata, event.ydata])
+#            self.fig.canvas.draw()
+#        elif event.button==3:
+#            print("x,y=",event.xdata, event.ydata)
 
 class CustomToolbar(NavigationToolbar):
     
