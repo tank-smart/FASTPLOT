@@ -219,9 +219,9 @@ class PlotWindow(QWidget):
                     filegroup[filedir].insert(0, file.paras_in_file[0])
                     flag = False
                 df = file.cols_input(filedir, filegroup[filedir], '\s+')
-            df_list.append(df)
+                df_list.append(df)
             df_all = pd.concat(df_list,axis = 1,join = 'outer',
-                               ignore_index = False)            
+                               ignore_index = False) 
             cols = df_all.columns.size - 1
             if cols > 4:
                 self.scrollarea.setWidgetResizable(False)

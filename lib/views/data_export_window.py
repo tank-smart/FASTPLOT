@@ -19,8 +19,8 @@ import pandas as pd
 from PyQt5.QtCore import (Qt, QCoreApplication, QSize, pyqtSignal, 
                           QDataStream, QIODevice)
 from PyQt5.QtGui import QIcon, QDropEvent, QDragEnterEvent
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QTreeWidget, 
-                             QTreeWidgetItem, QSpacerItem, QLineEdit, 
+from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QListWidget, 
+                             QListWidgetItem, QSpacerItem, QLineEdit, 
                              QMessageBox, QToolButton, QFileDialog,
                              QSizePolicy, QVBoxLayout,QHBoxLayout,
                              QAbstractItemView, QFrame, QTableWidget,
@@ -35,7 +35,7 @@ from custom_dialog import SelectTemplateDialog, SaveTemplateDialog
 # =============================================================================
 # SelectedParasTree
 # =============================================================================
-class SelectedParasTree(QTreeWidget):
+class SelectedParasList(QListWidget):
 
     signal_import_para = pyqtSignal(dict)    
 #    用于显示已选参数，因为需要增加
@@ -188,6 +188,20 @@ class DataExportWindow(QWidget):
         self.tool_button_save_temp.setObjectName("tool_button_save_temp")
         self.tool_button_save_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\save_template.ico"))
         self.hlayout_paras_tool.addWidget(self.tool_button_save_temp)
+        self.line_x = QFrame(self)
+        self.line_x.setFrameShape(QFrame.VLine)
+        self.line_x.setFrameShadow(QFrame.Sunken)
+        self.hlayout_paras_tool.addWidget(self.line_x)
+        self.tool_button_up_para = QToolButton(self)
+        self.tool_button_up_para.setMinimumSize(QSize(24, 24))
+        self.tool_button_up_para.setMaximumSize(QSize(24, 24))
+        self.tool_button_up_para.setIcon(QIcon(r"E:\DAGUI\lib\icon\up.ico"))
+        self.hlayout_paras_tool.addWidget(self.tool_button_up_para)
+        self.tool_button_down_para = QToolButton(self)
+        self.tool_button_down_para.setMinimumSize(QSize(24, 24))
+        self.tool_button_down_para.setMaximumSize(QSize(24, 24))
+        self.tool_button_down_para.setIcon(QIcon(r"E:\DAGUI\lib\icon\down.ico"))
+        self.hlayout_paras_tool.addWidget(self.tool_button_down_para)
         self.tool_button_del_para = QToolButton(self)
         self.tool_button_del_para.setMinimumSize(QSize(24, 24))
         self.tool_button_del_para.setMaximumSize(QSize(24, 24))
@@ -199,15 +213,12 @@ class DataExportWindow(QWidget):
         self.vlayout_sel_para.addLayout(self.hlayout_paras_tool)
         
 #        使用自定义的树控件
-        self.tree_sel_para = SelectedParasTree(self)
-        self.tree_sel_para.setColumnCount(2)
-        self.tree_sel_para.setObjectName("tree_sel_para")
-        self.tree_sel_para.header().setDefaultSectionSize(225)
-        self.tree_sel_para.header().setMinimumSectionSize(225)
-        self.tree_sel_para.setSelectionMode(
+        self.list_sel_para = SelectedParasList(self)
+        self.list_sel_para.setObjectName("list_sel_para")
+        self.list_sel_para.setSelectionMode(
                 QAbstractItemView.ExtendedSelection)
         
-        self.vlayout_sel_para.addWidget(self.tree_sel_para)
+        self.vlayout_sel_para.addWidget(self.list_sel_para)
         self.hlayout_selpara_and_output.addLayout(self.vlayout_sel_para)        
         self.line_2 = QFrame(self)
         self.line_2.setFrameShape(QFrame.VLine)
@@ -294,7 +305,7 @@ class DataExportWindow(QWidget):
         self.verticalLayout.setStretch(2, 3)
         
         self.label_sel_para.raise_()
-        self.tree_sel_para.raise_()
+        self.list_sel_para.raise_()
         self.label_output_loc.raise_()
         self.label_sel_testpoint.raise_()
         self.label_sel_testpoint.raise_()
@@ -308,7 +319,7 @@ class DataExportWindow(QWidget):
 # =============================================================================
         self.button_sel_dir.clicked.connect(self.slot_sel_dir)
         
-        self.tree_sel_para.signal_import_para.connect(self.slot_import_para)
+        self.list_sel_para.signal_import_para.connect(self.slot_import_para)
         self.table_testpoint.cellChanged.connect(self.slot_table_item_changed)
         self.button_confirm.clicked.connect(self.slot_confirm)
         self.button_reset.clicked.connect(self.slot_reset)
@@ -317,6 +328,9 @@ class DataExportWindow(QWidget):
         self.tool_button_delete.clicked.connect(self.slot_delete_testpoint)
         
         self.tool_button_del_para.clicked.connect(self.slot_delete_paras)
+        self.tool_button_down_para.clicked.connect(self.slot_down_para)
+        self.tool_button_up_para.clicked.connect(self.slot_up_para)
+        
         self.tool_button_save_temp.clicked.connect(self.slot_save_temp)
         self.tool_button_sel_temp.clicked.connect(self.signal_get_export_temps)
         
@@ -329,19 +343,12 @@ class DataExportWindow(QWidget):
         
         if paras_dict:
             ex_paras = []
+            dict_sel_paras = self.get_dict_sel_paras()
             for file_dir in paras_dict:
 #                判断是否导入的文件已经存在
-                index = self.index_in_files_tree(file_dir)
-                if  index != -1:
-                    for para in paras_dict[file_dir]:
-#                        判断导入的参数是否已存在
-                        if self.is_in_sel_paras(file_dir, para):
-                            ex_paras.append(para)
-                        else:
-                            child = QTreeWidgetItem(self.tree_sel_para.topLevelItem(index))
-                            child.setIcon(0,self.paraicon)
-                            child.setText(0,para)
-                            child.setText(1,para)
+                if  file_dir in dict_sel_paras:
+                    ex_paras += self.add_file_para(file_dir,
+                                                   paras_dict[file_dir])
                 else:
                     tr = Normal_DataFile(file_dir).time_range
                     row_count = self.table_testpoint.rowCount()
@@ -363,11 +370,13 @@ class DataExportWindow(QWidget):
                         filename.setData(Qt.UserRole, "Untitled")
                         self.table_testpoint.setItem(0, 3, filename)
 
-                        self.add_file_para(file_dir, paras_dict[file_dir])
+                        ex_paras += self.add_file_para(file_dir,
+                                                       paras_dict[file_dir])
                     else:
                         if (self.table_testpoint.item(0, 1).data(Qt.UserRole) == tr[0] and 
                             self.table_testpoint.item(0, 2).data(Qt.UserRole) == tr[1]):
-                            self.add_file_para(file_dir, paras_dict[file_dir])
+                            ex_paras += self.add_file_para(file_dir,
+                                                           paras_dict[file_dir])
                         else:
                             QMessageBox.information(self,
                                     QCoreApplication.translate("DataExportWindow", "导入错误"),
@@ -380,7 +389,6 @@ class DataExportWindow(QWidget):
                         QCoreApplication.translate("DataExportWindow", "导入提示"),
                         QCoreApplication.translate("DataExportWindow",
                                                    print_para))
-        self.tree_sel_para.expandAll()
 
 #    让用户选择项目的路径
     def slot_sel_dir(self):
@@ -393,7 +401,7 @@ class DataExportWindow(QWidget):
     
     def slot_delete_paras(self):
         
-        sel_items = self.tree_sel_para.selectedItems()
+        sel_items = self.list_sel_para.selectedItems()
         if len(sel_items):
             message = QMessageBox.warning(self,
                           QCoreApplication.translate("DataExportWindow", "删除参数"),
@@ -401,17 +409,13 @@ class DataExportWindow(QWidget):
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:
-#                    判断选中的是参数还是文件
-                    parent = item.parent() 
-                    if parent:
-                        child_index = parent.indexOfChild(item)
-                        parent.takeChild(child_index)
-                        if parent.childCount() == 0:
-                            index = self.tree_sel_para.indexOfTopLevelItem(parent)
-                            self.tree_sel_para.takeTopLevelItem(index)
-                            if self.tree_sel_para.topLevelItemCount() == 0:
-                                self.table_testpoint.clearContents()
-                                self.table_testpoint.setRowCount(0)
+                    self.list_sel_para.takeItem(self.list_sel_para.row(item))
+                    if self.list_sel_para.count():
+                        pass
+                    else:
+                        self.default_testpoint_del = False
+                        self.table_testpoint.clearContents()
+                        self.table_testpoint.setRowCount(0)
 
 #    选择参数导出模板
     def slot_sel_temp(self, dict_files, templates):
@@ -448,7 +452,7 @@ class DataExportWindow(QWidget):
 #    保存参数导出模板
     def slot_save_temp(self):
         
-        count = self.tree_sel_para.topLevelItemCount()
+        count = self.list_sel_para.count()
         if count:
             temp = {}
             dialog = SaveTemplateDialog(self)
@@ -457,13 +461,8 @@ class DataExportWindow(QWidget):
                 temp_name = dialog.temp_name
                 if temp_name:
                     temp[temp_name] = []
-                    dict_paras = self.get_dict_sel_paras()
-                    for file_dir in dict_paras:
-                        for paraname in dict_paras[file_dir]:
-                            if paraname in temp[temp_name]:
-                                pass
-                            else:
-                                temp[temp_name].append(paraname)
+                    for i in range(count):
+                        temp[temp_name].append(self.list_sel_para.item(i).text())
                     self.signal_save_temp.emit(temp)
                 else:
                     QMessageBox.information(self,
@@ -480,28 +479,27 @@ class DataExportWindow(QWidget):
         if self.can_export():
             filetype_index = self.combo_box_file_type.currentIndex()
             row_count = self.table_testpoint.rowCount()
-            for i in range(row_count):
-                filename = self.table_testpoint.item(i, 3).data(Qt.UserRole)
+            for index_testpoint in range(row_count):
+                filename = self.table_testpoint.item(index_testpoint, 3).data(Qt.UserRole)
                 filepath = (self.line_edit_location.text() +
                             filename +
                             self.combo_box_file_type.currentData(Qt.UserRole))
                 if filename != ' ':
                     df_list = []
-                    count = self.tree_sel_para.topLevelItemCount()
-                    for i in range(count):
-                        filedir = self.tree_sel_para.topLevelItem(i).data(0, Qt.UserRole)
-                        file = Normal_DataFile(filedir)
-                        cols = []
-                        paras_count = self.tree_sel_para.topLevelItem(i).childCount()
-                        for child_index in range(paras_count):
-                            paraname = self.tree_sel_para.topLevelItem(i).child(child_index).text(0)
-                            cols.append(paraname)
-                        df = file.cols_input(filedir, cols, '\s+', 
-                                             self.table_testpoint.item(i, 1).data(Qt.UserRole),
-                                             self.table_testpoint.item(i, 2).data(Qt.UserRole))
+                    para_list = []
+                    count = self.list_sel_para.count()
+                    for index_para in range(count):
+                        para_list.append(self.list_sel_para.item(index_para).text())
+                    dict_sel_paras = self.get_dict_sel_paras()
+                    for file_dir in dict_sel_paras:
+                        file = Normal_DataFile(file_dir)
+                        df = file.cols_input(file_dir, dict_sel_paras[file_dir], '\s+', 
+                                             self.table_testpoint.item(index_testpoint, 1).data(Qt.UserRole),
+                                             self.table_testpoint.item(index_testpoint, 2).data(Qt.UserRole))
                         df_list.append(df)
                     df_all = pd.concat(df_list,axis = 1,join = 'outer',
                                        ignore_index = False) #merge different dataframe                    
+                    df_all = df_all.ix[:, para_list]
                     file_outpout = DataFile(filepath)
     #                导出TXT文件
                     if filetype_index == 0:
@@ -523,7 +521,7 @@ class DataExportWindow(QWidget):
     def slot_reset(self):
         
         self.default_testpoint_del = False
-        self.tree_sel_para.clear()
+        self.list_sel_para.clear()
         self.table_testpoint.clearContents()
         self.table_testpoint.setRowCount(0)
         self.line_edit_location.setText("")
@@ -631,60 +629,73 @@ class DataExportWindow(QWidget):
             self.table_testpoint.item(0, 3).setData(Qt.UserRole, ' ')
             self.table_testpoint.item(0, 3).setFlags(Qt.NoItemFlags)
     
+    def slot_up_para(self):
+        
+        if self.list_sel_para:
+            loc = self.list_sel_para.currentRow()
+            item = self.list_sel_para.takeItem(loc)
+            if loc == 0:
+                self.list_sel_para.insertItem(0, item)
+                self.list_sel_para.setCurrentItem(item)
+            else:
+                self.list_sel_para.insertItem(loc - 1, item)
+                self.list_sel_para.setCurrentItem(item)
+    
+    def slot_down_para(self):
+
+        if self.list_sel_para:
+            count = self.list_sel_para.count()
+            loc = self.list_sel_para.currentRow()
+            item = self.list_sel_para.takeItem(loc)
+            if loc == count:
+                self.list_sel_para.insertItem(count, item)
+                self.list_sel_para.setCurrentItem(item)
+            else:
+                self.list_sel_para.insertItem(loc + 1, item)
+                self.list_sel_para.setCurrentItem(item)
+                
+    
 # =============================================================================
 # 功能函数模块
 # =============================================================================
-    def index_in_files_tree(self, file_dir):
-        
-        count = self.tree_sel_para.topLevelItemCount()
-        for index in range(count):
-            fd = self.tree_sel_para.topLevelItem(index).data(0, Qt.UserRole)
-            if file_dir == fd:
-                return index
-        return -1
-    
-    def is_in_sel_paras(self, file_dir, para):
+#    只要参数名一致就认为在这个参数列表中，不区分是否是在不同文件
+    def is_in_sel_paras(self, para):
 
-        count = self.tree_sel_para.topLevelItemCount()
+        count = self.list_sel_para.count()
         for i in range(count):
-            item = self.tree_sel_para.topLevelItem(i)
-            filename = item.data(0, Qt.UserRole)
-            child_count = item.childCount()
-            for child_index in range(child_count):
-                paraname = item.child(child_index).text(0)
-                if para == paraname and file_dir == filename:
-                    return True
+            item = self.list_sel_para.item(i)
+            paraname = item.text()
+            if para == paraname:
+                return True
         return False
 
+#    将此文件中的参数加入到列表中
     def add_file_para(self, file_dir, paras):
 
-        root = QTreeWidgetItem(self.tree_sel_para)
-        root.setIcon(0,self.fileicon)
-        pos = file_dir.rindex('\\')
-        filename = file_dir[pos+1:]
-        root.setText(0, filename)
-        root.setData(0, Qt.UserRole, file_dir)
-        root.setFlags(Qt.ItemIsEnabled)
-        
+        ex_paras = []
         for para in paras:
-            child = QTreeWidgetItem(root)
-            child.setIcon(0,self.paraicon)
-            child.setText(0,para)
-            child.setText(1,para)
+#            判断导入的参数是否已存在
+            if self.is_in_sel_paras(para):
+                ex_paras.append(para)
+            else:
+                item_para = QListWidgetItem(para, self.list_sel_para)
+                item_para.setIcon(self.paraicon)
+                item_para.setData(Qt.UserRole, file_dir)
+        return ex_paras
         
     def get_dict_sel_paras(self):
         
         result = {}
-        if self.tree_sel_para:
-            count = self.tree_sel_para.topLevelItemCount()
+        if self.list_sel_para:
+            count = self.list_sel_para.count()
             for i in range(count):
-                item = self.tree_sel_para.topLevelItem(i)
-                file_dir = item.data(0, Qt.UserRole)
-                result[file_dir] = []
-                child_count = item.childCount()
-                for child_index in range(child_count):
-                    paraname = item.child(child_index).text(0)
-                    result[file_dir].append(paraname)
+                item = self.list_sel_para.item(i)
+                file_dir = item.data(Qt.UserRole)
+                if file_dir in result:
+                    result[file_dir].append(item.text())
+                else:
+                    result[file_dir] = []
+                    result[file_dir].append(item.text())
         return result
   
     def get_list_testpoints(self):
@@ -704,7 +715,7 @@ class DataExportWindow(QWidget):
 #    判断是否可以导出
     def can_export(self):
         
-        if (self.tree_sel_para.topLevelItemCount and self.line_edit_location.text()):
+        if (self.list_sel_para.count and self.line_edit_location.text()):
             if ((not self.default_testpoint_del) and self.table_testpoint.rowCount() >= 1):
                 return True
             if (self.default_testpoint_del and self.table_testpoint.rowCount() > 1):
@@ -719,8 +730,6 @@ class DataExportWindow(QWidget):
         _translate = QCoreApplication.translate
         self.setWindowTitle(_translate("DataExportWindow", "DataExportWindow"))
         self.label_sel_para.setText(_translate("DataExportWindow", "已选参数"))
-        self.tree_sel_para.headerItem().setText(0, _translate("DataExportWindow", "初始参数名"))
-        self.tree_sel_para.headerItem().setText(1, _translate("DataExportWindow", "参数输出名"))
         self.label_sel_testpoint.setText(_translate("DataExportWindow", "已选试验点"))
         self.tool_button_add.setToolTip(_translate("DataExportWindow", "新增试验点"))
         self.tool_button_delete.setToolTip(_translate("DataExportWindow", "删除试验点"))
