@@ -61,6 +61,7 @@ class PlotWindow(QWidget):
         self.pan_on = False
         self.zoom_on = False
         self.use_subline = False
+        self.dflist=[]
 
 # =============================================================================
 # UI模块        
@@ -205,23 +206,28 @@ class PlotWindow(QWidget):
 #                                           cols * height)
 #                else:
 #                    self.scrollarea.setWidgetResizable(True)
-#                self.plotcanvas.subplot_para_wxl(filedir, filegroup[filedir])
+#                self.plotcanvas.subplot_para_yh(filedir, filegroup[filedir])
         
     def slot_plot(self, filegroup):
         
         if filegroup:
             
             df_list = []
-            flag = True
+            flag=True
+            if self.dflist:
+                flag = False
             for filedir in filegroup:
                 file = Normal_DataFile(filedir)
                 if flag:
                     filegroup[filedir].insert(0, file.paras_in_file[0])
                     flag = False
                 df = file.cols_input(filedir, filegroup[filedir], '\s+')
-            df_list.append(df)
-            df_all = pd.concat(df_list,axis = 1,join = 'outer',
-                               ignore_index = False)            
+                df_list.append(df)
+            self.dflist.extend(df_list)
+#            df_all = pd.concat(df_list,axis = 1,join = 'outer',
+#                               ignore_index = False) 
+            df_all = pd.concat(self.dflist,axis = 1,join = 'outer',
+                               ignore_index = False)
             cols = df_all.columns.size - 1
             if cols > 4:
                 self.scrollarea.setWidgetResizable(False)

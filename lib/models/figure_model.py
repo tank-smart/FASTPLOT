@@ -284,6 +284,7 @@ class PlotCanvas(FigureCanvas):
             self.pos+=1
         else:
             self.pos=0
+            
 
     def slot_resize_canvas(self, size):
 

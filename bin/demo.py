@@ -22,6 +22,9 @@ import sys
 sys.path.append(r"E:\DAGUI\lib")
 sys.path.append(r"E:\DAGUI\lib\views")
 sys.path.append(r"E:\DAGUI\lib\models")
+sys.path.append(r"D:\Program Files\git\DAGUI\lib")
+sys.path.append(r"D:\Program Files\git\DAGUI\lib\views")
+sys.path.append(r"D:\Program Files\git\DAGUI\lib\models")
 
 from app.start import main
 
