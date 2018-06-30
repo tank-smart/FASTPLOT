@@ -205,8 +205,12 @@ class DataManageWindow(QWidget):
     def slot_show_page(self, index):
         
         self.stackedWidget.setCurrentIndex(index)
-
-
+        if (index == 2):
+            self.widget.setHidden(True)
+            self.line_2.setHidden(True)
+        else:
+            self.widget.setHidden(False)
+            self.line_2.setHidden(False)
 
 # =============================================================================
 # 功能函数模块

@@ -488,17 +488,25 @@ class DataExportWindow(QWidget):
                     df_list = []
                     para_list = []
                     count = self.list_sel_para.count()
+#                    存储导出参数顺序
                     for index_para in range(count):
                         para_list.append(self.list_sel_para.item(index_para).text())
                     dict_sel_paras = self.get_dict_sel_paras()
+#                    按文件提取数据
+                    flag = True
                     for file_dir in dict_sel_paras:
                         file = Normal_DataFile(file_dir)
+#                        将时间添加到第一列
+                        if flag:
+                            dict_sel_paras[file_dir].insert(0, file.paras_in_file[0])
+                            flag = False
                         df = file.cols_input(file_dir, dict_sel_paras[file_dir], '\s+', 
                                              self.table_testpoint.item(index_testpoint, 1).data(Qt.UserRole),
                                              self.table_testpoint.item(index_testpoint, 2).data(Qt.UserRole))
                         df_list.append(df)
                     df_all = pd.concat(df_list,axis = 1,join = 'outer',
                                        ignore_index = False) #merge different dataframe                    
+#                    将导出的顺序与用户要求一致
                     df_all = df_all.ix[:, para_list]
                     file_outpout = DataFile(filepath)
     #                导出TXT文件
@@ -672,6 +680,7 @@ class DataExportWindow(QWidget):
 #    将此文件中的参数加入到列表中
     def add_file_para(self, file_dir, paras):
 
+#        返回已存在的参数
         ex_paras = []
         for para in paras:
 #            判断导入的参数是否已存在

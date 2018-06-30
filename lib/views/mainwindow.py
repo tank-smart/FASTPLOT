@@ -34,6 +34,7 @@ from plot_window import PlotWindow
 from paralist_window import ParalistWindow
 from models.datafile_model import Normal_DataFile
 from data_manage_window import DataManageWindow
+from data_analysis_window import DataAnalysisWindow
 # =============================================================================
 # Main Window
 # =============================================================================
@@ -85,7 +86,8 @@ class MainWindow(QMainWindow):
         self.mw_stacked_window.addWidget(self.plot_page)
         self.mathematics_page = QWidget(self)
         self.mw_stacked_window.addWidget(self.mathematics_page)
-        self.data_analysis_page = QWidget(self)
+        self.data_analysis_page = DataAnalysisWindow(self)
+        self.data_analysis_page.setup()
         self.mw_stacked_window.addWidget(self.data_analysis_page)
         self.data_manage_page = DataManageWindow(self)
         self.data_manage_page.setup()
@@ -202,8 +204,8 @@ class MainWindow(QMainWindow):
 #        添加工具栏
         self.toolbar.addAction(self.action_open_normal_datafile)
         self.toolbar.addSeparator()
-        self.toolbar.addAction(self.action_export_data)
         self.toolbar.addAction(self.action_plot)
+        self.toolbar.addAction(self.action_export_data)
         self.toolbar.addAction(self.action_mathematics)
         self.toolbar.addAction(self.action_data_analysis)
         self.toolbar.addAction(self.action_data_manage)
@@ -285,8 +287,14 @@ class MainWindow(QMainWindow):
             if os.path.exists(file_dir_list[0]):
                 self.config_info["INIT DIR OF IMPORTING FILES"] = os.path.dirname(file_dir_list[0])
             for file_dir in file_dir_list:
-                nor_file = Normal_DataFile(file_dir)
-                file_dirs[file_dir] = nor_file.paras_in_file
+                try:
+                    nor_file = Normal_DataFile(file_dir)
+                    file_dirs[file_dir] = nor_file.paras_in_file
+                except:
+                    info = "文件" + "<br>" + file_dir + "<br>打开失败"
+                    QMessageBox.information(self,
+                        QCoreApplication.translate("DataExportWindow", "打开文件提示"),
+                        QCoreApplication.translate("DataExportWindow", info)) 
         self.signal_import_datafiles.emit(file_dirs)
 
 #    与关于退出有关的显示

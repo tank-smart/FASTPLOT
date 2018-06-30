@@ -29,16 +29,17 @@ from matplotlib.figure import Figure
 #------王--改动开始
 from matplotlib.lines import Line2D
 from matplotlib.text import Annotation
-from PyQt5.QtCore import pyqtSignal, QDataStream, QIODevice
+from PyQt5.QtCore import pyqtSignal, QDataStream, QIODevice, Qt, QCoreApplication, QPoint
+#from PyQt5.QtGui import QCore
 #------王--改动结束
 import matplotlib.pyplot as plt
 from datetime import datetime
 import matplotlib.dates as mdates
 from matplotlib.dates import AutoDateLocator
-from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator, LinearLocator
+from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator, LinearLocator, FixedLocator
 import pandas as pd
 from models.datafile_model import Normal_DataFile
-from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtWidgets import QSizePolicy, QMenu, QAction
 # =======类基本信息
 #class PlotCanvas
 #说明：绘图类，继承自FigureCanvas
@@ -59,8 +60,7 @@ class PlotCanvas(FigureCanvas):
 
 #------王--改动开始
     signal_disconnect_addline = pyqtSignal()
-#    临时信号，用于把拖进来的参数传给绘图窗口绘图
-    signal_temp = pyqtSignal(dict)
+
 #------王--改动结束
     
     def __init__(self,parent=None,width=10,height=4,dpi=100):
@@ -82,43 +82,104 @@ class PlotCanvas(FigureCanvas):
         self.toolbar=CustomToolbar(self,parent=None)
         self.toolbar.hide()
 #------王--改动开始
-        self.setAcceptDrops(True)
+
 #        定义下面这个变量是为了存入模板
         self.paralist = []
-        self.line = None
+        self.markline = []
+        self.pick_artist = {}
 
-#    重写拖放相关的事件
-#    设置部件可接受的MIME type列表，此处的类型是自定义的
-    def mimeTypes(self):
-        return ['application/x-parasname']
-#    拖进事件处理    
-    def dragEnterEvent(self, event):
-#        如果拖进来的时树列表才接受
-        if event.mimeData().hasFormat('application/x-parasname'):
-            event.acceptProposedAction()
-        else:
-            event.ignore()
-#     放下事件处理   
-    def dropEvent(self, event):
+#        添加右键菜单
+        self.is_display_menu = True
+#        后面这两个参数是为了添加辅助线时能获得所在的坐标轴和位置
+        self.menu_pos = [0, 0]
+        self.menu_inaxes = None
+        self.action_home = QAction(self)
+        self.action_home.setText(QCoreApplication.
+                                 translate("PlotCanvas", "初始状态"))
+        self.action_edit = QAction(self)
+        self.action_edit.setText(QCoreApplication.
+                                 translate("PlotCanvas", "图表设置"))
+        self.action_config = QAction(self)
+        self.action_config.setText(QCoreApplication.
+                                   translate("PlotCanvas", "画布设置"))
+        self.action_forward = QAction(self)
+        self.action_forward.setText(QCoreApplication.
+                                    translate("PlotCanvas", "前进"))
+        self.action_back = QAction(self)
+        self.action_back.setText(QCoreApplication.
+                                 translate("PlotCanvas", "后退"))
+        self.action_save = QAction(self)
+        self.action_save.setText(QCoreApplication.
+                                 translate("PlotCanvas", "保存为图片"))
+        self.action_add_mark_hline = QAction(self)
+        self.action_add_mark_hline.setText(QCoreApplication.
+                                         translate("PlotCanvas", "水平标记线"))
+        self.action_add_mark_vline = QAction(self)
+        self.action_add_mark_vline.setText(QCoreApplication.
+                                         translate("PlotCanvas", "垂直标记线"))
+        self.action_add_arb_markline = QAction(self)
+        self.action_add_arb_markline.setText(QCoreApplication.
+                                            translate("PlotCanvas", "任意标记线"))
+        self.mpl_connect('button_press_event', self.slot_on_tree_context_menu)
+        self.action_home.triggered.connect(self.toolbar.home)
+        self.action_edit.triggered.connect(self.toolbar.edit_parameters)
+        self.action_config.triggered.connect(self.toolbar.configure_subplots)
+        self.action_forward.triggered.connect(self.toolbar.forward)
+        self.action_back.triggered.connect(self.toolbar.back)
+        self.action_save.triggered.connect(self.toolbar.save_figure)
+        self.action_add_arb_markline.triggered.connect(self.slot_add_arb_markline)
+        self.action_add_mark_hline.triggered.connect(self.slot_add_mark_hline)
+        self.action_add_mark_vline.triggered.connect(self.slot_add_mark_vline)
         
-        paras = {}
-        if event.mimeData().hasFormat('application/x-parasname'):
-            item_data = event.mimeData().data('application/x-parasname')
-            item_stream = QDataStream(item_data, QIODevice.ReadOnly)
-            while (not item_stream.atEnd()):
-                paraname = item_stream.readQString()
-                file_dir = item_stream.readQString()
-                if not (file_dir in paras):
-                    paras[file_dir] = []
-                    paras[file_dir].append(paraname)
-                else:
-                    paras[file_dir].append(paraname)  
-            self.signal_temp.emit(paras)
-            event.acceptProposedAction()
-        else:
-            event.ignore()
+        self.mpl_connect('pick_event', self.on_pick)
 
-    def slot_use_subline(self, isconnect):
+    def slot_set_display_menu(self, is_display):
+        
+        self.is_display_menu = is_display
+        
+    def slot_on_tree_context_menu(self, event):
+        
+        if self.fig.axes and event.button == 3 and self.is_display_menu:
+            menu = QMenu(self)
+            menu.addActions([self.action_home, 
+                             self.action_forward,
+                             self.action_back,
+                             self.action_edit,
+                             self.action_config,
+                             self.action_save])
+            menu_markline = QMenu(menu)
+            menu_markline.setTitle(QCoreApplication.
+                                  translate("PlotCanvas", "添加标记线"))
+            menu_markline.addActions([self.action_add_mark_hline,
+                                    self.action_add_mark_vline,
+                                    self.action_add_arb_markline])
+            menu.addAction(menu_markline.menuAction())
+            if event.inaxes:
+                self.menu_inaxes = event.inaxes
+                self.menu_pos = [event.xdata, event.ydata]
+            else:
+                menu_markline.setEnabled(False)
+            h = self.height()
+            cor_y = h - event.y
+            menu.exec_(self.mapToGlobal(QPoint(event.x, cor_y))) 
+
+    def slot_add_arb_markline(self):
+        
+        pass
+    
+    def slot_add_mark_hline(self):
+
+        line = self.menu_inaxes.axhline(self.menu_pos[1], c = 'black',ls = '--', picker = 5)
+        self.markline.append(line)
+        self.draw()
+        
+    def slot_add_mark_vline(self):
+        
+        line = self.menu_inaxes.axvline(self.menu_pos[0], c = 'black',ls = '--')
+        self.markline.append(line)
+        self.draw()
+    
+    def slot_use_markline(self, isconnect):
         
         if isconnect:
             self.cid_press = self.fig.canvas.mpl_connect('button_press_event',
@@ -127,23 +188,31 @@ class PlotCanvas(FigureCanvas):
                                                         self.slot_move_mouse)
         else:
             self.fig.canvas.mpl_disconnect(self.cid_move)
-            self.fig.canvas.mpl_disconnect(self.cid_press)     
+            self.fig.canvas.mpl_disconnect(self.cid_press) 
+            
+    def on_pick(self, event):
+        
+        print(type(event.artist))
     
     def slot_press_mouse(self, event):
         
         x = event.xdata
-        if self.line:
-            pass
-        else:
-            self.line = event.inaxes.axvline(x, linestyle = '--')
+        line = event.inaxes.axvline(x, c = 'black',ls = '--')
+        self.line.append(line)
         event.canvas.draw()
         
     def slot_move_mouse(self, event):
         
         if event.button == 1:
             x = event.xdata
-            self.line.set_xdata([x, x])
-            event.canvas.draw()
+            xlim_left, xlim_right = event.inaxes.get_xlim()
+            if x > xlim_right:
+                self.line.set_xdata([xlim_right, xlim_right])
+            elif x < xlim_left:
+                self.line.set_xdata([xlim_left, xlim_left])
+            else:
+                self.line.set_xdata([x, x])
+            event.canvas.draw()       
         
         
 #------王--改动结束
@@ -259,7 +328,7 @@ class PlotCanvas(FigureCanvas):
             eachax.legend(fontsize=8,loc=(0,1) , ncol=1 , frameon=False,
                           markerscale = 2, edgecolor = "inherit")
             eachax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-            eachax.xaxis.set_major_locator(LinearLocator(numticks=10))
+            eachax.xaxis.set_major_locator(LinearLocator(numticks=8))
             eachax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
             eachax.yaxis.set_major_locator(LinearLocator(numticks=5))
             eachax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
