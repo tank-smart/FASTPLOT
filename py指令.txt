@@ -1,0 +1,2 @@
+python -m PyQt5.uic.pyuic -x [FILENAME].ui -o [FILENAME].py
+pyinstaller -F -w  -i ico_path  py_path

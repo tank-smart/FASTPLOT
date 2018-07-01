@@ -25,7 +25,7 @@
 import pandas as pd
 import scipy.io as sio
 import re
-import time_model as Time
+import models.time_model as Time
 
 # =======类基本信息
 #class DataFile
@@ -278,7 +278,6 @@ class Normal_DataFile(DataFile):
         
     def cols_input(self,filedir="",cols=[],sep="\s+",start_time='',stop_time=''):  #without chunkinput now!!
         
-        result_df = None
         if filedir=="":
             filedir=self.filedir
         if sep=="":
@@ -296,8 +295,6 @@ class Normal_DataFile(DataFile):
                                       start_time, self.sample_frequency)
                 stop_rows = Time.lines_between_times(self.time_range[0],
                                      stop_time, self.sample_frequency)
-                result_df =  df[start_rows : stop_rows].copy()
+                return df[start_rows : stop_rows].copy()
             else:
-                result_df =  df 
-            result_df = result_df.ix[:, cols]
-        return result_df
+                return df 

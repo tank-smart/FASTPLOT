@@ -29,11 +29,13 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar,
 # =============================================================================
 # Package views imports
 # =============================================================================
-from data_export_window import DataExportWindow
-from plot_window import PlotWindow
-from paralist_window import ParalistWindow
+from views.data_export_window import DataExportWindow
+from views.plot_window import PlotWindow
+from views.paralist_window import ParalistWindow
 from models.datafile_model import Normal_DataFile
-from data_manage_window import DataManageWindow
+from views.data_manage_window import DataManageWindow
+from views.data_analysis_window import DataAnalysisWindow
+import views.src_icon as ICON
 # =============================================================================
 # Main Window
 # =============================================================================
@@ -48,7 +50,7 @@ class MainWindow(QMainWindow):
     def __init__(self, parent = None):
         super().__init__(parent)
 #        设置窗口图标
-        self.setWindowIcon(QIcon(r"E:\DAGUI\lib\icon\window.png"))
+        self.setWindowIcon(QIcon(ICON.ICON_WINDOW))
 
 #        所涉及的结果文件，列表类型
         self.resultfile_group = []
@@ -85,7 +87,8 @@ class MainWindow(QMainWindow):
         self.mw_stacked_window.addWidget(self.plot_page)
         self.mathematics_page = QWidget(self)
         self.mw_stacked_window.addWidget(self.mathematics_page)
-        self.data_analysis_page = QWidget(self)
+        self.data_analysis_page = DataAnalysisWindow(self)
+        self.data_analysis_page.setup()
         self.mw_stacked_window.addWidget(self.data_analysis_page)
         self.data_manage_page = DataManageWindow(self)
         self.data_manage_page.setup()
@@ -142,35 +145,35 @@ class MainWindow(QMainWindow):
 #        创建动作
         self.action_open_normal_datafile = QAction(self)
         self.action_open_normal_datafile.setObjectName("action_open_normal_datafile")
-        self.action_open_normal_datafile.setIcon(QIcon(r"E:\DAGUI\lib\icon\open.ico"))
+        self.action_open_normal_datafile.setIcon(QIcon(ICON.ICON_OPEN))
         self.action_export_data = QAction(self)
         self.action_export_data.setObjectName("action_export_data")
-        self.action_export_data.setIcon(QIcon(r"E:\DAGUI\lib\icon\export.ico"))
+        self.action_export_data.setIcon(QIcon(ICON.ICON_EXPORT))
         self.action_export_data.setCheckable(True)
         self.action_exit = QAction(self)
         self.action_exit.setObjectName("action_exit")
-        self.action_exit.setIcon(QIcon(r"E:\DAGUI\lib\icon\exit.png"))
+        self.action_exit.setIcon(QIcon(ICON.ICON_EIXT))
         self.action_mathematics = QAction(self)
         self.action_mathematics.setObjectName("action_mathematics")
-        self.action_mathematics.setIcon(QIcon(r"E:\DAGUI\lib\icon\caculator.ico"))
+        self.action_mathematics.setIcon(QIcon(ICON.ICON_MATHEMATICS))
         self.action_mathematics.setCheckable(True)
         self.action_data_analysis = QAction(self)
         self.action_data_analysis.setObjectName("action_data_analysis")
-        self.action_data_analysis.setIcon(QIcon(r"E:\DAGUI\lib\icon\datamanipulate.ico"))
+        self.action_data_analysis.setIcon(QIcon(ICON.ICON_DATA_ANA))
         self.action_data_analysis.setCheckable(True)
         self.action_data_manage = QAction(self)
         self.action_data_manage.setObjectName("action_data_manage")
-        self.action_data_manage.setIcon(QIcon(r"E:\DAGUI\lib\icon\datamanage.ico"))
+        self.action_data_manage.setIcon(QIcon(ICON.ICON_DATA_MAN))
         self.action_data_manage.setCheckable(True)
         self.action_options = QAction(self)
         self.action_options.setObjectName("action_options")
-        self.action_options.setIcon(QIcon(r"E:\DAGUI\lib\icon\setting.ico"))
+        self.action_options.setIcon(QIcon(ICON.ICON_SETTING))
         self.action_about = QAction(self)
         self.action_about.setObjectName("action_about")
-        self.action_about.setIcon(QIcon(r"E:\DAGUI\lib\icon\information.ico"))
+        self.action_about.setIcon(QIcon(ICON.ICON_ABOUT))
         self.action_plot = QAction(self)
         self.action_plot.setObjectName("action_plot")
-        self.action_plot.setIcon(QIcon(r"E:\DAGUI\lib\icon\quick_plot.ico"))
+        self.action_plot.setIcon(QIcon(ICON.ICON_PLOT))
         self.action_plot.setCheckable(True)
         self.action_paralist_dock_isclosed = QAction(self)
         self.action_paralist_dock_isclosed.setCheckable(True)
@@ -202,8 +205,8 @@ class MainWindow(QMainWindow):
 #        添加工具栏
         self.toolbar.addAction(self.action_open_normal_datafile)
         self.toolbar.addSeparator()
-        self.toolbar.addAction(self.action_export_data)
         self.toolbar.addAction(self.action_plot)
+        self.toolbar.addAction(self.action_export_data)
         self.toolbar.addAction(self.action_mathematics)
         self.toolbar.addAction(self.action_data_analysis)
         self.toolbar.addAction(self.action_data_manage)
@@ -285,8 +288,14 @@ class MainWindow(QMainWindow):
             if os.path.exists(file_dir_list[0]):
                 self.config_info["INIT DIR OF IMPORTING FILES"] = os.path.dirname(file_dir_list[0])
             for file_dir in file_dir_list:
-                nor_file = Normal_DataFile(file_dir)
-                file_dirs[file_dir] = nor_file.paras_in_file
+                try:
+                    nor_file = Normal_DataFile(file_dir)
+                    file_dirs[file_dir] = nor_file.paras_in_file
+                except:
+                    info = "文件" + "<br>" + file_dir + "<br>打开失败"
+                    QMessageBox.information(self,
+                        QCoreApplication.translate("DataExportWindow", "打开文件提示"),
+                        QCoreApplication.translate("DataExportWindow", info)) 
         self.signal_import_datafiles.emit(file_dirs)
 
 #    与关于退出有关的显示

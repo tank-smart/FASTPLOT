@@ -25,6 +25,8 @@ from PyQt5.QtWidgets import (QWidget, QDockWidget,QLineEdit, QMenu,
 # Package views imports
 # =============================================================================
 from models.datafile_model import Normal_DataFile
+from views.custom_dialog import SelParaForPlotDialog
+import views.src_icon as ICON
 
 # =============================================================================
 # ParasTree
@@ -58,7 +60,7 @@ class ParalistWindow(QDockWidget):
 #    导出数据的信号，带有字典型参数（存储了文件路径和参数名的信息）
     signal_export_para = pyqtSignal(dict)
 #    快速绘图的信号，带有字典型参数（存储了文件路径和参数名的信息）
-    signal_quick_plot = pyqtSignal(dict)
+    signal_quick_plot = pyqtSignal(tuple)
 #    搜索参数的信号
     signal_search_para = pyqtSignal(str)
     
@@ -71,8 +73,9 @@ class ParalistWindow(QDockWidget):
         
         super().__init__(parent)
 #        设置文件与参数的图标
-        self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
-        self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
+        self.fileicon = QIcon(ICON.ICON_FILE)
+        self.paraicon = QIcon(ICON.ICON_PARA)
+        self.para_for_plot_dialog = None
     
 # =============================================================================
 # UI模块
@@ -124,6 +127,9 @@ class ParalistWindow(QDockWidget):
         self.action_quick_plot = QAction(self.datafiles_tree)
         self.action_quick_plot.setText(QCoreApplication.
                                        translate("ParalistDock", "快速绘图"))
+        self.action_add_para_plot = QAction(self.datafiles_tree)
+        self.action_add_para_plot.setText(QCoreApplication.
+                                       translate("ParalistDock", "按顺序添加参数绘图"))
         self.action_delete_files = QAction(self.datafiles_tree)
         self.action_delete_files.setText(QCoreApplication.
                                        translate("ParalistDock", "删除文件"))
@@ -139,6 +145,7 @@ class ParalistWindow(QDockWidget):
         self.action_export.triggered.connect(self.slot_export_para)
         self.action_quick_plot.triggered.connect(self.slot_quick_plot)
         self.action_delete_files.triggered.connect(self.slot_delete_files)
+        self.action_add_para_plot.triggered.connect(self.slot_add_para_plot)
         
         self.line_edit_search_para.textChanged.connect(self.slot_search_para)
 
@@ -162,16 +169,19 @@ class ParalistWindow(QDockWidget):
         if sel_item:
 #            创建菜单，添加动作，显示菜单
             menu = QMenu(self.datafiles_tree)
-            menu.addAction(self.action_export)
-            menu.addAction(self.action_quick_plot)
-            menu.addAction(self.action_delete_files)
+            menu.addActions([self.action_quick_plot,
+                             self.action_add_para_plot,
+                             self.action_export,
+                             self.action_delete_files])
             if sel_item.parent():
                 self.action_export.setDisabled(False)
                 self.action_quick_plot.setDisabled(False)
+                self.action_add_para_plot.setDisabled(False)
                 self.action_delete_files.setDisabled(True)
             else:
                 self.action_export.setDisabled(True)
                 self.action_quick_plot.setDisabled(True)
+                self.action_add_para_plot.setDisabled(True)
                 self.action_delete_files.setDisabled(False)
             menu.exec_(self.datafiles_tree.mapToGlobal(pos))
             
@@ -195,10 +205,15 @@ class ParalistWindow(QDockWidget):
                     root.setData(0, Qt.UserRole, file_dir)
                     root.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
                     file = Normal_DataFile(file_dir)
+                    flag = True
                     for para in file.paras_in_file:
-                        child = QTreeWidgetItem(root)
-                        child.setIcon(0,self.paraicon)
-                        child.setText(0,para)
+#                        跳过时间这个参数名
+                        if flag:
+                            flag = False
+                        else:
+                            child = QTreeWidgetItem(root)
+                            child.setIcon(0,self.paraicon)
+                            child.setText(0,para)
 
     def slot_delete_files(self, files):
 
@@ -253,7 +268,29 @@ class ParalistWindow(QDockWidget):
 #        获得被选项的文件路径和参数列表
         sel_items = self.get_dict_sel_item()
 #        传递出去
-        self.signal_quick_plot.emit(sel_items)
+        self.signal_quick_plot.emit((sel_items, []))
+        
+    def slot_add_para_plot(self):
+
+    
+        def slot_close_selpara_dialog():            
+            self.para_for_plot_dialog = None
+            
+        def slot_dialog_plot(paras):            
+            self.signal_quick_plot.emit(paras)
+            
+        paras = self.get_dict_sel_item()
+        if self.para_for_plot_dialog:
+            self.para_for_plot_dialog.slot_import_para(paras)
+        else:
+            self.para_for_plot_dialog = SelParaForPlotDialog(self)
+            self.para_for_plot_dialog.setAttribute(Qt.WA_DeleteOnClose)
+            self.para_for_plot_dialog.signal_para_for_plot.connect(
+                    slot_dialog_plot)
+            self.para_for_plot_dialog.signal_close.connect(
+                    slot_close_selpara_dialog)
+            self.para_for_plot_dialog.show()
+            self.para_for_plot_dialog.slot_import_para(paras)        
 
 # =============================================================================
 # 功能函数模块   

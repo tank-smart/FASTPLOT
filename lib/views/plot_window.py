@@ -12,38 +12,71 @@
 
 # =============================================================================
 
-import sys
 import pandas as pd
-sys.path.append(r"E:\DAGUI\lib")
 # =============================================================================
 # Qt imports
 # =============================================================================
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
                              QDialog, QMessageBox, QScrollArea)
-from PyQt5.QtCore import QCoreApplication, QSize, pyqtSignal
+from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
+                          QIODevice)
 from PyQt5.QtGui import QIcon
 
 # =============================================================================
 # Package views imports
 # =============================================================================
 from models.figure_model import PlotCanvas
-from custom_dialog import SelectTemplateDialog, SaveTemplateDialog
+from views.custom_dialog import SelectTemplateDialog, SaveTemplateDialog
 from models.datafile_model import Normal_DataFile
+import views.src_icon as ICON
 # =============================================================================
 # CustomScrollArea
 # =============================================================================
 class CustomScrollArea(QScrollArea):
 
     signal_resize = pyqtSignal(QSize)
+    signal_drop_paras = pyqtSignal(dict)
     
     def __init__(self, parent = None):
         super().__init__(parent)
+        self.setAcceptDrops(True)
         
     def resizeEvent(self, event):
         
         self.signal_resize.emit(event.size())
         QScrollArea.resizeEvent(self, event)
+        
+#    重写拖放相关的事件
+#    设置部件可接受的MIME type列表，此处的类型是自定义的
+    def mimeTypes(self):
+        return ['application/x-parasname']
+#    拖进事件处理    
+    def dragEnterEvent(self, event):
+#        如果拖进来的时树列表才接受
+        if event.mimeData().hasFormat('application/x-parasname'):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+#     放下事件处理   
+    def dropEvent(self, event):
+        
+        paras = {}
+        if event.mimeData().hasFormat('application/x-parasname'):
+            item_data = event.mimeData().data('application/x-parasname')
+            item_stream = QDataStream(item_data, QIODevice.ReadOnly)
+            while (not item_stream.atEnd()):
+                paraname = item_stream.readQString()
+                file_dir = item_stream.readQString()
+                if not (file_dir in paras):
+                    paras[file_dir] = []
+                    paras[file_dir].append(paraname)
+                else:
+                    paras[file_dir].append(paraname)  
+            self.signal_drop_paras.emit(paras)
+            event.acceptProposedAction()
+        else:
+            event.ignore()
         
 # =============================================================================
 # PlotWindow
@@ -52,7 +85,8 @@ class PlotWindow(QWidget):
 
     signal_get_plot_temps = pyqtSignal()
     signal_save_temp = pyqtSignal(dict)
-    signal_use_subline = pyqtSignal(bool)
+    signal_use_markline = pyqtSignal(bool)
+    signal_is_display_menu = pyqtSignal(bool)
 # =============================================================================
 # 初始化    
 # =============================================================================
@@ -60,8 +94,9 @@ class PlotWindow(QWidget):
         super().__init__(parent)
         self.pan_on = False
         self.zoom_on = False
-        self.use_subline = False
-        self.dflist=[]
+        self.use_markline = False
+        self.total_data = []
+        self.add_time_flag = True
 
 # =============================================================================
 # UI模块        
@@ -93,75 +128,80 @@ class PlotWindow(QWidget):
         self.button_home.setMinimumSize(QSize(32, 32))
         self.button_home.setMaximumSize(QSize(32, 32))
         self.button_home.setObjectName("button_home")
-        self.button_home.setIcon(QIcon(r"E:\DAGUI\lib\icon\home.ico"))
+        self.button_home.setIcon(QIcon(ICON.ICON_HOME))
         self.verticalLayout.addWidget(self.button_home)
         self.button_pan = QToolButton(self.widget_plot_tools)
         self.button_pan.setMinimumSize(QSize(32, 32))
         self.button_pan.setMaximumSize(QSize(32, 32))
         self.button_pan.setCheckable(True)
         self.button_pan.setObjectName("button_pan")
-        self.button_pan.setIcon(QIcon(r"E:\DAGUI\lib\icon\pan.png"))
+        self.button_pan.setIcon(QIcon(ICON.ICON_PAN))
         self.verticalLayout.addWidget(self.button_pan)
         self.button_zoom = QToolButton(self.widget_plot_tools)
         self.button_zoom.setMinimumSize(QSize(32, 32))
         self.button_zoom.setMaximumSize(QSize(32, 32))
         self.button_zoom.setCheckable(True)
         self.button_zoom.setObjectName("button_zoom")
-        self.button_zoom.setIcon(QIcon(r"E:\DAGUI\lib\icon\zoom.ico"))
+        self.button_zoom.setIcon(QIcon(ICON.ICON_ZOOM))
         self.verticalLayout.addWidget(self.button_zoom)
         self.button_edit = QToolButton(self.widget_plot_tools)
         self.button_edit.setMinimumSize(QSize(32, 32))
         self.button_edit.setMaximumSize(QSize(32, 32))
         self.button_edit.setObjectName("button_edit")
-        self.button_edit.setIcon(QIcon(r"E:\DAGUI\lib\icon\edit.png"))
+        self.button_edit.setIcon(QIcon(ICON.ICON_EDIT))
         self.verticalLayout.addWidget(self.button_edit)
         self.button_config = QToolButton(self.widget_plot_tools)
         self.button_config.setMinimumSize(QSize(32, 32))
         self.button_config.setMaximumSize(QSize(32, 32))
         self.button_config.setObjectName("button_config")
-        self.button_config.setIcon(QIcon(r"E:\DAGUI\lib\icon\config.ico"))
+        self.button_config.setIcon(QIcon(ICON.ICON_CONFIG))
         self.verticalLayout.addWidget(self.button_config)
         self.button_back = QToolButton(self.widget_plot_tools)
         self.button_back.setMinimumSize(QSize(32, 32))
         self.button_back.setMaximumSize(QSize(32, 32))
         self.button_back.setObjectName("button_back")
-        self.button_back.setIcon(QIcon(r"E:\DAGUI\lib\icon\back.ico"))
+        self.button_back.setIcon(QIcon(ICON.ICON_BACK))
         self.verticalLayout.addWidget(self.button_back)
         self.button_forward = QToolButton(self.widget_plot_tools)
         self.button_forward.setMinimumSize(QSize(32, 32))
         self.button_forward.setMaximumSize(QSize(32, 32))
         self.button_forward.setObjectName("button_forward")
-        self.button_forward.setIcon(QIcon(r"E:\DAGUI\lib\icon\forward.ico"))
+        self.button_forward.setIcon(QIcon(ICON.ICON_FORWARD))
         self.verticalLayout.addWidget(self.button_forward)    
         self.button_save = QToolButton(self.widget_plot_tools)
         self.button_save.setMinimumSize(QSize(32, 32))
         self.button_save.setMaximumSize(QSize(32, 32))
         self.button_save.setObjectName("button_save")
-        self.button_save.setIcon(QIcon(r"E:\DAGUI\lib\icon\save.ico"))
+        self.button_save.setIcon(QIcon(ICON.ICON_SAVE))
         self.verticalLayout.addWidget(self.button_save)
         self.button_sel_temp = QToolButton(self.widget_plot_tools)
         self.button_sel_temp.setMinimumSize(QSize(32, 32))
         self.button_sel_temp.setMaximumSize(QSize(32, 32))
         self.button_sel_temp.setObjectName("button_sel_temp")
-        self.button_sel_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\use_template.ico"))
+        self.button_sel_temp.setIcon(QIcon(ICON.ICON_SEL_TEMP))
         self.verticalLayout.addWidget(self.button_sel_temp)
         self.button_save_temp = QToolButton(self.widget_plot_tools)
         self.button_save_temp.setMinimumSize(QSize(32, 32))
         self.button_save_temp.setMaximumSize(QSize(32, 32))
         self.button_save_temp.setObjectName("button_save_temp")
-        self.button_save_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\save_template.ico"))
+        self.button_save_temp.setIcon(QIcon(ICON.ICON_SAVE_TEMP))
         self.verticalLayout.addWidget(self.button_save_temp)
-        self.button_add_line_marker = QToolButton(self.widget_plot_tools)
-        self.button_add_line_marker.setCheckable(True)
-        self.button_add_line_marker.setMinimumSize(QSize(32, 32))
-        self.button_add_line_marker.setMaximumSize(QSize(32, 32))
-        self.button_add_line_marker.setIcon(QIcon(r"E:\DAGUI\lib\icon\line_marker.ico"))
-        self.verticalLayout.addWidget(self.button_add_line_marker)
+        self.button_add_markline = QToolButton(self.widget_plot_tools)
+        self.button_add_markline.setCheckable(True)
+        self.button_add_markline.setMinimumSize(QSize(32, 32))
+        self.button_add_markline.setMaximumSize(QSize(32, 32))
+        self.button_add_markline.setIcon(QIcon(ICON.ICON_ADD_LINE_MARK))
+        self.verticalLayout.addWidget(self.button_add_markline)
         self.button_add_text = QToolButton(self.widget_plot_tools)
         self.button_add_text.setMinimumSize(QSize(32, 32))
         self.button_add_text.setMaximumSize(QSize(32, 32))
-        self.button_add_text.setIcon(QIcon(r"E:\DAGUI\lib\icon\text.ico"))
+        self.button_add_text.setIcon(QIcon(ICON.ICON_TEXT))
         self.verticalLayout.addWidget(self.button_add_text)
+        self.button_clear_canvas = QToolButton(self.widget_plot_tools)
+        self.button_clear_canvas.setMinimumSize(QSize(32, 32))
+        self.button_clear_canvas.setMaximumSize(QSize(32, 32))
+        self.button_clear_canvas.setIcon(QIcon(ICON.ICON_CLEAR))
+        self.verticalLayout.addWidget(self.button_clear_canvas)
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
 #        先添加工具栏在添加包括画布/滑块的水平子布局器
@@ -181,13 +221,15 @@ class PlotWindow(QWidget):
         self.button_forward.clicked.connect(self.slot_forward)
         self.button_sel_temp.clicked.connect(self.signal_get_plot_temps)
         self.button_save_temp.clicked.connect(self.slot_save_temp)
+        self.button_clear_canvas.clicked.connect(self.slot_clear_canvas)
 #        添加辅助线
-        self.button_add_line_marker.clicked.connect(self.slot_subline_connect)
-        self.signal_use_subline.connect(self.plotcanvas.slot_use_subline)
+        self.button_add_markline.clicked.connect(self.slot_markline_connect)
+        self.signal_use_markline.connect(self.plotcanvas.slot_use_markline)
         
         self.scrollarea.signal_resize.connect(self.slot_resize_canvas)
-#        临时连接
-        self.plotcanvas.signal_temp.connect(self.slot_plot)
+        self.scrollarea.signal_drop_paras.connect(self.slot_plot)
+#        画布的右键菜单
+        self.signal_is_display_menu.connect(self.plotcanvas.slot_set_display_menu)
 
 # =============================================================================
 # slots模块
@@ -208,26 +250,40 @@ class PlotWindow(QWidget):
 #                    self.scrollarea.setWidgetResizable(True)
 #                self.plotcanvas.subplot_para_yh(filedir, filegroup[filedir])
         
-    def slot_plot(self, filegroup):
+#    输入参数为一个包含两个参数的元组，元组第一个参数是字典型，存储文件名及与之对应的变量列表
+#    元组第二个参数是列表，存储已排序的参数
+    def slot_plot(self, tuple_file_para):
         
-        if filegroup:
-            
+        filegroup, sorted_paras = tuple_file_para
+        
+        if filegroup:            
             df_list = []
-            flag=True
-            if self.dflist:  #总列表存在情况时不需要再添加时间列，flag置为False
-                flag = False
             for filedir in filegroup:
                 file = Normal_DataFile(filedir)
-                if flag:
+                if self.add_time_flag:
                     filegroup[filedir].insert(0, file.paras_in_file[0])
-                    flag = False
+                    self.add_time_flag = False
                 df = file.cols_input(filedir, filegroup[filedir], '\s+')
                 df_list.append(df)
-            self.dflist.extend(df_list)
-#            df_all = pd.concat(df_list,axis = 1,join = 'outer',
-#                               ignore_index = False) 
-            df_all = pd.concat(self.dflist,axis = 1,join = 'outer',
+
+#            self.dflist.extend(df_list)
+##            df_all = pd.concat(df_list,axis = 1,join = 'outer',
+##                               ignore_index = False) 
+#            df_all = pd.concat(self.dflist,axis = 1,join = 'outer',
+#                               ignore_index = False)
+
+#            如果参数有排序就使用此顺序
+            if sorted_paras:
+                df = pd.concat(df_list,axis = 1,join = 'outer',
                                ignore_index = False)
+                sorted_paras.insert(0, df.columns.values.tolist()[0])
+                df = df.ix[:, sorted_paras]
+                self.total_data.extend([df])
+#            如果参数没有排序就使用默认顺序
+            else:
+                self.total_data.extend(df_list)
+            df_all = pd.concat(self.total_data,axis = 1,join = 'outer',
+                               ignore_index = False) 
             cols = df_all.columns.size - 1
             if cols > 4:
                 self.scrollarea.setWidgetResizable(False)
@@ -258,9 +314,12 @@ class PlotWindow(QWidget):
         if self.pan_on:
             self.button_pan.setChecked(False)
             self.pan_on = False
+#            因为缩放时占用了右键，所以需要禁止右键菜单弹出
+            self.signal_is_display_menu.emit(True)
         else:
             self.button_pan.setChecked(True)
             self.pan_on = True
+            self.signal_is_display_menu.emit(False)
 #            保证pan按钮和zoom按钮不能同时按下
             if self.zoom_on:
                 self.button_zoom.setChecked(False)
@@ -272,9 +331,11 @@ class PlotWindow(QWidget):
         if self.zoom_on:
             self.button_zoom.setChecked(False)
             self.zoom_on = False
+            self.signal_is_display_menu.emit(True)
         else:
             self.button_zoom.setChecked(True)
             self.zoom_on = True
+            self.signal_is_display_menu.emit(False)
 #            保证pan按钮和zoom按钮不能同时按下
             if self.pan_on:
                 self.button_pan.setChecked(False)
@@ -346,16 +407,22 @@ class PlotWindow(QWidget):
                     QCoreApplication.translate("DataExportWindow", "保存错误"),
                     QCoreApplication.translate("DataExportWindow", "没有发现图表")) 
     
-    def slot_subline_connect(self):
+    def slot_markline_connect(self):
         
-        if self.use_subline:
-            self.button_add_line_marker.setChecked(False)
-            self.use_subline = False
-            self.signal_use_subline.emit(False)
+        if self.use_markline:
+            self.button_add_markline.setChecked(False)
+            self.use_markline = False
+            self.signal_use_markline.emit(False)
         else:
-            self.button_add_line_marker.setChecked(True)
-            self.use_subline = True
-            self.signal_use_subline.emit(True)
+            self.button_add_markline.setChecked(True)
+            self.use_markline = True
+            self.signal_use_markline.emit(True)
+            
+    def slot_clear_canvas(self):
+        self.plotcanvas.clear_figure()
+        self.total_data = []
+        self.add_time_flag = True
+        
         
 # =============================================================================
 # 功能函数模块
@@ -379,4 +446,5 @@ class PlotWindow(QWidget):
         self.button_save.setToolTip(_translate("PlotWindow", "保存"))
         self.button_save_temp.setToolTip(_translate("PlotWindow", "保存模板"))
         self.button_sel_temp.setToolTip(_translate("PlotWindow", "选择模板"))
-        self.button_add_line_marker.setToolTip(_translate("PlotWindow", "增加辅助线"))
+        self.button_add_markline.setToolTip(_translate("PlotWindow", "增加辅助线"))
+        self.button_clear_canvas.setToolTip(_translate("PlotWindow", "清空画布"))

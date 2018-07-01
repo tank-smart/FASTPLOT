@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-from datafile_model import Normal_DataFile
+from models.datafile_model import Normal_DataFile
 class DataAnalysis(object):
     def __init__(self):
         pass
@@ -29,11 +29,11 @@ class DataAnalysis(object):
 #           不适用于 参数1 | 参数2条件 ，且只有其中部分参数存在文件中的情况
     def condition_sift_1(self,file_list=[], condition="",search_para=[]):
         dict_result={}
-        cond_list=re.split(r"&|\|",condition)
-        for s in cond_list:
-            para_parse=re.split(r">|<|=",s.strip())[0]
-            if para_parse not in search_para:
-                search_para.append(para_parse)
+#        cond_list=re.split(r"&|\|",condition)
+#        for s in cond_list:
+#            para_parse=re.split(r">|<|=",s.strip())[0]
+#            if para_parse not in search_para:
+#                search_para.append(para_parse)
         for filedir in file_list:
             try:
                 para_list=search_para
