@@ -246,13 +246,13 @@ class PlotCanvas(FigureCanvas):
             return
         df[para_list[0]]=pd.to_datetime(df[para_list[0]],format='%H:%M:%S:%f')
         self.fig.clf()
+        matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内，在创建axes之间设置
+        matplotlib.rcParams['ytick.direction'] = 'in'
         #ax1 = self.fig.add_subplot(4,1,self.pos)
         self.ax=self.fig.add_axes([0.1,0.1,0.8,0.8])
 #        self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)
         #self.fig.subplots_adjust(0.1,0.5,0.9,0.95,0.3)
 #        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-        matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
-        matplotlib.rcParams['ytick.direction'] = 'in'
 #        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
         axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=8,subplots=True,sharex=True)
         for eachax in axes:

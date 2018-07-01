@@ -214,7 +214,7 @@ class PlotWindow(QWidget):
             
             df_list = []
             flag=True
-            if self.dflist:
+            if self.dflist:  #总列表存在情况时不需要再添加时间列，flag置为False
                 flag = False
             for filedir in filegroup:
                 file = Normal_DataFile(filedir)
