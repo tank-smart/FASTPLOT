@@ -1,0 +1,9 @@
+========
+Trim
+FCM2_Voted_Pressure_Altitude FCM2_Voted_Calibrated_Airspeed HF_FCM_2_FCS_Output_SP20_DS28_First_Officer_Sidestick_Pitch_Pos HF_FCM_2_FCS_Output_SP20_DS30_First_Officer_Sidestick_Roll_Posi FCM2_Stabilizer_Position FCM2_Left_Elevator_Position FCM2_Left_Aileron_Position FCM2_Rudder_Position FCM2_Voted_Body_Pitch_Rate_provisional FCM2_Voted_Body_Roll_Rate_provisional FCM2_Voted_IRS_Magnetic_Heading FADEC_LA_Selected_N1_Actual
+========
+Import
+TIME FCM_3_DS38_DS38_Slat_Invld FCM_2_DS38_Slat_Invld FCM1_Voted_Altitude_Rate FCM_2_DS38_Flap_Invld
+========
+XX
+TIME FCM_3_DS38_DS38_Slat_Invld FCM1_ACE_3_Status FCM_3_ACE_2_Status FCM1_Captain_SSU_Position_Invaild FCM1_FCM_1_Valid

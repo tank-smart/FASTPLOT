@@ -26,15 +26,20 @@ matplotlib.use('Qt5Agg')
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+#------王--改动开始
+from matplotlib.lines import Line2D
+from matplotlib.text import Annotation
+from PyQt5.QtCore import pyqtSignal, QDataStream, QIODevice, Qt, QCoreApplication, QPoint
+#from PyQt5.QtGui import QCore
+#------王--改动结束
 import matplotlib.pyplot as plt
 from datetime import datetime
 import matplotlib.dates as mdates
 from matplotlib.dates import AutoDateLocator
-from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator
+from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator, LinearLocator, FixedLocator
 import pandas as pd
 from models.datafile_model import Normal_DataFile
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget, QPushButton
-
+from PyQt5.QtWidgets import QSizePolicy, QMenu, QAction
 # =======类基本信息
 #class PlotCanvas
 #说明：绘图类，继承自FigureCanvas
@@ -52,6 +57,11 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSize
 # 实例化类
 
 class PlotCanvas(FigureCanvas):
+
+#------王--改动开始
+    signal_disconnect_addline = pyqtSignal()
+
+#------王--改动结束
     
     def __init__(self,parent=None,width=10,height=4,dpi=100):
         self.fig=Figure(figsize=(width,height),dpi=dpi)
@@ -71,7 +81,143 @@ class PlotCanvas(FigureCanvas):
 #        self.toolbar=self.add_toolbar()
         self.toolbar=CustomToolbar(self,parent=None)
         self.toolbar.hide()
-#        self.fig.canvas.mpl_connect("button_press_event", self.on_press)
+
+#------王--改动开始
+
+#        定义下面这个变量是为了存入模板
+        self.paralist = []
+        self.markline = []
+        self.pick_artist = {}
+
+#        添加右键菜单
+        self.is_display_menu = True
+#        后面这两个参数是为了添加辅助线时能获得所在的坐标轴和位置
+        self.menu_pos = [0, 0]
+        self.menu_inaxes = None
+        self.action_home = QAction(self)
+        self.action_home.setText(QCoreApplication.
+                                 translate("PlotCanvas", "初始状态"))
+        self.action_edit = QAction(self)
+        self.action_edit.setText(QCoreApplication.
+                                 translate("PlotCanvas", "图表设置"))
+        self.action_config = QAction(self)
+        self.action_config.setText(QCoreApplication.
+                                   translate("PlotCanvas", "画布设置"))
+        self.action_forward = QAction(self)
+        self.action_forward.setText(QCoreApplication.
+                                    translate("PlotCanvas", "前进"))
+        self.action_back = QAction(self)
+        self.action_back.setText(QCoreApplication.
+                                 translate("PlotCanvas", "后退"))
+        self.action_save = QAction(self)
+        self.action_save.setText(QCoreApplication.
+                                 translate("PlotCanvas", "保存为图片"))
+        self.action_add_mark_hline = QAction(self)
+        self.action_add_mark_hline.setText(QCoreApplication.
+                                         translate("PlotCanvas", "水平标记线"))
+        self.action_add_mark_vline = QAction(self)
+        self.action_add_mark_vline.setText(QCoreApplication.
+                                         translate("PlotCanvas", "垂直标记线"))
+        self.action_add_arb_markline = QAction(self)
+        self.action_add_arb_markline.setText(QCoreApplication.
+                                            translate("PlotCanvas", "任意标记线"))
+        self.mpl_connect('button_press_event', self.slot_on_tree_context_menu)
+        self.action_home.triggered.connect(self.toolbar.home)
+        self.action_edit.triggered.connect(self.toolbar.edit_parameters)
+        self.action_config.triggered.connect(self.toolbar.configure_subplots)
+        self.action_forward.triggered.connect(self.toolbar.forward)
+        self.action_back.triggered.connect(self.toolbar.back)
+        self.action_save.triggered.connect(self.toolbar.save_figure)
+        self.action_add_arb_markline.triggered.connect(self.slot_add_arb_markline)
+        self.action_add_mark_hline.triggered.connect(self.slot_add_mark_hline)
+        self.action_add_mark_vline.triggered.connect(self.slot_add_mark_vline)
+        
+        self.mpl_connect('pick_event', self.on_pick)
+
+    def slot_set_display_menu(self, is_display):
+        
+        self.is_display_menu = is_display
+        
+    def slot_on_tree_context_menu(self, event):
+        
+        if self.fig.axes and event.button == 3 and self.is_display_menu:
+            menu = QMenu(self)
+            menu.addActions([self.action_home, 
+                             self.action_forward,
+                             self.action_back,
+                             self.action_edit,
+                             self.action_config,
+                             self.action_save])
+            menu_markline = QMenu(menu)
+            menu_markline.setTitle(QCoreApplication.
+                                  translate("PlotCanvas", "添加标记线"))
+            menu_markline.addActions([self.action_add_mark_hline,
+                                    self.action_add_mark_vline,
+                                    self.action_add_arb_markline])
+            menu.addAction(menu_markline.menuAction())
+            if event.inaxes:
+                self.menu_inaxes = event.inaxes
+                self.menu_pos = [event.xdata, event.ydata]
+            else:
+                menu_markline.setEnabled(False)
+            h = self.height()
+            cor_y = h - event.y
+            menu.exec_(self.mapToGlobal(QPoint(event.x, cor_y))) 
+
+    def slot_add_arb_markline(self):
+        
+        pass
+    
+    def slot_add_mark_hline(self):
+
+        line = self.menu_inaxes.axhline(self.menu_pos[1], c = 'black',ls = '--', picker = 5)
+        self.markline.append(line)
+        self.draw()
+        
+    def slot_add_mark_vline(self):
+        
+        line = self.menu_inaxes.axvline(self.menu_pos[0], c = 'black',ls = '--')
+        self.markline.append(line)
+        self.draw()
+    
+    def slot_use_markline(self, isconnect):
+        
+        if isconnect:
+            self.cid_press = self.fig.canvas.mpl_connect('button_press_event',
+                                                         self.slot_press_mouse)
+            self.cid_move = self.fig.canvas.mpl_connect('motion_notify_event', 
+                                                        self.slot_move_mouse)
+        else:
+            self.fig.canvas.mpl_disconnect(self.cid_move)
+            self.fig.canvas.mpl_disconnect(self.cid_press) 
+            
+    def on_pick(self, event):
+        
+        print(type(event.artist))
+    
+    def slot_press_mouse(self, event):
+        
+        x = event.xdata
+        line = event.inaxes.axvline(x, c = 'black',ls = '--')
+        self.line.append(line)
+        event.canvas.draw()
+        
+    def slot_move_mouse(self, event):
+        
+        if event.button == 1:
+            x = event.xdata
+            xlim_left, xlim_right = event.inaxes.get_xlim()
+            if x > xlim_right:
+                self.line.set_xdata([xlim_right, xlim_right])
+            elif x < xlim_left:
+                self.line.set_xdata([xlim_left, xlim_left])
+            else:
+                self.line.set_xdata([x, x])
+            event.canvas.draw()       
+        
+        
+#------王--改动结束
+
 #define the user-defined format for datatime display: HH:MM:SS:ms        
     def my_format(self, x, pos=None):
         x = matplotlib.dates.num2date(x)
@@ -156,7 +302,122 @@ class PlotCanvas(FigureCanvas):
         else:
             self.pos=0
 
+    def subplot_para_yh(self,source=None,para_list=[]):
+        if isinstance(source,(str)): #python 2 add unicode
+            file_plot=Normal_DataFile(source)
+            para_list.insert(0,file_plot.paras_in_file[0])
+            df=file_plot.cols_input(source,para_list)
+        elif isinstance(source,pd.DataFrame):
+            df=source
+        else:
+            return
+        df[para_list[0]]=pd.to_datetime(df[para_list[0]],format='%H:%M:%S:%f')
+        self.fig.clf()
+        #ax1 = self.fig.add_subplot(4,1,self.pos)
+        matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+        matplotlib.rcParams['ytick.direction'] = 'in'
+        self.ax=self.fig.add_axes([0.1,0.2,0.8,0.6])
+#        self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)
+        #self.fig.subplots_adjust(0.1,0.5,0.9,0.95,0.3)
+#        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
+        for eachax in axes:
+            eachax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
+            eachax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+            eachax.xaxis.set_minor_locator(AutoMinorLocator())
+            eachax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+            eachax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+            for label in eachax.xaxis.get_ticklabels():
+                label.set_horizontalalignment('center')
+                label.set_rotation('horizontal')
+            eachax.grid(which='both',linestyle='--')
+#        self.ax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
+#        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format)) 
+        self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)
+#        for label in self.ax.xaxis.get_ticklabels():
+#            print(label.get_rotation())
+#            label.set_horizontalalignment('center')
+#            label.set_rotation('horizontal')
+
+#            print(label.horizontalalignment)
+        self.draw()
+#        self.show()
+        #plt.show()
+        if self.pos<3:
+            self.pos+=1
+        else:
+            self.pos=0
+
+#------王--改动开始            
+    def subplot_para_wxl(self,source=None,para_list=[]):
+
+        self.paralist = para_list.copy()
         
+        if isinstance(source,(str)): #python 2 add unicode
+            file_plot=Normal_DataFile(source)
+            para_list.insert(0,file_plot.paras_in_file[0])
+            df=file_plot.cols_input(source,para_list)
+        elif isinstance(source,pd.DataFrame):
+            df=source
+        else:
+            return
+        df[para_list[0]]=pd.to_datetime(df[para_list[0]],format='%H:%M:%S:%f')
+        self.fig.clf()
+        matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内，在创建axes之间设置
+        matplotlib.rcParams['ytick.direction'] = 'in'
+        #ax1 = self.fig.add_subplot(4,1,self.pos)
+        self.ax=self.fig.add_axes([0.1,0.1,0.8,0.8])
+#        self.fig.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.95,hspace=0.3)
+        #self.fig.subplots_adjust(0.1,0.5,0.9,0.95,0.3)
+#        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+#        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=6,subplots=True,sharex=True)
+        axes=df.plot(para_list[0],ax=self.ax,grid=True,fontsize=8,subplots=True,sharex=True)
+        for eachax in axes:
+            eachax.legend(fontsize=8,loc=(0,1) , ncol=1 , frameon=False,
+                          markerscale = 2, edgecolor = "inherit")
+            eachax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+            eachax.xaxis.set_major_locator(LinearLocator(numticks=8))
+            eachax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+            eachax.yaxis.set_major_locator(LinearLocator(numticks=5))
+            eachax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+            for label in eachax.xaxis.get_ticklabels():
+                label.set_horizontalalignment('center')
+                label.set_rotation('horizontal')
+            eachax.grid(which='major',linestyle='--',color = '0.45')
+            eachax.grid(which='minor',linestyle='--',color = '0.75')
+#        self.ax.legend(fontsize=6,loc='lower left', bbox_to_anchor=(0,1.01),ncol=2)
+#        self.ax.xaxis.set_major_formatter(FuncFormatter(self.my_format)) 
+        self.fig.subplots_adjust(left=0.07,bottom=0.07,right=0.95,top=0.95,hspace=0.2)
+#        for label in self.ax.xaxis.get_ticklabels():
+#            print(label.get_rotation())
+#            label.set_horizontalalignment('center')
+#            label.set_rotation('horizontal')
+
+#            print(label.horizontalalignment)
+        self.draw()
+#        self.show()
+        #plt.show()
+        if self.pos<3:
+            self.pos+=1
+        else:
+            self.pos=0
+            
+
+    def slot_resize_canvas(self, size):
+
+        if self.fig.axes:
+            print("\nXXX\nScrollArea")
+            print("Width" + str(size.width()) + " Height" + str(size.height()))
+            print("PlotArea")
+            print("Width" + str(self.width()) + " Height" + str(self.height()))
+            print('')
+            self.resize(size.width(), self.height())
+        else:
+            print("Initial")
+            print("Width" + str(size.width()) + " Height" + str(size.height()))
+            self.resize(size)
+
+#------王--改动结束        
 #        
 #    def plot_para(self,source=None,para_list=[]):
 #        if isinstance(source,(str,unicode)): #！！！！python 2
@@ -171,6 +432,10 @@ class PlotCanvas(FigureCanvas):
 #        df.plot(para_list[0],ax=ax1)
 #        #self.draw()
 #        self.show()
+            
+    def clear_figure(self):
+        self.fig.clf()
+        self.draw()
         
     def add_toolbar(self,parent=None):
         toolbar=NavigationToolbar(self,parent)
@@ -181,15 +446,6 @@ class PlotCanvas(FigureCanvas):
         
     def hide_toolbar(self,toolbar):
         toolbar.hide()
-        
-#    def on_press(self,event):
-#        if event.button==1:
-#            event.inaxes.scatter(event.xdata, event.ydata)
-#            plt.plot([event.xdata, event.xdata], [event.ydata, 600])
-#            plt.plot([event.xdata, 0], [event.ydata, event.ydata])
-#            self.fig.canvas.draw()
-#        elif event.button==3:
-#            print("x,y=",event.xdata, event.ydata)
 
 class CustomToolbar(NavigationToolbar):
     
@@ -206,6 +462,16 @@ class CustomToolbar(NavigationToolbar):
              ONE_SCREEN = x2 - x1
              axes.set_xlim(x1 - ONE_SCREEN, x2 - ONE_SCREEN)
          self.canvas.draw()
+        
+#    def on_press(self,event):
+#        if event.button==1:
+#            event.inaxes.scatter(event.xdata, event.ydata)
+#            plt.plot([event.xdata, event.xdata], [event.ydata, 600])
+#            plt.plot([event.xdata, 0], [event.ydata, event.ydata])
+#            self.fig.canvas.draw()
+#        elif event.button==3:
+#            print("x,y=",event.xdata, event.ydata)
+
         
     
 

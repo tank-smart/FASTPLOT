@@ -16,34 +16,85 @@ import pandas as pd
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import Qt, QCoreApplication, QSize, pyqtSignal
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QTreeWidget, 
-                             QTreeWidgetItem, QSpacerItem, QLineEdit, 
-                             QMenu, QMessageBox, QToolButton, QFileDialog,
-                             QAction, QSizePolicy, QVBoxLayout,QHBoxLayout,
-                             QAbstractItemView)
+from PyQt5.QtCore import (Qt, QCoreApplication, QSize, pyqtSignal, 
+                          QDataStream, QIODevice)
+from PyQt5.QtGui import QIcon, QDropEvent, QDragEnterEvent
+from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QListWidget, 
+                             QListWidgetItem, QSpacerItem, QLineEdit, 
+                             QMessageBox, QToolButton, QFileDialog,
+                             QSizePolicy, QVBoxLayout,QHBoxLayout,
+                             QAbstractItemView, QFrame, QTableWidget,
+                             QTableWidgetItem, QComboBox, QDialog)
 
 # =============================================================================
 # Package models imports
 # =============================================================================
 from models.datafile_model import DataFile, Normal_DataFile
+import models.time_model as Time
+from views.custom_dialog import SelectTemplateDialog, SaveTemplateDialog
+import views.src_icon as ICON
+# =============================================================================
+# SelectedParasTree
+# =============================================================================
+class SelectedParasList(QListWidget):
+
+    signal_import_para = pyqtSignal(dict)    
+#    用于显示已选参数，因为需要增加
+    def __init__(self, parent = None):
+        super().__init__(parent)
+#        接受拖放
+        self.setAcceptDrops(True)
+        
+#    重写拖放相关的事件
+#    设置部件可接受的MIME type列表，此处的类型是自定义的
+    def mimeTypes(self):
+        return ['application/x-parasname']
+#    拖进事件处理    
+    def dragEnterEvent(self, event : QDragEnterEvent):
+#        如果拖进来的时树列表才接受
+        if event.mimeData().hasFormat('application/x-parasname'):
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+#     放下事件处理   
+    def dropEvent(self, event : QDropEvent):
+        
+        paras = {}
+        if event.mimeData().hasFormat('application/x-parasname'):
+            item_data = event.mimeData().data('application/x-parasname')
+            item_stream = QDataStream(item_data, QIODevice.ReadOnly)
+            while (not item_stream.atEnd()):
+                paraname = item_stream.readQString()
+                file_dir = item_stream.readQString()
+                if not (file_dir in paras):
+                    paras[file_dir] = []
+                    paras[file_dir].append(paraname)
+                else:
+                    paras[file_dir].append(paraname)  
+            self.signal_import_para.emit(paras)
+            event.acceptProposedAction()
+        else:
+            event.ignore()
 
 # =============================================================================
 # DataExportWindow
 # =============================================================================
 class DataExportWindow(QWidget):
- 
+
+    signal_get_export_temps = pyqtSignal()
+    signal_save_temp = pyqtSignal(dict)
 # =============================================================================
 # 初始化
 # =============================================================================
     def __init__(self, parent = None):
+        
         super().__init__(parent)
-#        选择的参数，键为文件路径，值为参数列表
-        self.sel_paras = {}
+#        判断是否删除缺省试验点（即整段时间）
+        self.default_testpoint_del = False
+        self.testpoint_count = 0
 #        设置文件与参数的图标
-        self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
-        self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
+        self.fileicon = QIcon(ICON.ICON_FILE)
+        self.paraicon = QIcon(ICON.ICON_PARA)
 
 # =============================================================================
 # UI模块    
@@ -52,128 +103,422 @@ class DataExportWindow(QWidget):
 
         self.verticalLayout = QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.sel_para = QLabel(self)
-        self.sel_para.setObjectName("sel_para")
-        self.verticalLayout.addWidget(self.sel_para)
+        self.verticalLayout.setContentsMargins(4, 0, 4, 0)
+        self.verticalLayout.setSpacing(4)
         
-        self.sel_para_tree = QTreeWidget(self)
-        self.sel_para_tree.setObjectName("sel_para_tree")
-        self.sel_para_tree.setColumnCount(2)
-        self.sel_para_tree.header().setDefaultSectionSize(240)
-        self.sel_para_tree.header().setMinimumSectionSize(240)
-#        让树可支持右键菜单
-        self.sel_para_tree.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.sel_para_tree.setSelectionMode(
+        self.vlayout_sel_testpoints = QVBoxLayout()
+        self.vlayout_sel_testpoints.setObjectName("vlayout_sel_testpoints")
+        self.label_sel_testpoint = QLabel(self)
+        self.label_sel_testpoint.setMinimumSize(QSize(0, 24))
+        self.label_sel_testpoint.setMaximumSize(QSize(16777215, 24))
+        self.label_sel_testpoint.setObjectName("label_sel_testpoint")
+        self.vlayout_sel_testpoints.addWidget(self.label_sel_testpoint)
+        self.hlayout_sel_testpoints_tool = QHBoxLayout()
+        self.hlayout_sel_testpoints_tool.setSpacing(2)
+        self.hlayout_sel_testpoints_tool.setObjectName("hlayout_sel_testpoints_tool")
+        self.tool_button_add = QToolButton(self)
+        self.tool_button_add.setMinimumSize(QSize(24, 24))
+        self.tool_button_add.setMaximumSize(QSize(24, 24))
+        self.tool_button_add.setObjectName("tool_button_add")
+        self.tool_button_add.setIcon(QIcon(ICON.ICON_ADD))
+        self.hlayout_sel_testpoints_tool.addWidget(self.tool_button_add)
+        self.tool_button_delete = QToolButton(self)
+        self.tool_button_delete.setMinimumSize(QSize(24, 24))
+        self.tool_button_delete.setMaximumSize(QSize(24, 24))
+        self.tool_button_delete.setObjectName("tool_button_delete")
+        self.tool_button_delete.setIcon(QIcon(ICON.ICON_DEL))
+        self.hlayout_sel_testpoints_tool.addWidget(self.tool_button_delete)
+        self.tool_button_copy = QToolButton(self)
+        self.tool_button_copy.setMinimumSize(QSize(24, 24))
+        self.tool_button_copy.setMaximumSize(QSize(24, 24))
+        self.tool_button_copy.setObjectName("tool_button_copy")
+        self.tool_button_copy.setIcon(QIcon(ICON.ICON_COPY))
+        self.hlayout_sel_testpoints_tool.addWidget(self.tool_button_copy)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hlayout_sel_testpoints_tool.addItem(spacerItem)
+        self.vlayout_sel_testpoints.addLayout(self.hlayout_sel_testpoints_tool)
+        self.table_testpoint = QTableWidget(self)
+        self.table_testpoint.setObjectName("table_testpoint")
+        self.table_testpoint.setColumnCount(4)
+        item = QTableWidgetItem()
+        self.table_testpoint.setHorizontalHeaderItem(0, item)
+        item.setTextAlignment(Qt.AlignLeading|Qt.AlignVCenter)
+        item = QTableWidgetItem()
+        self.table_testpoint.setHorizontalHeaderItem(1, item)
+        item.setTextAlignment(Qt.AlignLeading|Qt.AlignVCenter)
+        item = QTableWidgetItem()
+        self.table_testpoint.setHorizontalHeaderItem(2, item)
+        item.setTextAlignment(Qt.AlignLeading|Qt.AlignVCenter)
+        item = QTableWidgetItem()
+        item.setTextAlignment(Qt.AlignLeading|Qt.AlignVCenter)
+        self.table_testpoint.setHorizontalHeaderItem(3, item)
+        self.table_testpoint.horizontalHeader().setDefaultSectionSize(220)
+        self.table_testpoint.horizontalHeader().setMinimumSectionSize(220)
+        self.vlayout_sel_testpoints.addWidget(self.table_testpoint)
+        self.verticalLayout.addLayout(self.vlayout_sel_testpoints)
+        
+        self.line = QFrame(self)
+        self.line.setFrameShape(QFrame.HLine)
+        self.line.setFrameShadow(QFrame.Sunken)
+        self.line.setObjectName("line")
+        self.verticalLayout.addWidget(self.line)
+
+        self.hlayout_selpara_and_output = QHBoxLayout()
+        self.hlayout_selpara_and_output.setObjectName("hlayout_selpara_and_output")
+        self.hlayout_selpara_and_output.setSpacing(4)
+        self.vlayout_sel_para = QVBoxLayout()
+        self.vlayout_sel_para.setObjectName("vlayout_sel_para")
+        self.label_sel_para = QLabel(self)
+        self.label_sel_para.setMinimumSize(QSize(0, 24))
+        self.label_sel_para.setMaximumSize(QSize(16777215, 24))
+        self.label_sel_para.setObjectName("label_sel_para")
+        self.vlayout_sel_para.addWidget(self.label_sel_para)
+        
+        self.hlayout_paras_tool = QHBoxLayout()
+        self.hlayout_paras_tool.setSpacing(2)
+        self.hlayout_paras_tool.setObjectName("hlayout_paras_tool")
+        self.tool_button_sel_temp = QToolButton(self)
+        self.tool_button_sel_temp.setMinimumSize(QSize(24, 24))
+        self.tool_button_sel_temp.setMaximumSize(QSize(24, 24))
+        self.tool_button_sel_temp.setObjectName("tool_button_sel_temp")
+        self.tool_button_sel_temp.setIcon(QIcon(ICON.ICON_SEL_TEMP))
+        self.hlayout_paras_tool.addWidget(self.tool_button_sel_temp)
+        self.tool_button_save_temp = QToolButton(self)
+        self.tool_button_save_temp.setMinimumSize(QSize(24, 24))
+        self.tool_button_save_temp.setMaximumSize(QSize(24, 24))
+        self.tool_button_save_temp.setObjectName("tool_button_save_temp")
+        self.tool_button_save_temp.setIcon(QIcon(ICON.ICON_SAVE_TEMP))
+        self.hlayout_paras_tool.addWidget(self.tool_button_save_temp)
+        self.line_x = QFrame(self)
+        self.line_x.setFrameShape(QFrame.VLine)
+        self.line_x.setFrameShadow(QFrame.Sunken)
+        self.hlayout_paras_tool.addWidget(self.line_x)
+        self.tool_button_up_para = QToolButton(self)
+        self.tool_button_up_para.setMinimumSize(QSize(24, 24))
+        self.tool_button_up_para.setMaximumSize(QSize(24, 24))
+        self.tool_button_up_para.setIcon(QIcon(ICON.ICON_UP))
+        self.hlayout_paras_tool.addWidget(self.tool_button_up_para)
+        self.tool_button_down_para = QToolButton(self)
+        self.tool_button_down_para.setMinimumSize(QSize(24, 24))
+        self.tool_button_down_para.setMaximumSize(QSize(24, 24))
+        self.tool_button_down_para.setIcon(QIcon(ICON.ICON_DOWN))
+        self.hlayout_paras_tool.addWidget(self.tool_button_down_para)
+        self.tool_button_del_para = QToolButton(self)
+        self.tool_button_del_para.setMinimumSize(QSize(24, 24))
+        self.tool_button_del_para.setMaximumSize(QSize(24, 24))
+        self.tool_button_del_para.setObjectName("tool_button_del_para")
+        self.tool_button_del_para.setIcon(QIcon(ICON.ICON_DEL))
+        self.hlayout_paras_tool.addWidget(self.tool_button_del_para)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.hlayout_paras_tool.addItem(spacerItem)
+        self.vlayout_sel_para.addLayout(self.hlayout_paras_tool)
+        
+#        使用自定义的树控件
+        self.list_sel_para = SelectedParasList(self)
+        self.list_sel_para.setObjectName("list_sel_para")
+        self.list_sel_para.setSelectionMode(
                 QAbstractItemView.ExtendedSelection)
-        self.verticalLayout.addWidget(self.sel_para_tree)
         
-        self.sel_testpoint = QLabel(self)
-        self.sel_testpoint.setObjectName("sel_testpoint")
-        self.verticalLayout.addWidget(self.sel_testpoint)
-        spacerItem = QSpacerItem(20, 164, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem)
-        self.export_loc = QLabel(self)
-        self.export_loc.setObjectName("export_loc")
-        self.verticalLayout.addWidget(self.export_loc)
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.location_view = QLineEdit(self)
-        self.location_view.setMinimumSize(QSize(0, 24))
-        self.location_view.setMaximumSize(QSize(16777215, 24))
-        self.location_view.setObjectName("location_view")
-        self.location_view.setReadOnly(True)
-        self.horizontalLayout_2.addWidget(self.location_view)
-        self.sel_dir = QToolButton(self)
-        self.sel_dir.setMinimumSize(QSize(24, 24))
-        self.sel_dir.setMaximumSize(QSize(24, 24))
-        self.sel_dir.setObjectName("sel_dir")
-        self.horizontalLayout_2.addWidget(self.sel_dir)
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setSpacing(20)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.vlayout_sel_para.addWidget(self.list_sel_para)
+        self.hlayout_selpara_and_output.addLayout(self.vlayout_sel_para)        
+        self.line_2 = QFrame(self)
+        self.line_2.setFrameShape(QFrame.VLine)
+        self.line_2.setFrameShadow(QFrame.Sunken)
+        self.line_2.setObjectName("line_2")
+        self.hlayout_selpara_and_output.addWidget(self.line_2)
+        self.vlayout_output_config = QVBoxLayout()
+        self.vlayout_output_config.setObjectName("vlayout_output_config")
+        self.label = QLabel(self)
+        self.label.setMinimumSize(QSize(0, 24))
+        self.label.setMaximumSize(QSize(16777215, 24))
+        self.label.setObjectName("label")
+        self.vlayout_output_config.addWidget(self.label)
+        self.hlayout_out_filetype = QHBoxLayout()
+        self.hlayout_out_filetype.setObjectName("hlayout_out_filetype")
+        self.label_file_type = QLabel(self)
+        self.label_file_type.setMinimumSize(QSize(80, 24))
+        self.label_file_type.setMaximumSize(QSize(80, 24))
+        self.label_file_type.setObjectName("label_file_type")
+        self.hlayout_out_filetype.addWidget(self.label_file_type)
+        self.combo_box_file_type = QComboBox(self)
+        self.combo_box_file_type.setMinimumSize(QSize(0, 24))
+        self.combo_box_file_type.setMaximumSize(QSize(16777215, 24))
+        self.combo_box_file_type.setObjectName("combo_box_file_type")
+        self.combo_box_file_type.addItem("")
+#        设置每个项目的数据，为后续选择导出文件所使用
+        self.combo_box_file_type.setItemData(0, ".txt", Qt.UserRole)
+        self.combo_box_file_type.addItem("")
+        self.combo_box_file_type.setItemData(1, ".csv", Qt.UserRole)
+        self.combo_box_file_type.addItem("")
+        self.combo_box_file_type.setItemData(2, ".mat", Qt.UserRole)
+        self.hlayout_out_filetype.addWidget(self.combo_box_file_type)
         spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.horizontalLayout.addItem(spacerItem1)
+        self.hlayout_out_filetype.addItem(spacerItem1)
+        self.vlayout_output_config.addLayout(self.hlayout_out_filetype)
+        self.hlayout_out_loc = QHBoxLayout()
+        self.hlayout_out_loc.setObjectName("hlayout_out_loc")
+        self.label_output_loc = QLabel(self)
+        self.label_output_loc.setMinimumSize(QSize(80, 0))
+        self.label_output_loc.setMaximumSize(QSize(80, 16777215))
+        self.label_output_loc.setObjectName("label_output_loc")
+        self.hlayout_out_loc.addWidget(self.label_output_loc)
+        self.line_edit_location = QLineEdit(self)
+        self.line_edit_location.setMinimumSize(QSize(0, 24))
+        self.line_edit_location.setMaximumSize(QSize(16777215, 24))
+        self.line_edit_location.setObjectName("line_edit_location")
+        self.hlayout_out_loc.addWidget(self.line_edit_location)
+        self.button_sel_dir = QToolButton(self)
+        self.button_sel_dir.setMinimumSize(QSize(24, 24))
+        self.button_sel_dir.setMaximumSize(QSize(24, 24))
+        self.button_sel_dir.setObjectName("button_sel_dir")
+        self.hlayout_out_loc.addWidget(self.button_sel_dir)
+        self.vlayout_output_config.addLayout(self.hlayout_out_loc)
+        spacerItem2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.vlayout_output_config.addItem(spacerItem2)
+        self.hlayout_selpara_and_output.addLayout(self.vlayout_output_config)
+        self.verticalLayout.addLayout(self.hlayout_selpara_and_output)
+        
+        self.line_3 = QFrame(self)
+        self.line_3.setFrameShape(QFrame.HLine)
+        self.line_3.setFrameShadow(QFrame.Sunken)
+        self.line_3.setObjectName("line_3")
+        self.verticalLayout.addWidget(self.line_3)
+        
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setSpacing(10)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem3)
         self.button_confirm = QPushButton(self)
+        self.button_confirm.setMinimumSize(QSize(0, 24))
+        self.button_confirm.setMaximumSize(QSize(16777215, 24))
         self.button_confirm.setObjectName("button_confirm")
         self.horizontalLayout.addWidget(self.button_confirm)
         self.button_reset = QPushButton(self)
+        self.button_reset.setMinimumSize(QSize(0, 24))
+        self.button_reset.setMaximumSize(QSize(16777215, 24))
         self.button_reset.setObjectName("button_reset")
         self.horizontalLayout.addWidget(self.button_reset)
         self.verticalLayout.addLayout(self.horizontalLayout)
- 
-        self.action_delete = QAction(self)
-        self.action_delete.setText(QCoreApplication.
-                                   translate("DataExport", "删除参数"))
+
+#        设置布局中部件的占比，0指选时间点的部件，2指选参数和输出设置的部件
+        self.verticalLayout.setStretch(0, 2)
+        self.verticalLayout.setStretch(2, 3)
+        
+        self.label_sel_para.raise_()
+        self.list_sel_para.raise_()
+        self.label_output_loc.raise_()
+        self.label_sel_testpoint.raise_()
+        self.label_sel_testpoint.raise_()
+        self.combo_box_file_type.raise_()
+        self.label_file_type.raise_()
+        self.line.raise_()
+        self.line_2.raise_()
+        self.line_3.raise_()
 
 # =======连接信号与槽
 # =============================================================================
-        self.sel_dir.clicked.connect(self.slot_sel_dir)
-#        使右键时能弹出菜单
-        self.sel_para_tree.customContextMenuRequested.connect(
-                self.on_tree_context_menu)
-        self.action_delete.triggered.connect(self.slot_delete)
+        self.button_sel_dir.clicked.connect(self.slot_sel_dir)
+        
+        self.list_sel_para.signal_import_para.connect(self.slot_import_para)
+        self.table_testpoint.cellChanged.connect(self.slot_table_item_changed)
         self.button_confirm.clicked.connect(self.slot_confirm)
         self.button_reset.clicked.connect(self.slot_reset)
+        self.tool_button_add.clicked.connect(self.slot_add_testpoint)
+        self.tool_button_copy.clicked.connect(self.slot_copy_testpoint)
+        self.tool_button_delete.clicked.connect(self.slot_delete_testpoint)
+        
+        self.tool_button_del_para.clicked.connect(self.slot_delete_paras)
+        self.tool_button_down_para.clicked.connect(self.slot_down_para)
+        self.tool_button_up_para.clicked.connect(self.slot_up_para)
+        
+        self.tool_button_save_temp.clicked.connect(self.slot_save_temp)
+        self.tool_button_sel_temp.clicked.connect(self.signal_get_export_temps)
         
         self.retranslateUi()
 
 # =============================================================================
 # Slots模块
 # =============================================================================
-#    右键菜单的事件处理
-    def on_tree_context_menu(self, pos):
-        #        记录右击时鼠标所在的item
-        sel_item = self.sel_para_tree.itemAt(pos)
+    def slot_import_para(self, paras_dict):
         
-#        如果鼠标不在item上，不显示右键菜单
-        if sel_item:
-#            创建菜单，添加动作，显示菜单
-            menu = QMenu(self.sel_para_tree)
-            menu.addAction(self.action_delete)
-            menu.exec_(self.sel_para_tree.mapToGlobal(pos))
+        if paras_dict:
+            ex_paras = []
+            dict_sel_paras = self.get_dict_sel_paras()
+            for file_dir in paras_dict:
+#                判断是否导入的文件已经存在
+                if  file_dir in dict_sel_paras:
+                    ex_paras += self.add_file_para(file_dir,
+                                                   paras_dict[file_dir])
+                else:
+                    tr = Normal_DataFile(file_dir).time_range
+                    row_count = self.table_testpoint.rowCount()
+                    if row_count == 0:
+                        self.table_testpoint.insertRow(0)
+                        name = QTableWidgetItem("Default(total time)")
+                        name.setData(Qt.UserRole, "Default(total time)")
+                        name.setFlags(Qt.NoItemFlags)
+                        self.table_testpoint.setItem(0, 0, name)
+                        start = QTableWidgetItem(tr[0])
+                        start.setData(Qt.UserRole, tr[0])
+                        start.setFlags(Qt.NoItemFlags) 
+                        self.table_testpoint.setItem(0, 1, start)
+                        end = QTableWidgetItem(tr[1])
+                        end.setData(Qt.UserRole, tr[1])
+                        end.setFlags(Qt.NoItemFlags) 
+                        self.table_testpoint.setItem(0, 2, end)
+                        filename = QTableWidgetItem("Untitled")
+                        filename.setData(Qt.UserRole, "Untitled")
+                        self.table_testpoint.setItem(0, 3, filename)
+
+                        ex_paras += self.add_file_para(file_dir,
+                                                       paras_dict[file_dir])
+                    else:
+                        if (self.table_testpoint.item(0, 1).data(Qt.UserRole) == tr[0] and 
+                            self.table_testpoint.item(0, 2).data(Qt.UserRole) == tr[1]):
+                            ex_paras += self.add_file_para(file_dir,
+                                                           paras_dict[file_dir])
+                        else:
+                            QMessageBox.information(self,
+                                    QCoreApplication.translate("DataExportWindow", "导入错误"),
+                                    QCoreApplication.translate("DataExportWindow", "文件时间不一致"))
+            if ex_paras:
+                print_para = "<br>以下参数已存在："
+                for pa in ex_paras:
+                    print_para += ("<br>" + pa)
+                QMessageBox.information(self,
+                        QCoreApplication.translate("DataExportWindow", "导入提示"),
+                        QCoreApplication.translate("DataExportWindow",
+                                                   print_para))
 
 #    让用户选择项目的路径
     def slot_sel_dir(self):
         
-        filename, null = QFileDialog.getSaveFileName(self, "Export Data",
-                                    r"E:\\untitled.csv",
-                                    "CSV data (*.csv);;txt data (*.txt)")
-        if filename:
-            filename = filename.replace('/','\\')
-            self.location_view.setText(filename)
+        filedir = QFileDialog.getExistingDirectory(self, "Export directory",
+                                                   r"E:\\")
+        if filedir:
+            filedir = filedir.replace('/','\\')
+            self.line_edit_location.setText(filedir)
     
-    def slot_delete(self):
+    def slot_delete_paras(self):
         
-        pos = self.sel_para_tree.pos()
-        sel_item = self.sel_para_tree.itemAt(pos)
-        if sel_item.parent():
+        sel_items = self.list_sel_para.selectedItems()
+        if len(sel_items):
             message = QMessageBox.warning(self,
                           QCoreApplication.translate("DataExportWindow", "删除参数"),
                           QCoreApplication.translate("DataExportWindow", "确定要删除这些参数吗"),
                           QMessageBox.Yes | QMessageBox.No)
-            if ( message == QMessageBox.Yes):
-                sel_items = self.sel_para_tree.selectedItems()
+            if (message == QMessageBox.Yes):
                 for item in sel_items:
-                    if item.parent():
-                        file = item.parent().data(0, Qt.UserRole)
-                        self.sel_paras[file].remove(item.text(0))
-                self.display_sel_para(self.sel_paras)
+                    self.list_sel_para.takeItem(self.list_sel_para.row(item))
+                    if self.list_sel_para.count():
+                        pass
+                    else:
+                        self.default_testpoint_del = False
+                        self.table_testpoint.clearContents()
+                        self.table_testpoint.setRowCount(0)
+
+#    选择参数导出模板
+    def slot_sel_temp(self, dict_files, templates):
+
+        if templates:
+            export_paras = {}
+            dialog = SelectTemplateDialog(self, templates)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                if dict_files:
+        #            遍历文件，搜索是否存在模板中的参数
+        #            不同文件下的同一参数都会找出（这样耗时较长）
+        #            也可以找到第一个就停止
+                    for paraname in templates[dialog.sel_temp]:
+                        for file_dir in dict_files:
+                            if paraname in dict_files[file_dir]:
+                                if file_dir in export_paras:
+                                    export_paras[file_dir].append(paraname)
+                                else:
+                                    export_paras[file_dir] = []
+                                    export_paras[file_dir].append(paraname)
+        #                        加入以下语句实现找到第一个就停止的功能
+        #                        break
+                    self.slot_import_para(export_paras)
+                else:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("DataExportWindow", "导入模板错误"),
+                            QCoreApplication.translate("DataExportWindow", "没有发现数据文件"))
+        else:
+            QMessageBox.information(self,
+                    QCoreApplication.translate("DataExportWindow", "导入模板错误"),
+                    QCoreApplication.translate("DataExportWindow", "没有模板"))            
+
+#    保存参数导出模板
+    def slot_save_temp(self):
+        
+        count = self.list_sel_para.count()
+        if count:
+            temp = {}
+            dialog = SaveTemplateDialog(self)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                temp_name = dialog.temp_name
+                if temp_name:
+                    temp[temp_name] = []
+                    for i in range(count):
+                        temp[temp_name].append(self.list_sel_para.item(i).text())
+                    self.signal_save_temp.emit(temp)
+                else:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("DataExportWindow", "输入提示"),
+                            QCoreApplication.translate("DataExportWindow", "未输入模板名"))
+        else:
+            QMessageBox.information(self,
+                    QCoreApplication.translate("DataExportWindow", "保存错误"),
+                    QCoreApplication.translate("DataExportWindow", "没有发现参数"))
                 
+#    确认导出            
     def slot_confirm(self):
 
-        filepath = self.location_view.text()        
-        if self.sel_paras and filepath:  #sel_para is QLabel, sel_paras is dict
-            df_list = []
-            for filedir in self.sel_paras:
-                file = Normal_DataFile(filedir)
-                cols = self.sel_paras[filedir]
-                df = file.cols_input(filedir, cols, sep = '\s+')
-                df_list.append(df)
-            df_all = pd.concat(df_list,axis = 1,join = 'outer',
-                               ignore_index = False) #merge different dataframe
-            file_outpout = DataFile(filepath)
-            file_outpout.save_file(filepath , df_all , sep = '\t') #/update for more sep/
+        if self.can_export():
+            filetype_index = self.combo_box_file_type.currentIndex()
+            row_count = self.table_testpoint.rowCount()
+            for index_testpoint in range(row_count):
+                filename = self.table_testpoint.item(index_testpoint, 3).data(Qt.UserRole)
+                filepath = (self.line_edit_location.text() +
+                            filename +
+                            self.combo_box_file_type.currentData(Qt.UserRole))
+                if filename != ' ':
+                    df_list = []
+                    para_list = []
+                    count = self.list_sel_para.count()
+#                    存储导出参数顺序
+                    for index_para in range(count):
+                        para_list.append(self.list_sel_para.item(index_para).text())
+                    dict_sel_paras = self.get_dict_sel_paras()
+#                    按文件提取数据
+                    flag = True
+                    for file_dir in dict_sel_paras:
+                        file = Normal_DataFile(file_dir)
+#                        将时间添加到第一列
+                        if flag:
+                            dict_sel_paras[file_dir].insert(0, file.paras_in_file[0])
+                            flag = False
+                        df = file.cols_input(file_dir, dict_sel_paras[file_dir], '\s+', 
+                                             self.table_testpoint.item(index_testpoint, 1).data(Qt.UserRole),
+                                             self.table_testpoint.item(index_testpoint, 2).data(Qt.UserRole))
+                        df_list.append(df)
+                    df_all = pd.concat(df_list,axis = 1,join = 'outer',
+                                       ignore_index = False) #merge different dataframe                    
+#                    将导出的顺序与用户要求一致
+                    df_all = df_all.ix[:, para_list]
+                    file_outpout = DataFile(filepath)
+    #                导出TXT文件
+                    if filetype_index == 0:
+                        file_outpout.save_file(filepath , df_all , sep = '\t')
+    #                导出CSV文件
+                    if filetype_index == 1:
+                        file_outpout.save_file(filepath , df_all , sep = ',')
+    #                导出MAT文件
+                    if filetype_index == 2:
+                        file_outpout.save_matfile(filepath, df_all)
             QMessageBox.information(self,
                 QCoreApplication.translate("DataExportWindow", "导出提示"),
                 QCoreApplication.translate("DataExportWindow", "导出成功"))   
@@ -181,66 +526,241 @@ class DataExportWindow(QWidget):
             QMessageBox.information(self,
                 QCoreApplication.translate("DataExportWindow", "导出错误"),
                 QCoreApplication.translate("DataExportWindow", "没有选择参数或文件"))            
-    
+#    重置
     def slot_reset(self):
-        self.sel_paras = {}
-        self.sel_para_tree.clear()
-        self.location_view.setText("")
+        
+        self.default_testpoint_del = False
+        self.list_sel_para.clear()
+        self.table_testpoint.clearContents()
+        self.table_testpoint.setRowCount(0)
+        self.line_edit_location.setText("")
+    
+#    表格中的数据改变后存储试验点的变量的值也要发生改变
+    def slot_table_item_changed(self, row, col):
+        
+        item = self.table_testpoint.item(row, col)
+        def_start_item = self.table_testpoint.item(0, 1)
+        def_end_item = self.table_testpoint.item(0, 2)
+        start_item = self.table_testpoint.item(row, 1)
+        end_item = self.table_testpoint.item(row, 2)
+        changed_str =  item.data(Qt.DisplayRole)
+#        这样判断是为了保证后面的语句不会访问不存在变量
+        if changed_str and def_start_item and def_end_item and start_item and end_item:
+            if (col == 1 or col == 2):
+                if Time.is_std_format(changed_str): 
+                    if col == 1:
+                        lim_start = def_start_item.data(Qt.UserRole)
+                        lim_end = end_item.data(Qt.UserRole)
+                        is_in = Time.is_in_range(lim_start,
+                                                 lim_end,
+                                                 changed_str)
+                    if col == 2:
+                        lim_start = start_item.data(Qt.UserRole)
+                        lim_end = def_end_item.data(Qt.UserRole)
+                        is_in = Time.is_in_range(lim_start,
+                                                 lim_end,
+                                                 changed_str)
+                    if is_in:
+                        item.setText(changed_str)
+                        item.setData(Qt.UserRole, changed_str)
+                    else:
+                        QMessageBox.information(self,
+                                QCoreApplication.translate("DataExportWindow", "时间错误"),
+                                QCoreApplication.translate("DataExportWindow", "时间不在范围内"))
+                        item.setData(Qt.DisplayRole, item.data(Qt.UserRole))
+                else:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("DataExportWindow", "时间错误"),
+                            QCoreApplication.translate("DataExportWindow", "时间格式错误"))
+                    item.setData(Qt.DisplayRole, item.data(Qt.UserRole))
+            else:
+                item.setText(changed_str)
+                item.setData(Qt.UserRole, changed_str)
+        else:
+            item.setData(Qt.DisplayRole, item.data(Qt.UserRole))
+            
+    def slot_add_testpoint(self):
+
+        row_count = self.table_testpoint.rowCount()
+        if row_count:
+            self.testpoint_count += 1
+            self.table_testpoint.insertRow(row_count)
+            t_name = 'Testpoint' + str(self.testpoint_count)
+            lim_start = self.table_testpoint.item(0, 1).data(Qt.UserRole)
+            lim_end = self.table_testpoint.item(0, 2).data(Qt.UserRole)
+            
+            name = QTableWidgetItem(t_name)
+            name.setData(Qt.UserRole, t_name)
+            self.table_testpoint.setItem(row_count, 0, name)
+            start = QTableWidgetItem(lim_start)
+            start.setData(Qt.UserRole, lim_start)
+            self.table_testpoint.setItem(row_count, 1, start)
+            end = QTableWidgetItem(lim_end)
+            end.setData(Qt.UserRole, lim_end)
+            self.table_testpoint.setItem(row_count, 2, end)
+            filename = QTableWidgetItem(t_name + ' datafile')
+            filename.setData(Qt.UserRole, t_name + ' datafile')
+            self.table_testpoint.setItem(row_count, 3, filename)
+    
+    def slot_copy_testpoint(self):
+        
+        row = self.table_testpoint.currentRow()
+
+        if row >= 0:
+            self.testpoint_count += 1
+            row_count = self.table_testpoint.rowCount()
+            self.table_testpoint.insertRow(row_count)
+            t_name = 'Testpoint' + str(self.testpoint_count)
+            lim_start = self.table_testpoint.item(row, 1).data(Qt.UserRole)
+            lim_end = self.table_testpoint.item(row, 2).data(Qt.UserRole)
+            
+            name = QTableWidgetItem(t_name)
+            name.setData(Qt.UserRole, t_name)
+            self.table_testpoint.setItem(row_count, 0, name)
+            start = QTableWidgetItem(lim_start)
+            start.setData(Qt.UserRole, lim_start)
+            self.table_testpoint.setItem(row_count, 1, start)
+            end = QTableWidgetItem(lim_end)
+            end.setData(Qt.UserRole, lim_end)
+            self.table_testpoint.setItem(row_count, 2, end)
+            filename = QTableWidgetItem(t_name + ' datafile')
+            filename.setData(Qt.UserRole, t_name + ' datafile')
+            self.table_testpoint.setItem(row_count, 3, filename)
+    
+    def slot_delete_testpoint(self):
+        
+        row = self.table_testpoint.currentRow()
+        if row > 0:
+            self.table_testpoint.removeRow(row)
+        if row == 0:
+            self.default_testpoint_del = True
+            self.table_testpoint.item(0, 3).setText(' ')
+            self.table_testpoint.item(0, 3).setData(Qt.UserRole, ' ')
+            self.table_testpoint.item(0, 3).setFlags(Qt.NoItemFlags)
+    
+    def slot_up_para(self):
+        
+        if self.list_sel_para:
+            loc = self.list_sel_para.currentRow()
+            item = self.list_sel_para.takeItem(loc)
+            if loc == 0:
+                self.list_sel_para.insertItem(0, item)
+                self.list_sel_para.setCurrentItem(item)
+            else:
+                self.list_sel_para.insertItem(loc - 1, item)
+                self.list_sel_para.setCurrentItem(item)
+    
+    def slot_down_para(self):
+
+        if self.list_sel_para:
+            count = self.list_sel_para.count()
+            loc = self.list_sel_para.currentRow()
+            item = self.list_sel_para.takeItem(loc)
+            if loc == count:
+                self.list_sel_para.insertItem(count, item)
+                self.list_sel_para.setCurrentItem(item)
+            else:
+                self.list_sel_para.insertItem(loc + 1, item)
+                self.list_sel_para.setCurrentItem(item)
+                
     
 # =============================================================================
 # 功能函数模块
 # =============================================================================
-    def import_para(self, paras_with_file):
+#    只要参数名一致就认为在这个参数列表中，不区分是否是在不同文件
+    def is_in_sel_paras(self, para):
+
+        count = self.list_sel_para.count()
+        for i in range(count):
+            item = self.list_sel_para.item(i)
+            paraname = item.text()
+            if para == paraname:
+                return True
+        return False
+
+#    将此文件中的参数加入到列表中
+    def add_file_para(self, file_dir, paras):
+
+#        返回已存在的参数
+        ex_paras = []
+        for para in paras:
+#            判断导入的参数是否已存在
+            if self.is_in_sel_paras(para):
+                ex_paras.append(para)
+            else:
+                item_para = QListWidgetItem(para, self.list_sel_para)
+                item_para.setIcon(self.paraicon)
+                item_para.setData(Qt.UserRole, file_dir)
+        return ex_paras
         
-        if paras_with_file:
-            for file in paras_with_file:
-#                判断是否导入的文件已经存在
-                if (file in self.sel_paras):
-                    for para in paras_with_file[file]:
-#                        判断导入的参数是否已存在
-                        if (self.sel_paras[file].count(para) == 0):
-                            self.sel_paras[file].append(para)
+    def get_dict_sel_paras(self):
+        
+        result = {}
+        if self.list_sel_para:
+            count = self.list_sel_para.count()
+            for i in range(count):
+                item = self.list_sel_para.item(i)
+                file_dir = item.data(Qt.UserRole)
+                if file_dir in result:
+                    result[file_dir].append(item.text())
                 else:
-                    self.sel_paras[file] = paras_with_file[file]
-#        每次导入参数后都需要更新已选参数的显示
-        self.display_sel_para(self.sel_paras)
+                    result[file_dir] = []
+                    result[file_dir].append(item.text())
+        return result
+  
+    def get_list_testpoints(self):
+        
+        result = []
+        if self.table_testpoint:
+            row_count = self.table_testpoint.rowCount()
+            for i in range(row_count):
+                testpoint = []
+                testpoint.append(self.table_testpoint.item(i, 0).data(Qt.UserRole))
+                testpoint.append(self.table_testpoint.item(i, 1).data(Qt.UserRole))
+                testpoint.append(self.table_testpoint.item(i, 2).data(Qt.UserRole))
+                testpoint.append(self.table_testpoint.item(i, 3).data(Qt.UserRole))
+                result.append(testpoint)
+        return result
     
-    def display_sel_para(self, file_group):
-        if file_group:  #file_name is a dict
-#            不确定是否真的删除了
-            self.sel_para_tree.clear()
-            
-            for file_dir in file_group:
-                if (len(file_group[file_dir]) > 0):
-                    root = QTreeWidgetItem(self.sel_para_tree) #QTreeWidgetItem object: root
-    #                设置图标
-                    root.setIcon(0,self.fileicon)
-    #                显示文件名而不是路径
-                    pos = file_dir.rindex('\\')
-                    filename = file_dir[pos+1:]
-                    root.setText(0, filename) #set text of treewidget
-    #                将路径作为数据存入item中
-                    root.setData(0, Qt.UserRole, file_dir)
-                    for para in file_group[file_dir]:
-                        child = QTreeWidgetItem(root)  #child of root
-                        child.setIcon(0,self.paraicon)
-                        child.setText(0,para)
-                        child.setText(1,para)
-                        
-                    self.sel_para_tree.expandAll()
-       
+#    判断是否可以导出
+    def can_export(self):
+        
+        if (self.list_sel_para.count and self.line_edit_location.text()):
+            if ((not self.default_testpoint_del) and self.table_testpoint.rowCount() >= 1):
+                return True
+            if (self.default_testpoint_del and self.table_testpoint.rowCount() > 1):
+                return True
+        else:
+            return False
+        
 # =============================================================================
 # 汉化
 # =============================================================================
     def retranslateUi(self):
         _translate = QCoreApplication.translate
-        self.sel_para.setText(_translate("DataExportWindow", "Selected parameters"))
-        self.sel_para_tree.headerItem().setText(0,
-                                     _translate("DataExportWindow", "Original Name"))
-        self.sel_para_tree.headerItem().setText(1,
-                                     _translate("DataExportWindow", "Output Name"))
-        self.sel_testpoint.setText(_translate("DataExportWindow", "Select testpoint"))
-        self.export_loc.setText(_translate("DataExportWindow", "Export location"))
-        self.sel_dir.setText(_translate("DataExportWindow", "..."))
-        self.button_confirm.setText(_translate("DataExportWindow", "Confirm"))
-        self.button_reset.setText(_translate("DataExportWindow", "Reset"))
+        self.setWindowTitle(_translate("DataExportWindow", "DataExportWindow"))
+        self.label_sel_para.setText(_translate("DataExportWindow", "已选参数"))
+        self.label_sel_testpoint.setText(_translate("DataExportWindow", "已选试验点"))
+        self.tool_button_add.setToolTip(_translate("DataExportWindow", "新增试验点"))
+        self.tool_button_delete.setToolTip(_translate("DataExportWindow", "删除试验点"))
+        self.tool_button_copy.setToolTip(_translate("DataExportWindow", "拷贝试验点"))
+        item = self.table_testpoint.horizontalHeaderItem(0)
+        item.setText(_translate("DataExportWindow", "试验点"))
+        item = self.table_testpoint.horizontalHeaderItem(1)
+        item.setText(_translate("DataExportWindow", "起始时间"))
+        item = self.table_testpoint.horizontalHeaderItem(2)
+        item.setText(_translate("DataExportWindow", "终止时间"))
+        item = self.table_testpoint.horizontalHeaderItem(3)
+        item.setText(_translate("DataExportWindow", "输出文件名"))
+        self.label.setText(_translate("DataExportWindow", "输出设置"))
+        self.label_file_type.setText(_translate("DataExportWindow", "输出文件类型"))
+        self.combo_box_file_type.setItemText(0, _translate("DataExportWindow", "TXT file"))
+        self.combo_box_file_type.setItemText(1, _translate("DataExportWindow", "CSV file"))
+        self.combo_box_file_type.setItemText(2, _translate("DataExportWindow", "MAT file"))
+        self.label_output_loc.setText(_translate("DataExportWindow", "输出文件路径"))
+        self.button_sel_dir.setText(_translate("DataExportWindow", "..."))
+        self.button_confirm.setText(_translate("DataExportWindow", "确认导出"))
+        self.button_reset.setText(_translate("DataExportWindow", "重置"))
+        self.tool_button_del_para.setToolTip(_translate("DataExportWindow", "删除参数"))
+        self.tool_button_save_temp.setToolTip(_translate("DataExportWindow", "保存模板"))
+        self.tool_button_sel_temp.setToolTip(_translate("DataExportWindow", "选择模板"))
