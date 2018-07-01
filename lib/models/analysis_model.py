@@ -24,12 +24,14 @@ class DataAnalysis(object):
 #            dict_result[filedir]=df_result
         return dict_result
 
+#----------------现使用的函数-------------------
 #solution1: 任何语法不正确，搜索参数不在文件中（只要有一个参数不在文件中）都会使得字典值为None
 #           而参数搜索条件结果为空时，字典值为Empty DataFrame。
 #           不适用于 参数1 | 参数2条件 ，且只有其中部分参数存在文件中的情况
     def condition_sift_1(self,file_list=[], condition="",search_para=[]):
         dict_result={}
 #        cond_list=re.split(r"&|\|",condition)
+#        print(cond_list)
 #        for s in cond_list:
 #            para_parse=re.split(r">|<|=",s.strip())[0]
 #            if para_parse not in search_para:
@@ -93,6 +95,6 @@ if __name__ == "__main__":
     file_list=[filename]
     da=DataAnalysis()
     condition="(FADEC_LA_Corrected_N1_Speed>=31) & (FADEC_LA_Corrected_N1_Speed<30.01)"
-    condition="(FADEC_LA_Corrected_N1_Speed)"
+#    condition="(FADEC_LA_Corrected_N1_Speed)"
     result=da.condition_sift_1(file_list,condition,["FADEC_LA_Corrected_N1_Speed"])
     print(result)
