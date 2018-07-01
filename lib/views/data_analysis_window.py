@@ -14,7 +14,7 @@ import os
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import QSize, QCoreApplication, Qt, pyqtSignal
+from PyQt5.QtCore import QSize, QCoreApplication, Qt
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QComboBox, QSpacerItem, QSizePolicy, QFrame,
@@ -27,7 +27,8 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
 # Package models imports
 # =============================================================================
 from models.datafile_model import Normal_DataFile
-from custom_dialog import SelParasDialog
+from views.custom_dialog import SelParasDialog
+import views.src_icon as ICON
 
 class DataAnalysisWindow(QWidget):
 # =============================================================================
@@ -38,8 +39,8 @@ class DataAnalysisWindow(QWidget):
         super().__init__(parent)
         self.current_dir = ""
 #        设置文件与参数的图标
-        self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
-        self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
+        self.fileicon = QIcon(ICON.ICON_FILE)
+        self.paraicon = QIcon(ICON.ICON_PARA)
 
 # =============================================================================
 # UI模块
@@ -75,6 +76,7 @@ class DataAnalysisWindow(QWidget):
         self.verticalLayout.addWidget(self.line)
         self.stackedWidget = QStackedWidget(self)
         self.stackedWidget.setObjectName("stackedWidget")
+        
         self.page_data_sift = QWidget()
         self.page_data_sift.setObjectName("page_data_sift")
         self.verticalLayout_5 = QVBoxLayout(self.page_data_sift)
@@ -94,13 +96,13 @@ class DataAnalysisWindow(QWidget):
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.tool_btn_add_file = QToolButton(self.page_data_sift)
-        self.tool_btn_add_file.setIcon(QIcon(r"E:\DAGUI\lib\icon\add.ico"))
+        self.tool_btn_add_file.setIcon(QIcon(ICON.ICON_ADD))
         self.tool_btn_add_file.setMinimumSize(QSize(24, 24))
         self.tool_btn_add_file.setMaximumSize(QSize(24, 24))
         self.tool_btn_add_file.setObjectName("tool_btn_add_file")
         self.horizontalLayout_3.addWidget(self.tool_btn_add_file)
         self.tool_btn_delete_file = QToolButton(self.page_data_sift)
-        self.tool_btn_delete_file.setIcon(QIcon(r"E:\DAGUI\lib\icon\delete.ico"))
+        self.tool_btn_delete_file.setIcon(QIcon(ICON.ICON_DEL))
         self.tool_btn_delete_file.setMinimumSize(QSize(24, 24))
         self.tool_btn_delete_file.setMaximumSize(QSize(24, 24))
         self.tool_btn_delete_file.setObjectName("tool_btn_delete_file")
@@ -129,13 +131,13 @@ class DataAnalysisWindow(QWidget):
         self.horizontalLayout_5 = QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.tool_btn_add_paras = QToolButton(self.page_data_sift)
-        self.tool_btn_add_paras.setIcon(QIcon(r"E:\DAGUI\lib\icon\add.ico"))
+        self.tool_btn_add_paras.setIcon(QIcon(ICON.ICON_ADD))
         self.tool_btn_add_paras.setMinimumSize(QSize(24, 24))
         self.tool_btn_add_paras.setMaximumSize(QSize(24, 24))
         self.tool_btn_add_paras.setObjectName("tool_btn_add_paras")
         self.horizontalLayout_5.addWidget(self.tool_btn_add_paras)
         self.tool_btn_delete_paras = QToolButton(self.page_data_sift)
-        self.tool_btn_delete_paras.setIcon(QIcon(r"E:\DAGUI\lib\icon\delete.ico"))
+        self.tool_btn_delete_paras.setIcon(QIcon(ICON.ICON_DEL))
         self.tool_btn_delete_paras.setMinimumSize(QSize(24, 24))
         self.tool_btn_delete_paras.setMaximumSize(QSize(24, 24))
         self.tool_btn_delete_paras.setObjectName("tool_btn_delete_paras")
@@ -168,7 +170,7 @@ class DataAnalysisWindow(QWidget):
         self.verticalLayout_4 = QVBoxLayout()
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.tool_btn_add_condition_para = QToolButton(self.page_data_sift)
-        self.tool_btn_add_condition_para.setIcon(QIcon(r"E:\DAGUI\lib\icon\add.ico"))
+        self.tool_btn_add_condition_para.setIcon(QIcon(ICON.ICON_ADD))
         self.tool_btn_add_condition_para.setMinimumSize(QSize(24, 24))
         self.tool_btn_add_condition_para.setMaximumSize(QSize(24, 24))
         self.tool_btn_add_condition_para.setObjectName("tool_btn_add_condition_para")
@@ -199,6 +201,7 @@ class DataAnalysisWindow(QWidget):
         self.horizontalLayout_6.addWidget(self.btn_reset)
         self.verticalLayout_5.addLayout(self.horizontalLayout_6)
         self.stackedWidget.addWidget(self.page_data_sift)
+        
         self.page_data_process = QWidget()
         self.page_data_process.setObjectName("page_data_process")
         self.stackedWidget.addWidget(self.page_data_process)

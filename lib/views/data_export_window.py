@@ -31,7 +31,8 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QListWidget,
 # =============================================================================
 from models.datafile_model import DataFile, Normal_DataFile
 import models.time_model as Time
-from custom_dialog import SelectTemplateDialog, SaveTemplateDialog
+from views.custom_dialog import SelectTemplateDialog, SaveTemplateDialog
+import views.src_icon as ICON
 # =============================================================================
 # SelectedParasTree
 # =============================================================================
@@ -92,8 +93,8 @@ class DataExportWindow(QWidget):
         self.default_testpoint_del = False
         self.testpoint_count = 0
 #        设置文件与参数的图标
-        self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
-        self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
+        self.fileicon = QIcon(ICON.ICON_FILE)
+        self.paraicon = QIcon(ICON.ICON_PARA)
 
 # =============================================================================
 # UI模块    
@@ -119,19 +120,19 @@ class DataExportWindow(QWidget):
         self.tool_button_add.setMinimumSize(QSize(24, 24))
         self.tool_button_add.setMaximumSize(QSize(24, 24))
         self.tool_button_add.setObjectName("tool_button_add")
-        self.tool_button_add.setIcon(QIcon(r"E:\DAGUI\lib\icon\add.ico"))
+        self.tool_button_add.setIcon(QIcon(ICON.ICON_ADD))
         self.hlayout_sel_testpoints_tool.addWidget(self.tool_button_add)
         self.tool_button_delete = QToolButton(self)
         self.tool_button_delete.setMinimumSize(QSize(24, 24))
         self.tool_button_delete.setMaximumSize(QSize(24, 24))
         self.tool_button_delete.setObjectName("tool_button_delete")
-        self.tool_button_delete.setIcon(QIcon(r"E:\DAGUI\lib\icon\delete.ico"))
+        self.tool_button_delete.setIcon(QIcon(ICON.ICON_DEL))
         self.hlayout_sel_testpoints_tool.addWidget(self.tool_button_delete)
         self.tool_button_copy = QToolButton(self)
         self.tool_button_copy.setMinimumSize(QSize(24, 24))
         self.tool_button_copy.setMaximumSize(QSize(24, 24))
         self.tool_button_copy.setObjectName("tool_button_copy")
-        self.tool_button_copy.setIcon(QIcon(r"E:\DAGUI\lib\icon\copy.ico"))
+        self.tool_button_copy.setIcon(QIcon(ICON.ICON_COPY))
         self.hlayout_sel_testpoints_tool.addWidget(self.tool_button_copy)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout_sel_testpoints_tool.addItem(spacerItem)
@@ -180,13 +181,13 @@ class DataExportWindow(QWidget):
         self.tool_button_sel_temp.setMinimumSize(QSize(24, 24))
         self.tool_button_sel_temp.setMaximumSize(QSize(24, 24))
         self.tool_button_sel_temp.setObjectName("tool_button_sel_temp")
-        self.tool_button_sel_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\use_template.ico"))
+        self.tool_button_sel_temp.setIcon(QIcon(ICON.ICON_SEL_TEMP))
         self.hlayout_paras_tool.addWidget(self.tool_button_sel_temp)
         self.tool_button_save_temp = QToolButton(self)
         self.tool_button_save_temp.setMinimumSize(QSize(24, 24))
         self.tool_button_save_temp.setMaximumSize(QSize(24, 24))
         self.tool_button_save_temp.setObjectName("tool_button_save_temp")
-        self.tool_button_save_temp.setIcon(QIcon(r"E:\DAGUI\lib\icon\save_template.ico"))
+        self.tool_button_save_temp.setIcon(QIcon(ICON.ICON_SAVE_TEMP))
         self.hlayout_paras_tool.addWidget(self.tool_button_save_temp)
         self.line_x = QFrame(self)
         self.line_x.setFrameShape(QFrame.VLine)
@@ -195,18 +196,18 @@ class DataExportWindow(QWidget):
         self.tool_button_up_para = QToolButton(self)
         self.tool_button_up_para.setMinimumSize(QSize(24, 24))
         self.tool_button_up_para.setMaximumSize(QSize(24, 24))
-        self.tool_button_up_para.setIcon(QIcon(r"E:\DAGUI\lib\icon\up.ico"))
+        self.tool_button_up_para.setIcon(QIcon(ICON.ICON_UP))
         self.hlayout_paras_tool.addWidget(self.tool_button_up_para)
         self.tool_button_down_para = QToolButton(self)
         self.tool_button_down_para.setMinimumSize(QSize(24, 24))
         self.tool_button_down_para.setMaximumSize(QSize(24, 24))
-        self.tool_button_down_para.setIcon(QIcon(r"E:\DAGUI\lib\icon\down.ico"))
+        self.tool_button_down_para.setIcon(QIcon(ICON.ICON_DOWN))
         self.hlayout_paras_tool.addWidget(self.tool_button_down_para)
         self.tool_button_del_para = QToolButton(self)
         self.tool_button_del_para.setMinimumSize(QSize(24, 24))
         self.tool_button_del_para.setMaximumSize(QSize(24, 24))
         self.tool_button_del_para.setObjectName("tool_button_del_para")
-        self.tool_button_del_para.setIcon(QIcon(r"E:\DAGUI\lib\icon\delete.ico"))
+        self.tool_button_del_para.setIcon(QIcon(ICON.ICON_DEL))
         self.hlayout_paras_tool.addWidget(self.tool_button_del_para)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout_paras_tool.addItem(spacerItem)

@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
 # Package models imports
 # =============================================================================
 from models.datafile_model import Normal_DataFile
+import views.src_icon as ICON
 
 import sys, re
 
@@ -90,8 +91,8 @@ class SelectTemplateDialog(QDialog):
         super().__init__(parent)
         self.templates = templates
         self.sel_temp = ''
-        self.tempicon = QIcon(r"E:\DAGUI\lib\icon\template.ico")
-        self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
+        self.tempicon = QIcon(ICON.ICON_TEMPLATE)
+        self.paraicon = QIcon(ICON.ICON_PARA)
         self.setup()
     
     def setup(self):
@@ -197,29 +198,32 @@ class SelParaForPlotDialog(QDialog):
         
         super().__init__(parent)
         self.setup()
-        self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
+        self.paraicon = QIcon(ICON.ICON_PARA)
         
     def setup(self):
 
+        font = QFont()
+        font.setFamily("微软雅黑")
+        self.setFont(font)
         self.resize(400, 350)
         self.verticalLayout = QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.button_up = QToolButton(self)
-        self.button_up.setIcon(QIcon(r"E:\DAGUI\lib\icon\up.ico"))
+        self.button_up.setIcon(QIcon(ICON.ICON_UP))
         self.button_up.setMinimumSize(QSize(24, 24))
         self.button_up.setMaximumSize(QSize(24, 24))
         self.button_up.setObjectName("button_up")
         self.horizontalLayout.addWidget(self.button_up)
         self.button_down = QToolButton(self)
-        self.button_down.setIcon(QIcon(r"E:\DAGUI\lib\icon\down.ico"))
+        self.button_down.setIcon(QIcon(ICON.ICON_DOWN))
         self.button_down.setMinimumSize(QSize(24, 24))
         self.button_down.setMaximumSize(QSize(24, 24))
         self.button_down.setObjectName("button_down")
         self.horizontalLayout.addWidget(self.button_down)
         self.button_delete = QToolButton(self)
-        self.button_delete.setIcon(QIcon(r"E:\DAGUI\lib\icon\delete.ico"))
+        self.button_delete.setIcon(QIcon(ICON.ICON_DEL))
         self.button_delete.setMinimumSize(QSize(24, 24))
         self.button_delete.setMaximumSize(QSize(24, 24))
         self.button_delete.setObjectName("button_delete")
@@ -385,7 +389,7 @@ class SelParasDialog(QDialog):
     def __init__(self, parent = None, files = [], sel_mode = 0):
         
         super().__init__(parent)
-        self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
+        self.paraicon = QIcon(ICON.ICON_PARA)
         if sel_mode == 0:
             self.sel_mode = QAbstractItemView.SingleSelection
         if sel_mode == 1:
@@ -395,6 +399,9 @@ class SelParasDialog(QDialog):
 
     def setup(self):
 
+        font = QFont()
+        font.setFamily("微软雅黑")
+        self.setFont(font)
         self.resize(260, 550)
         self.verticalLayout = QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -436,6 +443,8 @@ class SelParasDialog(QDialog):
         self.btn_cancel.clicked.connect(self.reject)
         if self.sel_mode == QAbstractItemView.ExtendedSelection:
             self.btn_add.clicked.connect(self.signal_add_paras)
+        if self.sel_mode == QAbstractItemView.SingleSelection:
+            self.list_paras.itemDoubleClicked.connect(self.accept)
         self.line_edit_search.textChanged.connect(self.slot_search_para)
     
     def slot_search_para(self, para_name):
@@ -458,15 +467,21 @@ class SelParasDialog(QDialog):
             list_paras.append(item.text())
         return list_paras
         
+#    不显示时间
     def display_paras(self, files):
         
         for file_dir in files:
+            time_hide = False
             file = Normal_DataFile(file_dir)
             paras = file.paras_in_file
             for para in paras:
-                if para not in self.get_list_paras():
-                    item = QListWidgetItem(para, self.list_paras)
-                    item.setIcon(self.paraicon)
+                if time_hide:
+                    if para not in self.get_list_paras():
+                        item = QListWidgetItem(para, self.list_paras)
+                        item.setIcon(self.paraicon)
+#                跳过第一个参数，这里默认第一个参数时间
+                else:
+                    time_hide = True
     
     def get_list_paras(self):
         
@@ -486,7 +501,7 @@ class SelParasDialog(QDialog):
             self.btn_add.setText(_translate("SelParasDialog", "添加"))
         self.btn_cancel.setText(_translate("SelParasDialog", "取消"))
 
-        
+#测试用     
 if __name__ == '__main__':
     
     app = QApplication(sys.argv)

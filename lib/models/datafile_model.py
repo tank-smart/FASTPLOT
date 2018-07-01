@@ -25,7 +25,7 @@
 import pandas as pd
 import scipy.io as sio
 import re
-import time_model as Time
+import models.time_model as Time
 
 # =======类基本信息
 #class DataFile

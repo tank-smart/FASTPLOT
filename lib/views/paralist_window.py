@@ -25,7 +25,8 @@ from PyQt5.QtWidgets import (QWidget, QDockWidget,QLineEdit, QMenu,
 # Package views imports
 # =============================================================================
 from models.datafile_model import Normal_DataFile
-from custom_dialog import SelParaForPlotDialog
+from views.custom_dialog import SelParaForPlotDialog
+import views.src_icon as ICON
 
 # =============================================================================
 # ParasTree
@@ -72,8 +73,8 @@ class ParalistWindow(QDockWidget):
         
         super().__init__(parent)
 #        设置文件与参数的图标
-        self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
-        self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
+        self.fileicon = QIcon(ICON.ICON_FILE)
+        self.paraicon = QIcon(ICON.ICON_PARA)
         self.para_for_plot_dialog = None
     
 # =============================================================================
