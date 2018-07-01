@@ -96,7 +96,7 @@ class PlotWindow(QWidget):
         self.zoom_on = False
         self.use_markline = False
         self.total_data = []
-        self.add_time_flag = True
+        self.index_time = ""
 
 # =============================================================================
 # UI模块        
@@ -260,16 +260,17 @@ class PlotWindow(QWidget):
             df_list = []
             for filedir in filegroup:
                 file = Normal_DataFile(filedir)
-                if self.add_time_flag:
-                    filegroup[filedir].insert(0, file.paras_in_file[0])
-                    self.add_time_flag = False
+                if not self.index_time:
+                    self.index_time = file.paras_in_file[0]
+                    if sorted_paras:
+                        sorted_paras.insert(0, self.index_time)
+                    filegroup[filedir].insert(0, self.index_time)
                 df = file.cols_input(filedir, filegroup[filedir], '\s+')
                 df_list.append(df)
 #            如果参数有排序就使用此顺序
             if sorted_paras:
                 df = pd.concat(df_list,axis = 1,join = 'outer',
                                ignore_index = False)
-                sorted_paras.insert(0, df.columns.values.tolist()[0])
                 df = df.ix[:, sorted_paras]
                 self.total_data.extend([df])
 #            如果参数没有排序就使用默认顺序
