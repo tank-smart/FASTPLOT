@@ -14,7 +14,7 @@ import os
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import QSize, QCoreApplication, Qt
+from PyQt5.QtCore import QSize, QCoreApplication, Qt, pyqtSignal
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QComboBox, QSpacerItem, QSizePolicy, QFrame,
@@ -288,15 +288,36 @@ class DataAnalysisWindow(QWidget):
                     self.list_widget_target_paras.takeItem(self.list_widget_target_paras.row(item))
                         
     def slot_add_paras(self):
-        
-#        采用多选模式
-        dialog = SelParasDialog(self, self.get_list_files(), 1)
-        return_signal = dialog.exec_()
-        if (return_signal == QDialog.Accepted):
+
+        list_paras = []
+        def add_paras():
+            ex_paras = []
             paras = dialog.get_list_sel_paras()
             for para in paras:
-                item = QListWidgetItem(para, self.list_widget_target_paras)
-                item.setIcon(self.paraicon)
+                cur_paras = self.get_list_paras()
+                if para not in cur_paras:
+                    item = QListWidgetItem(para, self.list_widget_target_paras)
+                    item.setIcon(self.paraicon)
+                    item.setSelected(True)
+                    list_paras.append(item)
+                else:
+                    ex_paras.append(para)
+                if ex_paras:
+                    print_para = "<br>以下参数已存在："
+                    for pa in ex_paras:
+                        print_para += ("<br>" + pa)
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("DataAnalysisWindow", "添加提示"),
+                            QCoreApplication.translate("DataAnalysisWindow",
+                                                       print_para))
+                
+#        采用多选模式
+        dialog = SelParasDialog(self, self.get_list_files(), 1)
+        dialog.signal_add_paras.connect(add_paras)
+        return_signal = dialog.exec_()
+        if (return_signal == QDialog.Rejected):
+            for item in list_paras:
+                self.list_widget_target_paras.takeItem(self.list_widget_target_paras.row(item))
     
     def slot_add_condition_para(self):
         
@@ -318,7 +339,13 @@ class DataAnalysisWindow(QWidget):
         
         list_files = self.get_list_files()
         list_paras = self.get_list_paras()
-        str_condition = self.plain_text_edit_ser_condition.plainText()
+        str_condition = self.plain_text_edit_ser_condition.toPlainText()
+        if list_files and list_paras and str_condition:
+            pass
+        else:
+            QMessageBox.information(self,
+                    QCoreApplication.translate("DataAnalysisWindow", "提示"),
+                    QCoreApplication.translate("DataAnalysisWindow","没有足够的输入"))
 
 # =============================================================================
 # 功能函数模块   

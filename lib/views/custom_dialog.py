@@ -378,14 +378,15 @@ class SelParaForPlotDialog(QDialog):
 
 class SelParasDialog(QDialog):
 
-    signal_sel_paras = pyqtSignal(list)
+    signal_add_paras = pyqtSignal()
+    
     def __init__(self, parent = None, files = [], sel_mode = 0):
         
         super().__init__(parent)
         self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
         if sel_mode == 0:
             self.sel_mode = QAbstractItemView.SingleSelection
-        else:
+        if sel_mode == 1:
             self.sel_mode = QAbstractItemView.ExtendedSelection
         self.setup()
         self.display_paras(files)
@@ -414,6 +415,12 @@ class SelParasDialog(QDialog):
         self.btn_confirm.setMaximumSize(QSize(16777215, 24))
         self.btn_confirm.setObjectName("btn_confirm")
         self.horizontalLayout.addWidget(self.btn_confirm)
+        if self.sel_mode == QAbstractItemView.ExtendedSelection:
+            self.btn_add = QPushButton(self)
+            self.btn_add.setMinimumSize(QSize(0, 24))
+            self.btn_add.setMaximumSize(QSize(16777215, 24))
+            self.btn_add.setObjectName("btn_add")
+            self.horizontalLayout.addWidget(self.btn_add)
         self.btn_cancel = QPushButton(self)
         self.btn_cancel.setMinimumSize(QSize(0, 24))
         self.btn_cancel.setMaximumSize(QSize(16777215, 24))
@@ -425,6 +432,8 @@ class SelParasDialog(QDialog):
         
         self.btn_confirm.clicked.connect(self.accept)
         self.btn_cancel.clicked.connect(self.reject)
+        if self.sel_mode == QAbstractItemView.ExtendedSelection:
+            self.btn_add.clicked.connect(self.signal_add_paras)
         self.line_edit_search.textChanged.connect(self.slot_search_para)
     
     def slot_search_para(self, para_name):
@@ -471,6 +480,8 @@ class SelParasDialog(QDialog):
         self.setWindowTitle(_translate("SelParasDialog", "选择参数"))
         self.line_edit_search.setPlaceholderText(_translate("SelParasDialog", "过滤器"))
         self.btn_confirm.setText(_translate("SelParasDialog", "确认"))
+        if self.sel_mode == QAbstractItemView.ExtendedSelection:
+            self.btn_add.setText(_translate("SelParasDialog", "添加"))
         self.btn_cancel.setText(_translate("SelParasDialog", "取消"))
 
         
