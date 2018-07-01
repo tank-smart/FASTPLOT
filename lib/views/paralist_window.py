@@ -59,7 +59,7 @@ class ParalistWindow(QDockWidget):
 #    导出数据的信号，带有字典型参数（存储了文件路径和参数名的信息）
     signal_export_para = pyqtSignal(dict)
 #    快速绘图的信号，带有字典型参数（存储了文件路径和参数名的信息）
-    signal_quick_plot = pyqtSignal(dict)
+    signal_quick_plot = pyqtSignal(tuple)
 #    搜索参数的信号
     signal_search_para = pyqtSignal(str)
     
@@ -267,10 +267,17 @@ class ParalistWindow(QDockWidget):
 #        获得被选项的文件路径和参数列表
         sel_items = self.get_dict_sel_item()
 #        传递出去
-        self.signal_quick_plot.emit(sel_items)
+        self.signal_quick_plot.emit((sel_items, []))
         
     def slot_add_para_plot(self):
-        
+
+    
+        def slot_close_selpara_dialog():            
+            self.para_for_plot_dialog = None
+            
+        def slot_dialog_plot(paras):            
+            self.signal_quick_plot.emit(paras)
+            
         paras = self.get_dict_sel_item()
         if self.para_for_plot_dialog:
             self.para_for_plot_dialog.slot_import_para(paras)
@@ -278,20 +285,11 @@ class ParalistWindow(QDockWidget):
             self.para_for_plot_dialog = SelParaForPlotDialog(self)
             self.para_for_plot_dialog.setAttribute(Qt.WA_DeleteOnClose)
             self.para_for_plot_dialog.signal_para_for_plot.connect(
-                    self.slot_dialog_plot)
+                    slot_dialog_plot)
             self.para_for_plot_dialog.signal_close.connect(
-                    self.slot_close_selpara_dialog)
+                    slot_close_selpara_dialog)
             self.para_for_plot_dialog.show()
-            self.para_for_plot_dialog.slot_import_para(paras)
-    
-    def slot_close_selpara_dialog(self):
-        
-        self.para_for_plot_dialog = None
-        
-    def slot_dialog_plot(self, paras):
-        
-        self.signal_quick_plot.emit(paras)
-        
+            self.para_for_plot_dialog.slot_import_para(paras)        
 
 # =============================================================================
 # 功能函数模块   

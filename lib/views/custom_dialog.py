@@ -190,7 +190,7 @@ class SelectTemplateDialog(QDialog):
 
 class SelParaForPlotDialog(QDialog):
 
-    signal_para_for_plot = pyqtSignal(dict)
+    signal_para_for_plot = pyqtSignal(tuple)
     signal_close = pyqtSignal()
     
     def __init__(self, parent = None):
@@ -264,7 +264,7 @@ class SelParaForPlotDialog(QDialog):
         
     def accept(self):
         
-        self.signal_para_for_plot.emit(self.get_dict_sel_paras())
+        self.signal_para_for_plot.emit(self.get_sel_paras())
         QDialog.accept(self)
         self.signal_close.emit()
         
@@ -352,20 +352,22 @@ class SelParaForPlotDialog(QDialog):
                 item_para.setData(Qt.UserRole, file_dir)
         return ex_paras
     
-    def get_dict_sel_paras(self):
+    def get_sel_paras(self):
         
         result = {}
+        sorted_paras = []
         if self.list_paras:
             count = self.list_paras.count()
             for i in range(count):
                 item = self.list_paras.item(i)
+                sorted_paras.append(item.text())
                 file_dir = item.data(Qt.UserRole)
                 if file_dir in result:
                     result[file_dir].append(item.text())
                 else:
                     result[file_dir] = []
                     result[file_dir].append(item.text())
-        return result
+        return (result, sorted_paras)
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate

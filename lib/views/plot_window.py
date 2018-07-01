@@ -251,10 +251,13 @@ class PlotWindow(QWidget):
 #                    self.scrollarea.setWidgetResizable(True)
 #                self.plotcanvas.subplot_para_wxl(filedir, filegroup[filedir])
         
-    def slot_plot(self, filegroup):
+#    输入参数为一个包含两个参数的元组，元组第一个参数是字典型，存储文件名及与之对应的变量列表
+#    元组第二个参数是列表，存储已排序的参数
+    def slot_plot(self, tuple_file_para):
         
-        if filegroup:
-            
+        filegroup, sorted_paras = tuple_file_para
+        
+        if filegroup:            
             df_list = []
             for filedir in filegroup:
                 file = Normal_DataFile(filedir)
@@ -263,7 +266,16 @@ class PlotWindow(QWidget):
                     self.add_time_flag = False
                 df = file.cols_input(filedir, filegroup[filedir], '\s+')
                 df_list.append(df)
-            self.total_data.extend(df_list)
+#            如果参数有排序就使用此顺序
+            if sorted_paras:
+                df = pd.concat(df_list,axis = 1,join = 'outer',
+                               ignore_index = False)
+                sorted_paras.insert(0, df.columns.values.tolist()[0])
+                df = df.ix[:, sorted_paras]
+                self.total_data.extend([df])
+#            如果参数没有排序就使用默认顺序
+            else:
+                self.total_data.extend(df_list)
             df_all = pd.concat(self.total_data,axis = 1,join = 'outer',
                                ignore_index = False) 
             cols = df_all.columns.size - 1
