@@ -40,7 +40,9 @@ import models.time_model as Time
 #all_input(self,filedir="",sep=""):一次直接读入整个文件，返回dataframe
 #chunkAll_input(self,filedir="",sep="",chunksize=50000)：分段读入整个文件，返回dataframe
 #chunk_input(self,filedir="",sep="",chunksize=50000)：分段读入文件，返回generator可迭代访问每段读入的dataframe
+#rows_input(self,filedir="",sep="",skiprows=None): 跳行读入文件，以此方式按行读入文件，返回dataframe
 #save_file(self,filedir,df,sep='\t')：dataframe数据保存为文本文件
+#append_file(self,filedir,df,sep='\t'):dataframe数据追加保存为文本文件
 #df_tolist(self,df)：dataframe转为列表
 # =======使用说明
 # 实例化类
@@ -130,10 +132,61 @@ class DataFile(object):
                             break
                         Nskip+=chunksize
                         yield chunk
-                    
+
+#rows_input: 按行读取文件内容，skiprows为需要跳过的行的行号列表。暂时使用此种实现方式，经过测试此方法执行效率最高。
+    def rows_input(self,filedir="",sep="",skiprows=None):
+        if filedir=="":
+            filedir=self.filedir
+        if sep=="":
+            sep=self.sep
+        with open(filedir,'r') as f:
+            if filedir.endswith(('.txt','.csv')):
+                if sep=='all':
+                    df=pd.read_table(f,sep='\s+|\t|,|;',skiprows=skiprows,engine='python')
+                else:
+                    df=pd.read_table(f,sep='\s+',skiprows=skiprows,engine='c')
+            if filedir.endswith(('.xls','.xlsx')):
+                df=pd.read_excel(f,header=None,skiprows=skiprows)
+        return df
+    
+    def chunk_rows_input(self,filedir="",sep="",skiprows=None,chunksize=100000):
+        if filedir=="":
+            filedir=self.filedir
+        if sep=="":
+            sep=self.sep
+        loop=True
+        with open(filedir,'r') as f:
+            if filedir.endswith(('.txt','.csv')):
+                if sep=='all':
+                    reader=pd.read_table(f,sep='\s+|\t|,|;',skiprows=skiprows,engine='python',iterator=True)
+                else:
+                    reader=pd.read_table(f,sep='\s+',skiprows=skiprows,engine='c',iterator=True)
+                while loop:
+                    try:
+                        chunk = reader.get_chunk(chunksize)
+                        yield chunk
+                    except StopIteration:
+                        loop = False
+#!!!!
+            if filedir.endswith(('.xls','.xlsx')):#excel file solution has not completed
+                Nskip=0
+                while loop:
+                        chunk=pd.read_excel(f,header=None,skiprows=Nskip,nrows=chunksize)
+                        if chunk.empty:
+                            break
+                        Nskip+=chunksize
+                        yield chunk
+                
+        
+                        
 #save_file: 保存数据到文件，保存的数据格式为df:pandas dataframe或series    
     def save_file(self,filedir,df,sep='\t'):
         df.to_csv(filedir,sep,index=False,encoding="utf-8")
+
+#append_file：追加内容方式写文件，可用于分段数据处理后的写入文件        
+    def append_file(self,filedir,df,sep='\t'):
+        df.to_csv(filedir,sep,mode='a',index=False,encoding="utf-8")
+
         
     def save_matfile(self, filedir, df):
         sio.savemat(filedir, df.to_dict('list'))
@@ -224,6 +277,15 @@ class Normal_DataFile(DataFile):
                 t_sec = Time.str_to_intlist(t)[3]
                 fre += 1
         return fre       
+
+    def get_sample_fre(self,filedir=""):
+        if filedir=="":
+            filedir=self.filedir
+        time_df=self.cols_input(filedir=filedir,cols=[self.paras_in_file[0]])
+        rows=time_df.shape[0]
+        time_interval=(time_df[-1,0]-time_df[0,0])/(rows-1)
+        return time_interval
+        
         
 #get_info:根据一般试飞数据文件的文件名获取，试飞数据相关信息，返回信息列表        
     def get_info(self,filedir=""):
@@ -298,3 +360,18 @@ class Normal_DataFile(DataFile):
                 return df[start_rows : stop_rows].copy()
             else:
                 return df 
+#rowscols_input：在rows_input基础上增加按列读取文件功能
+    def rowscols_input(self,filedir="",sep="",cols=[],skiprows=None):
+        if filedir=="":
+            filedir=self.filedir
+        if sep=="":
+            sep=self.sep
+        with open(filedir,'r') as f:
+            if filedir.endswith(('.txt','.csv')):
+                if sep=='all':
+                    df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,skiprows=skiprows,engine='python')
+                else:
+                    df=pd.read_table(f,sep='\s+',usecols=cols,skiprows=skiprows,engine='c')
+            if filedir.endswith(('.xls','.xlsx')):
+                df=pd.read_excel(f,header=None,usecols=cols,skiprows=skiprows)
+        return df
