@@ -3,11 +3,10 @@ import time
 import re
 import pandas as pd
 from models.datafile_model import Normal_DataFile
-#from datafile_model import Normal_DataFile
 class DataAnalysis(object):
     def __init__(self):
         pass
-    def condition_sift(self,file_list=[], condition="",search_para=[]):
+    def condition_sift_preserved(self,file_list=[], condition="",search_para=[]):
         dict_result={}
         for filedir in file_list:
             df_result=[]
@@ -27,15 +26,20 @@ class DataAnalysis(object):
 #            dict_result[filedir]=df_result
         return dict_result
 
-#----------------原使用的函数-------------------
-#solution1: 任何语法不正确，搜索参数不在文件中（只要有一个参数不在文件中）都会使得字典值为None
+#----------------现使用的函数-------------------
+#solution1: 
+#搜索函数：condition_sift(self,file_list=[], condition="",search_para=[]):
+#           速度很快，任何语法不正确，搜索参数不在文件中（只要有一个参数不在文件中）都会使得字典值为None
 #           而参数搜索条件结果为空时，字典值为Empty DataFrame。
 #           不适用于 参数1 | 参数2条件 ，且只有其中部分参数存在文件中的情况
 #返回值为字典：key为文件路径filedir
-#             vaule为元组(list_result,list_forskip)，list_result为符合条件的索引值列表；
-#             list_forskip为用于在文件读入时跳过的行号以获得符合条件索引内容
+#             vaule为筛选得到的dataframe
+        
+#导出搜索结果文件函数：sift_output(self, filedir="", fileout="", mode='w', index_list=None, skip_list=None):
+#filedir为搜索文件路径；fileout为导出文件路径；mode为导出模式，'w'为普通写文件模式，'a'为追加写文件模式；
+#index_list为选择索引方式导出数据文件；skip_list为选择跳过索引方式导出数据文件；index_list和skip_list只能使用其中之一
 
-    def condition_sift_old(self,file_list=[], condition="",search_para=[]):
+    def condition_sift(self,file_list=[], condition="",search_para=[]):
         dict_result={}
 #        cond_list=re.split(r"&|\|",condition)
 #        print(cond_list)
@@ -49,21 +53,43 @@ class DataAnalysis(object):
                 file_search=Normal_DataFile(filedir)                
                 para_list.insert(0,file_search.paras_in_file[0])
                 df_sift=file_search.cols_input(filedir,para_list)
-                index_all=df_sift.index.tolist() #all index list
+#                index_all=df_sift.index.tolist() #all index list
 #                df_result=df_sift[eval("df_sift."+condition)]
                 index=condition.replace("(","(df_sift.")
                 df_result=df_sift[eval(index)]
+                skip_list=(df_sift.index.drop(df_result.index)+1).tolist()#quick select skip index
+
 #                print(df_result)
-                list_result=df_result.index.tolist() #result index list
+#                list_result=df_result.index.tolist() #result index list
             except:
-                list_result=None
-            list_forskip=[item+1 for item in index_all if item not in list_result]
-            dict_result[filedir]=(list_result,list_forskip)
+                df_result=None
+#            list_forskip=[item+1 for item in index_all if item not in list_result]
+#            dict_result[filedir]=(list_result,list_forskip)
+            dict_result[filedir]=(df_result,skip_list)
             return dict_result
+        
+    def sift_output(self, filedir="", fileout="", mode='w', index_list=None, skip_list=None):
+        
+        if index_list!=None:
+            file_session=Normal_DataFile(filedir)
+            df_all=file_session.all_input(filedir)
+            df_output=df_all.loc[index_list]
+            if mode=='w':
+                file_session.save_file(fileout,df_output,sep='\t')
+            if mode=='a':
+                file_session.append_file(fileout,df_output,sep='\t')
+            
+        if skip_list!=None:
+            file_session=Normal_DataFile(filedir)
+            df_output=file_session.rows_input(filedir,skiprows=skip_list)
+            if mode=='w':
+                file_session.save_file(fileout,df_output,sep='\t')
+            if mode=='a':
+                file_session.append_file(fileout,df_output,sep='\t')
 
 
 
-#----------------现使用的函数-------------------
+#----------------可选用的函数-------------------
 #solution1: 任何语法不正确，搜索参数不在文件中（只要有一个参数不在文件中）都会使得字典值为None
 #           而参数搜索条件结果为空时，字典值为Empty DataFrame。
 #           不适用于 参数1 | 参数2条件 ，且只有其中部分参数存在文件中的情况        
@@ -71,7 +97,7 @@ class DataAnalysis(object):
 #                sift_session为分段的结果类列表session_list(参考class session_list)
 #                list_forskip为用于导出整个筛选结果文件的列表(用于rowsinput或者rowscols_input)
                 
-    def condition_sift_1(self,file_list=[], condition="",search_para=[]):
+    def condition_sift_class(self,file_list=[], condition="",search_para=[]):
 #        dict_result={}
 #        cond_list=re.split(r"&|\|",condition)
 #        print(cond_list)
@@ -90,12 +116,13 @@ class DataAnalysis(object):
                 index=condition.replace("(","(df_sift.")
                 df_result=df_sift[eval(index)]
 #                print(df_result)
-                list_result=df_result.index.tolist() #result index list
             except:
-                list_result=None
+                df_result=None
 #            dict_result[filedir]=df_result
             session_list=[]
-            list_forskip=[item+1 for item in index_all if item not in list_result]
+            #list_forskip=[item+1 for item in index_all if item not in list_result]
+            skip_index=df_sift.index.drop(df_result.index)+1
+            list_forskip=skip_index.tolist()
             begin=list_forskip[0]-1
             for item in list_forskip:
                 item=item-1
@@ -121,8 +148,14 @@ class DataAnalysis(object):
                 
 #            dict_result[filedir]=(list_result,list_forskip,session_list)
         return (session_list,list_forskip)
-    
-    def condition_sift_test(self,file_list=[], condition="",search_para=[]):
+
+#----------------可选用的函数-------------------
+#solution1: 任何语法不正确，搜索参数不在文件中（只要有一个参数不在文件中）都会使得字典值为None
+#           而参数搜索条件结果为空时，字典值为Empty DataFrame。
+#           不适用于 参数1 | 参数2条件 ，且只有其中部分参数存在文件中的情况        
+#返回值为字典：key为文件路径filedir
+#             vaule为元组(begin_time,end_time,period_time,indexsession_skip)
+    def condition_sift_tuple(self,file_list=[], condition="",search_para=[]):
         dict_result={}
 #        cond_list=re.split(r"&|\|",condition)
 #        print(cond_list)
@@ -146,7 +179,10 @@ class DataAnalysis(object):
                 list_result=None
 #            dict_result[filedir]=df_result
             session_list=[]
+#            start = time.clock()
             list_forskip=[item+1 for item in index_all if item not in list_result]
+#            elapsed = (time.clock() - start)
+#            print(elapsed)
             begin=list_forskip[0]-1
             for item in list_forskip:
                 item=item-1
@@ -297,9 +333,15 @@ if __name__ == "__main__":
 #    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
 #    file_list=[filename]
 #    da=DataAnalysis()
-#    condition="(FADEC_LA_Corrected_N1_Speed>=25) & (FADEC_LA_Corrected_N1_Speed<30.01)"
+#    condition="(FADEC_LA_Corrected_N1_Speed>=0) & (FADEC_LA_Corrected_N1_Speed<20.01)"
 ##    condition="(FADEC_LA_Corrected_N1_Speed)"
-#    result=da.condition_sift_old(file_list,condition,["FADEC_LA_Corrected_N1_Speed"])
+#    result=da.condition_sift(file_list,condition,["FADEC_LA_Corrected_N1_Speed"])
+#    for filedir in result:
+#        index_list=result[filedir][0].index.tolist()
+#        skip_list=result[filedir][1]
+##        da.sift_output(filedir, r"D:\index.txt",index_list=index_list)
+#        da.sift_output(filedir, r"D:\skipindex.txt",skip_list=skip_list)
+#        
 #    elapsed = (time.clock() - start)
 #    print("Time used:",elapsed)
 #    #print(result)
@@ -326,7 +368,7 @@ if __name__ == "__main__":
     da=DataAnalysis()
     condition="(FADEC_LA_Corrected_N1_Speed>=25) & (FADEC_LA_Corrected_N1_Speed<30.01)"
 #    condition="(FADEC_LA_Corrected_N1_Speed)"
-    result=da.condition_sift_1(file_list,condition,["FADEC_LA_Corrected_N1_Speed"])
+    result=da.condition_sift_class(file_list,condition,["FADEC_LA_Corrected_N1_Speed"])
     elapsed = (time.clock() - start)
     print("Time used:",elapsed)
     #print(result)
@@ -338,7 +380,7 @@ if __name__ == "__main__":
 #    da=DataAnalysis()
 #    condition="(FADEC_LA_Corrected_N1_Speed>=25) & (FADEC_LA_Corrected_N1_Speed<30.01)"
 ##    condition="(FADEC_LA_Corrected_N1_Speed)"
-#    result=da.condition_sift_test(file_list,condition,["FADEC_LA_Corrected_N1_Speed"])
+#    result=da.condition_sift_tuple(file_list,condition,["FADEC_LA_Corrected_N1_Speed"])
 #    elapsed = (time.clock() - start)
 #    print("Time used:",elapsed)
 #    #print(result)

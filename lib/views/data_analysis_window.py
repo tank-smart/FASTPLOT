@@ -345,7 +345,7 @@ class DataAnalysisWindow(QWidget):
         str_condition = self.plain_text_edit_ser_condition.toPlainText()
         if list_files and list_paras and str_condition:
             da=DataAnalysis()
-            result_dict=da.condition_sift_1(list_files, str_condition,list_paras)
+            result_dict=da.condition_sift(list_files, str_condition,list_paras)
             print(result_dict)
         else:
             QMessageBox.information(self,

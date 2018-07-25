@@ -518,7 +518,7 @@ class MainWindow(QMainWindow):
 #        判断是否有模板存在
         if self.config_info:
 #                打开保存模板的文件（将从头写入，覆盖之前的内容）
-            with open(r"E:\\DAGUI\\data\\config_info.txt", 'w') as file:
+            with open(r"E:\DAGUI\data\config_info.txt", 'w') as file:
 #                将内存中的模板一一写入文件
                 for name in self.config_info:
                     file.write("========\n")

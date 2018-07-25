@@ -142,9 +142,9 @@ class DataFile(object):
         with open(filedir,'r') as f:
             if filedir.endswith(('.txt','.csv')):
                 if sep=='all':
-                    df=pd.read_table(f,sep='\s+|\t|,|;',skiprows=skiprows,engine='python')
+                    df=pd.read_table(f,sep='\s+|\t|,|;',header=0, skiprows=skiprows,engine='python')
                 else:
-                    df=pd.read_table(f,sep='\s+',skiprows=skiprows,engine='c')
+                    df=pd.read_table(f,sep='\s+',header=0, skiprows=skiprows,engine='c')
             if filedir.endswith(('.xls','.xlsx')):
                 df=pd.read_excel(f,header=None,skiprows=skiprows)
         return df
