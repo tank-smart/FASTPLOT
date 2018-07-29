@@ -246,42 +246,114 @@ class DataAnalysis(object):
                 return None
 #            dict_result[filedir]=df_result
         return dict_result
-    
-    def downsample(self,df,f,closed='left',label='left'):
+
+#=======================================================
+#最初版本    
+    def downsample_old(self,df,f,closed='left',label='left'):
         timestr=str(1/f)+'S'
-        time=df.columns.tolist()[0]
+        timecol=df.columns.tolist()[0]
 #        df[time]=pd.to_datetime(df[time],format='%H:%M:%S:%f')
-        df_new=df.set_index(pd.to_datetime(df[time],format='%H:%M:%S:%f'),drop=False)
+        df_new=df.set_index(pd.to_datetime(df[timecol],format='%H:%M:%S:%f'),drop=False)
         sample=df_new.resample(timestr,axis=0,closed=closed,label=label).first()
 #        result=sample.reset_index(drop=True)
         result=sample
 #        df_new.asfreq('1S',method='ffill')
         return result
-    
-    def upsample(self,df,f):
-        timestr=str(1/f)+'S'
-        time=df.columns.tolist()[0]
+
+#第二版本，由于数据文件的时间精确到毫秒，因此频率有超过毫秒精度的降频将会不准确    
+    def downsample_temp(self,df,f,closed='left',label='left'):
+        num=round(1/f,3)#精确到毫秒
+            
+        timestr=str(num)+'S'
+#        timestr='0.67S'
+#        timestr=str(1000/f)+'L'
+        timecol=df.columns.tolist()[0]
 #        df[time]=pd.to_datetime(df[time],format='%H:%M:%S:%f')
-        df_new=df.set_index(pd.to_datetime(df[time],format='%H:%M:%S:%f'),drop=False)
+        df_new=df.set_index(pd.to_datetime(df[timecol],format='%H:%M:%S:%f'),drop=False)
+        if num<1:
+            base=df_new.index[0].microsecond/1000-1000*num
+        else:
+            base=df_new.index[0].minute*60+df_new.index[0].second+df_new.index[0].microsecond/1000000-num
+
+#        start_time=df.iat[0,0]
+#        index=start_time.rindex(':')
+#        base=int(start_time[-1:index])
+#        print(base)
+        print(df_new)
+        sample=df_new.resample(timestr,axis=0,closed=closed,label=label,base=base).first()
+#        result=sample.reset_index(drop=True)
+        result=sample
+#        df_new.asfreq('1S',method='ffill')
+        return result    
+
+#现使用的降频函数，使用periodindex表示时间。将resample表示为ms后，这种方法似乎降频完美    
+    def downsample(self,df,f,closed='left',label='left'):
+        timestr=str(round(1000/f,3))+'ms'
+        timecol=df.columns.tolist()[0]
+#        df[time]=pd.to_datetime(df[time],format='%H:%M:%S:%f')
+        df_new=df.set_index(pd.to_datetime(df[timecol],format='%H:%M:%S:%f'),drop=False)
+        new_index=pd.PeriodIndex(df_new.index,start=df_new.index[0],end=df_new.index[-1],freq='us')
+#        print(new_index)
+        df_used=df_new.set_index(new_index)
+#        print(df_used)
+        sample=df_used.resample(timestr,axis=0,closed=closed,label=label,convention='s').ffill()
+#        result=sample.reset_index(drop=True) #可以恢复原索引
+        result=sample
+#        new_start=result.index[0]
+#        delta=old_start-new_start
+#        result.index=result.index+delta
+#        df_new.asfreq('1S',method='ffill')
+        return result
+
+#保留的之前的升频方法    
+    def upsample_old(self,df,f):
+        timestr=str(1/f)+'S'
+        timecol=df.columns.tolist()[0]
+#        df[time]=pd.to_datetime(df[time],format='%H:%M:%S:%f')
+        df_new=df.set_index(pd.to_datetime(df[timecol],format='%H:%M:%S:%f'),drop=False)
         sample=df_new.resample(timestr,axis=0).ffill()
 #        result=sample.reset_index(drop=True)
         result=sample
 #        df_new.asfreq('1S',method='ffill')
         return result
- 
+#现使用的升频函数，较为完美的升频方法    
+    def upsample(self,df,f):
+        timestr=str(round(1000/f,3))+'ms'
+        timecol=df.columns.tolist()[0]
+        df[timecol]=pd.to_datetime(df[timecol],format='%H:%M:%S:%f')
+        df_new=df.set_index(df[timecol],drop=False)
+        new_index=pd.PeriodIndex(df_new.index,start=df_new.index[0],end=df_new.index[-1],freq='us')
+#        print(new_index)
+        df_used=df_new.set_index(new_index)
+        sample=df_used.resample(timestr,axis=0).interpolate(method='linear')
+#        result=sample.reset_index(drop=True)
+        result=sample
+#        pandas has bug in converting periodindex to string when date_format is '%H:%M:%S:%f'
+        result[timecol]=result.index.to_timestamp().strftime('%H:%M:%S:%f')
+
+        return result
+#==============================================================
+    def synchro(self,df,f,closed='left',label='left'):
+        timestr=str(round(1000/f,3))+'ms'
+        timecol=df.columns.tolist()[0]
+#        df[time]=pd.to_datetime(df[time],format='%H:%M:%S:%f')
+        df_new=df.set_index(pd.to_datetime(df[timecol],format='%H:%M:%S:%f'),drop=False)
+        new_index=pd.PeriodIndex(df_new.index,start=df_new.index[1],end=df_new.index[-2],freq='us')
+#        print(new_index)
+        df_used=df_new.set_index(new_index)
+#        df_used=df_new[new_index]
+        
+#        print(df_used)
+#        sample=df_used.resample(timestr,axis=0,closed=closed,label=label,convention='s').ffill()
+#        result=sample.reset_index(drop=True) #可以恢复原索引
+#        result=sample
+#        new_start=result.index[0]
+#        delta=old_start-new_start
+#        result.index=result.index+delta
+#        df_new.asfreq('1S',method='ffill')
+        return df_used
     
-def condition_sift(file_list=[], condition="",display_para=[]):
-    dict_result={}
-    for filedir in file_list:
-        para_list=display_para
-        file_search=Normal_DataFile(filedir)
-        para_list.insert(0,file_search.paras_in_file[0])
-        df_sift=file_search.cols_input(filedir,para_list)
-#        df_result=df_sift[eval("df_sift."+condition)]
-        index=condition.replace("(","(df_sift.")
-        df_result=df_sift[eval(index)]
-        dict_result[filedir]=df_result
-    return dict_result
+    
 
 class sift_session(object):
     def __init__(self, filedir="", df_session=None, skiprows=[]):
@@ -351,27 +423,27 @@ if __name__ == "__main__":
 ##        df=file_key.rowscols_input(key,cols=["FADEC_LA_Corrected_N1_Speed"],skiprows=result[key][1])
 ##        print(df)
 #===============================================
-##    TEST2:
+##    TEST2(up/down resample):
 #    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
 #    filetest=Normal_DataFile(filename)
 #    result=filetest.get_sample_frequency()
-#    time_df=filetest.cols_input(filedir=filename,cols=[filetest.paras_in_file[0]])
+#    time_df=filetest.cols_input(filedir=filename,cols=filetest.paras_in_file[0:10])
 #    print(time_df)
 #    da=DataAnalysis()
-##    result=da.downsample(time_df,4,closed='right')
-#    result=da.upsample(time_df,32)
+##    result=da.downsample(time_df,4,closed='left')
+#    result=da.upsample(time_df,64)
 #==================================================
-#    TEST3:
-    start = time.clock()
-    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
-    file_list=[filename]
-    da=DataAnalysis()
-    condition="(FADEC_LA_Corrected_N1_Speed>=25) & (FADEC_LA_Corrected_N1_Speed<30.01)"
-#    condition="(FADEC_LA_Corrected_N1_Speed)"
-    result=da.condition_sift_class(file_list,condition,["FADEC_LA_Corrected_N1_Speed"])
-    elapsed = (time.clock() - start)
-    print("Time used:",elapsed)
-    #print(result)
+##    TEST3:
+#    start = time.clock()
+#    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
+#    file_list=[filename]
+#    da=DataAnalysis()
+#    condition="(FADEC_LA_Corrected_N1_Speed>=25) & (FADEC_LA_Corrected_N1_Speed<30.01)"
+##    condition="(FADEC_LA_Corrected_N1_Speed)"
+#    result=da.condition_sift_class(file_list,condition,["FADEC_LA_Corrected_N1_Speed"])
+#    elapsed = (time.clock() - start)
+#    print("Time used:",elapsed)
+#    #print(result)
 #===================================================
 ##    TEST4:
 #    start = time.clock()
@@ -389,5 +461,14 @@ if __name__ == "__main__":
 ##        file_key=Normal_DataFile(key)
 ##        df=file_key.rowscols_input(key,cols=["FADEC_LA_Corrected_N1_Speed"],skiprows=result[key][1])
 ##        print(df)
-#    
+#======================================================
+#    TEST5(synchro):
+    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
+    filetest=Normal_DataFile(filename)
+    fre=filetest.get_sample_frequency()
+    time_df=filetest.cols_input(filedir=filename,cols=filetest.paras_in_file[0:1])
+    print(time_df)
+    da=DataAnalysis()
+#    result=da.downsample(time_df,4,closed='left')
+    result=da.synchro(time_df,16)    
     
