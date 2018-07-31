@@ -326,11 +326,13 @@ class DataAnalysis(object):
 #        print(new_index)
         df_used=df_new.set_index(new_index)
         sample=df_used.resample(timestr,axis=0).interpolate(method='linear')
-#        result=sample.reset_index(drop=True)
-        result=sample
+#        对索引时间值会改变的数据，如我们现使用的数据，现resample再通过线性插值填充NAN值会更加合理，如下两行
+#        sample=df_used.resample(timestr,axis=0).first()
+#        sample=sample.interpolate()
+        result=sample.round(8)
 #        pandas has bug in converting periodindex to string when date_format is '%H:%M:%S:%f'
         result[timecol]=result.index.to_timestamp().strftime('%H:%M:%S:%f')
-
+#        result=sample.reset_index(drop=True)
         return result
 #==============================================================
     def synchro(self,df,f,closed='left',label='left'):
@@ -423,15 +425,18 @@ if __name__ == "__main__":
 ##        df=file_key.rowscols_input(key,cols=["FADEC_LA_Corrected_N1_Speed"],skiprows=result[key][1])
 ##        print(df)
 #===============================================
-##    TEST2(up/down resample):
-#    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
-#    filetest=Normal_DataFile(filename)
-#    result=filetest.get_sample_frequency()
-#    time_df=filetest.cols_input(filedir=filename,cols=filetest.paras_in_file[0:10])
+#    TEST2(up/down resample):
+    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
+    filetest=Normal_DataFile(filename)
+    result=filetest.get_sample_frequency()
+    time_df=filetest.cols_input(filedir=filename,cols=filetest.paras_in_file[0:10])
 #    print(time_df)
-#    da=DataAnalysis()
-##    result=da.downsample(time_df,4,closed='left')
-#    result=da.upsample(time_df,64)
+    da=DataAnalysis()
+#    result=da.downsample(time_df,4,closed='left')
+    result=da.upsample(time_df,32)
+#    result=result.round(8)
+    fileout=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-32.txt"
+    filetest.save_file(fileout,result)
 #==================================================
 ##    TEST3:
 #    start = time.clock()
@@ -462,13 +467,13 @@ if __name__ == "__main__":
 ##        df=file_key.rowscols_input(key,cols=["FADEC_LA_Corrected_N1_Speed"],skiprows=result[key][1])
 ##        print(df)
 #======================================================
-#    TEST5(synchro):
-    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
-    filetest=Normal_DataFile(filename)
-    fre=filetest.get_sample_frequency()
-    time_df=filetest.cols_input(filedir=filename,cols=filetest.paras_in_file[0:1])
-    print(time_df)
-    da=DataAnalysis()
-#    result=da.downsample(time_df,4,closed='left')
-    result=da.synchro(time_df,16)    
+##    TEST5(synchro):
+#    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
+#    filetest=Normal_DataFile(filename)
+#    fre=filetest.get_sample_frequency()
+#    time_df=filetest.cols_input(filedir=filename,cols=filetest.paras_in_file[0:1])
+#    print(time_df)
+#    da=DataAnalysis()
+##    result=da.downsample(time_df,4,closed='left')
+#    result=da.synchro(time_df,16)    
     
