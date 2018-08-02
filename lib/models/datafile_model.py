@@ -48,24 +48,24 @@ import models.time_model as Time
 # 实例化类
 
 class DataFile(object):
-    def __init__(self,filedir="",sep="\s+"):
+    def __init__(self,filedir='',sep='\s+'):
         self.filedir=filedir
         self.sep=sep
         self.filename=self.get_name(filedir)
 
 #get_name:根据文件路径获取文件名        
-    def get_name(self,filedir=""):
-        if filedir=="":
+    def get_name(self,filedir=''):
+        if filedir=='':
             filedir=self.filedir
         pos = filedir.rindex('\\')
         filename = filedir[pos+1:]
         return filename
     
 #all_input:一次导入整个数据文件（文件过大时会卡死），如不指定filedir，sep会使用类属性        
-    def all_input(self,filedir="",sep=""):
-        if filedir=="":
+    def all_input(self,filedir='',sep=''):
+        if filedir=='':
             filedir=self.filedir
-        if sep=="":
+        if sep=='':
             sep=self.sep
         if filedir.endswith(('.txt','.csv')):
             with open(filedir,'r') as f:
@@ -79,10 +79,10 @@ class DataFile(object):
         return df
 
 #chunkAll_input: 分段导入整个数据文件，chunksize指定每次读入的行数,返回完整的dataframe
-    def chunkAll_input(self,filedir="",sep="",chunksize=50000):
-        if filedir=="":
+    def chunkAll_input(self,filedir='',sep='',chunksize=50000):
+        if filedir=='':
             filedir=self.filedir
-        if sep=="":
+        if sep=='':
             sep=self.sep
         loop = True
         #chunksize = 50000
@@ -106,10 +106,10 @@ class DataFile(object):
     
 #chunk_input: 分段导入数据文件，chunksize指定每次读入的行数，返回每一段读取的chunk
         #使用Yield使函数返回generator，可通过迭代获取yield指定的chunk，chunk为dataframe类型
-    def chunk_input(self,filedir="",sep="",chunksize=50000):
-        if filedir=="":
+    def chunk_input(self,filedir='',sep='',chunksize=50000):
+        if filedir=='':
             filedir=self.filedir
-        if sep=="":
+        if sep=='':
             sep=self.sep
         loop=True
         with open(filedir,'r') as f:
@@ -176,9 +176,7 @@ class DataFile(object):
                             break
                         Nskip+=chunksize
                         yield chunk
-                
-        
-                        
+                    
 #save_file: 保存数据到文件，保存的数据格式为df:pandas dataframe或series    
     def save_file(self,filedir,df,sep='\t'):
         df.to_csv(filedir,sep,index=False,encoding="utf-8")
@@ -186,7 +184,6 @@ class DataFile(object):
 #append_file：追加内容方式写文件，可用于分段数据处理后的写入文件        
     def append_file(self,filedir,df,sep='\t'):
         df.to_csv(filedir,sep,mode='a',index=False,encoding="utf-8")
-
         
     def save_matfile(self, filedir, df):
         sio.savemat(filedir, df.to_dict('list'))
@@ -207,18 +204,18 @@ class DataFile(object):
 #sample_frequency： 数据文件的采样频率
 # =====functions:
 #父类函数 （DataFile.function）
-#def get_info(self,filedir=""):获取数据文件名信息，返回信息列表
-#def get_paraslist(self,filedir=""):获取文件中所有的的参数列表，返回参数列表
-#def get_timerange(self,filedir=""):获取数据文件的起始时间和终止时间，以[begin,end]形式返回列表
-#def header_input(self,filedir="",sep="")：读取数据文件第一行（参数名）
-#def cols_input(self,filedir="",cols=[],sep="\s+")：按列读取数据文件，cols指定参数名列表，按cols指定的参数名列读取数据
+#def get_info(self,filedir=''):获取数据文件名信息，返回信息列表
+#def get_paraslist(self,filedir=''):获取文件中所有的的参数列表，返回参数列表
+#def get_timerange(self,filedir=''):获取数据文件的起始时间和终止时间，以[begin,end]形式返回列表
+#def header_input(self,filedir='',sep='')：读取数据文件第一行（参数名）
+#def cols_input(self,filedir='',cols=[],sep='\s+')：按列读取数据文件，cols指定参数名列表，按cols指定的参数名列读取数据
 #def save_file(self,filedir,df,sep='\t')：dataframe数据保存为文本文件
 #def df_tolist(self,df)：dataframe转为列表
 # =======使用说明
 # 实例化类
         
 class Normal_DataFile(DataFile):
-    def __init__(self,filedir="",sep="\s+"):
+    def __init__(self,filedir='',sep='\s+'):
         super(Normal_DataFile,self).__init__(filedir,sep)
         self.info_list=self.get_info(filedir)
         self.paras_in_file=self.get_paraslist(filedir)
@@ -226,14 +223,14 @@ class Normal_DataFile(DataFile):
         self.sample_frequency = self.get_sample_frequency(filedir)
 
 #get_paralist:获取文件中所有的的参数列表        
-    def get_paraslist(self,filedir=""):
+    def get_paraslist(self,filedir=''):
         para_name = self.header_input(filedir,sep='\s+')
         para_list = para_name.values.tolist()[0]
         return para_list
 
 #get_timerange:获取数据文件的起始时间和终止时间，以[begin,end]形式返回
-    def get_timerange(self,filedir=""):
-        if filedir=="":
+    def get_timerange(self,filedir=''):
+        if filedir=='':
             filedir=self.filedir
 #        等同于try...finally，保证无论是否出错都能正确关闭文件
 #            rb+模式打开是按二进制方式读取数据的，Python3读取得到的数据类型为byte，
@@ -245,8 +242,10 @@ class Normal_DataFile(DataFile):
 #            转码
             start_line = start_line.decode()
             start_time = re.split('\s+', start_line)[0]
+#            转换成标准格式==！，此处的索引访问是左闭右开
+            start_time = Time.timestr_to_stdtimestr(start_time)
 #            获取终止时间
-            stop_line = ""
+            stop_line = ''
             offset = -120
             while True:
                 file.seek(offset, 2)
@@ -257,11 +256,12 @@ class Normal_DataFile(DataFile):
                     break
                 offset = offset * 2
             stop_time = re.split('\s+', stop_line)[0]
+            stop_time = Time.timestr_to_stdtimestr(stop_time)
         time_range=[start_time, stop_time]
         return time_range
 
-    def get_sample_frequency(self,filedir=""):
-        if filedir=="":
+    def get_sample_frequency(self,filedir=''):
+        if filedir=='':
             filedir=self.filedir
         
         fre = 0
@@ -269,13 +269,19 @@ class Normal_DataFile(DataFile):
             start_line = f.readline()
             start_line = f.readline()
             start_time = re.split('\s+', start_line)[0]
-            sec = Time.str_to_intlist(start_time)[3]
+            sec = Time.str_to_datetime(start_time).second
+            msec = Time.str_to_datetime(start_time).microsecond
+            t_msec = -1
             t_sec = -1
-            while sec != t_sec:
-                line = f.readline()
+            line = f.readline()
+            while (not (msec == t_msec and (t_sec - sec) == 1)) and line:
                 t = re.split('\s+', line)[0]
-                t_sec = Time.str_to_intlist(t)[3]
+                t_sec = Time.str_to_datetime(t).second
+                t_msec = Time.str_to_datetime(t).microsecond
                 fre += 1
+                line = f.readline()
+            if not (msec == t_msec and (t_sec - sec) == 1):
+                fre = 0
         return fre       
 
     def get_sample_fre(self,filedir=""):
@@ -286,9 +292,8 @@ class Normal_DataFile(DataFile):
         time_interval=(time_df[-1,0]-time_df[0,0])/(rows-1)
         return time_interval
         
-        
 #get_info:根据一般试飞数据文件的文件名获取，试飞数据相关信息，返回信息列表        
-    def get_info(self,filedir=""):
+    def get_info(self,filedir=''):
         if filedir:
             lpos=filedir.rindex('\\')
             rpos=filedir.rindex('.')
@@ -297,10 +302,10 @@ class Normal_DataFile(DataFile):
         return info_list
                        
 #header_input: 仅导入数据文件的第一行即参数名行，可与 cols_input函数一起使用
-    def header_input(self,filedir="",sep=""): 
-        if filedir=="":
+    def header_input(self,filedir='',sep=''): 
+        if filedir=='':
             filedir=self.filedir
-        if sep=="":
+        if sep=='':
             sep=self.sep
         with open(filedir,'r') as f:
             if filedir.endswith(('.txt','.csv')):
@@ -316,10 +321,10 @@ class Normal_DataFile(DataFile):
         return df       
 
 #cols_input: 按列读取数据文件，cols指定参数名列表，按cols指定的参数名列读取数据    
-#    def cols_input(self,filedir="",cols=[],sep="\s+",start_time='',stop_time=''):  #without chunkinput now!!
-#        if filedir=="":
+#    def cols_input(self,filedir='',cols=[],sep='\s+',start_time='',stop_time=''):  #without chunkinput now!!
+#        if filedir=='':
 #            filedir=self.filedir
-#        if sep=="":
+#        if sep=='':
 #            sep=self.sep
 #        with open(filedir,'r') as f:
 #            if filedir.endswith(('.txt','.csv')):
@@ -338,11 +343,11 @@ class Normal_DataFile(DataFile):
 #            else:
 #                return df 
         
-    def cols_input(self,filedir="",cols=[],sep="\s+",start_time='',stop_time=''):  #without chunkinput now!!
+    def cols_input(self,filedir='',cols=[],sep='\s+',start_time='',stop_time=''):  #without chunkinput now!!
         
-        if filedir=="":
+        if filedir=='':
             filedir=self.filedir
-        if sep=="":
+        if sep=='':
             sep=self.sep
         with open(filedir,'r') as f:
             if filedir.endswith(('.txt','.csv')):
@@ -352,14 +357,17 @@ class Normal_DataFile(DataFile):
                     df=pd.read_table(f,sep=sep,usecols=cols,engine='c')
             if filedir.endswith(('.xls','.xlsx')):
                 df=pd.read_excel(f,usecols=cols)
+#            定义参数顺序
+            df = df[cols]
             if (start_time and stop_time):
-                start_rows = Time.lines_between_times(self.time_range[0],
-                                      start_time, self.sample_frequency)
-                stop_rows = Time.lines_between_times(self.time_range[0],
-                                     stop_time, self.sample_frequency)
+                start_rows = Time.timecount_between_strtimes(self.time_range[0],
+                                                             start_time, self.sample_frequency)
+                stop_rows = Time.timecount_between_strtimes(self.time_range[0],
+                                                            stop_time, self.sample_frequency)
                 return df[start_rows : stop_rows].copy()
             else:
                 return df 
+
 #rowscols_input：在rows_input基础上增加按列读取文件功能
     def rowscols_input(self,filedir="",sep="",cols=[],skiprows=None):
         if filedir=="":

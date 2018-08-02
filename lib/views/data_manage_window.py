@@ -10,228 +10,334 @@
 # =======日志
 # 
 # =============================================================================
-
+import sys
+import os.path as osp
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import QSize, QCoreApplication
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-                             QComboBox, QSpacerItem, QSizePolicy, QFrame,
-                             QListWidget, QStackedWidget, QLineEdit,
-                             QPushButton)
+from PyQt5.QtCore import QSize, QCoreApplication, pyqtSignal, Qt
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QAction,
+                             QComboBox, QSpacerItem, QSizePolicy, QFrame, QMenu,
+                             QListWidget, QListWidgetItem, QStackedWidget,
+                             QLineEdit, QAbstractItemView, QGroupBox,
+                             QMessageBox, QDialogButtonBox)
+
+import views.constant as CONSTANT
 
 # =============================================================================
 # DataManageWindow
 # =============================================================================
 class DataManageWindow(QWidget):
 
+    signal_display_paras_template = pyqtSignal()
+    signal_display_plot_template = pyqtSignal()
 # =============================================================================
 # 初始化    
 # =============================================================================    
     def __init__(self, parent = None):
         
         super().__init__(parent)
+        
+#        导出参数的模板
+        self.paras_temps = {}
+#        绘图的模板
+        self.plot_temps = {}
+        
+        self.tempicon = QIcon(CONSTANT.ICON_TEMPLATE)
+        self.paraicon = QIcon(CONSTANT.ICON_PARA)
+        
+        self.SETUP_DIR = osp.abspath(osp.join(osp.dirname(sys.argv[0]), osp.pardir))
 
 # =============================================================================
 # UI模块        
 # =============================================================================
     def setup(self):
 
-        self.verticalLayout = QVBoxLayout(self)
-        self.verticalLayout.setContentsMargins(4, 4, 4, 0)
-        self.verticalLayout.setSpacing(4)
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout_3 = QVBoxLayout(self)
+        self.verticalLayout_3.setContentsMargins(2, 0, 2, 0)
+        self.verticalLayout_3.setSpacing(2)
+        self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setSpacing(2)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.label_datatype = QLabel(self)
-        self.label_datatype.setMinimumSize(QSize(80, 24))
-        self.label_datatype.setMaximumSize(QSize(80, 24))
-        self.label_datatype.setObjectName("label_datatype")
-        self.horizontalLayout.addWidget(self.label_datatype)
-        self.combobox_index = QComboBox(self)
-        self.combobox_index.setMinimumSize(QSize(120, 24))
-        self.combobox_index.setMaximumSize(QSize(120, 24))
-        self.combobox_index.setObjectName("combobox_index")
-        self.combobox_index.addItem("")
-        self.combobox_index.addItem("")
-        self.combobox_index.addItem("")
-        self.horizontalLayout.addWidget(self.combobox_index)
+        self.label_manage_type = QLabel(self)
+        self.label_manage_type.setMinimumSize(QSize(100, 24))
+        self.label_manage_type.setMaximumSize(QSize(100, 24))
+        self.label_manage_type.setObjectName("label_manage_type")
+        self.horizontalLayout.addWidget(self.label_manage_type)
+        self.comboBox_manage_type = QComboBox(self)
+        self.comboBox_manage_type.setMinimumSize(QSize(120, 24))
+        self.comboBox_manage_type.setMaximumSize(QSize(120, 24))
+        self.comboBox_manage_type.setObjectName("comboBox_manage_type")
+        self.comboBox_manage_type.addItem("")
+        self.comboBox_manage_type.addItem("")
+        self.comboBox_manage_type.addItem("")
+        self.horizontalLayout.addWidget(self.comboBox_manage_type)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
-        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout_3.addLayout(self.horizontalLayout)
         self.line = QFrame(self)
         self.line.setFrameShape(QFrame.HLine)
         self.line.setFrameShadow(QFrame.Sunken)
         self.line.setObjectName("line")
-        self.verticalLayout.addWidget(self.line)
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.widget = QWidget(self)
-        self.widget.setMinimumSize(QSize(220, 0))
-        self.widget.setMaximumSize(QSize(220, 16777215))
-        self.widget.setObjectName("widget")
-        self.verticalLayout_temp = QVBoxLayout(self.widget)
-        self.verticalLayout_temp.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_temp.setSpacing(4)
-        self.verticalLayout_temp.setObjectName("verticalLayout_temp")
-        self.label_templist = QLabel(self.widget)
-        self.label_templist.setMinimumSize(QSize(60, 24))
-        self.label_templist.setMaximumSize(QSize(60, 24))
-        self.label_templist.setObjectName("label_templist")
-        self.verticalLayout_temp.addWidget(self.label_templist)
-        self.list_templates = QListWidget(self)
-        self.list_templates.setMinimumSize(QSize(220, 0))
-        self.list_templates.setMaximumSize(QSize(220, 16777215))
-        self.list_templates.setObjectName("list_templates")
-        self.verticalLayout_temp.addWidget(self.list_templates)
-        self.horizontalLayout_2.addWidget(self.widget)
-        self.line_2 = QFrame(self)
-        self.line_2.setFrameShape(QFrame.VLine)
-        self.line_2.setFrameShadow(QFrame.Sunken)
-        self.line_2.setObjectName("line_2")
-        self.horizontalLayout_2.addWidget(self.line_2)
+        self.verticalLayout_3.addWidget(self.line)
         self.stackedWidget = QStackedWidget(self)
         self.stackedWidget.setObjectName("stackedWidget")
-        
-#        参数导出模板编辑页
-        self.export_temp_page = QWidget()
-        self.export_temp_page.setObjectName("page")
-        self.horizontalLayout_5 = QHBoxLayout(self.export_temp_page)
-        self.horizontalLayout_5.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_5.setSpacing(4)
-        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.verticalLayout_2 = QVBoxLayout()
+        self.page_para_templates = QWidget()
+        self.page_para_templates.setObjectName("page_para_templates")
+        self.horizontalLayout_2 = QHBoxLayout(self.page_para_templates)
+        self.horizontalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.horizontalLayout_2.setSpacing(2)
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.group_box_templates = QGroupBox(self.page_para_templates)
+        self.group_box_templates.setObjectName("group_box_templates")
+        self.verticalLayout = QVBoxLayout(self.group_box_templates)
+        self.verticalLayout.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout.setSpacing(2)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.list_para_templates = QListWidget(self.group_box_templates)
+        self.list_para_templates.setObjectName("list_para_templates")
+        self.verticalLayout.addWidget(self.list_para_templates)
+        self.horizontalLayout_2.addWidget(self.group_box_templates)
+        self.group_box_template_setting = QGroupBox(self.page_para_templates)
+        self.group_box_template_setting.setObjectName("group_box_template_setting")
+        self.verticalLayout_2 = QVBoxLayout(self.group_box_template_setting)
+        self.verticalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_2.setSpacing(2)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.label_temp_name_export = QLabel(self.export_temp_page)
-        self.label_temp_name_export.setMinimumSize(QSize(0, 24))
-        self.label_temp_name_export.setMaximumSize(QSize(16777215, 24))
-        self.label_temp_name_export.setObjectName("label_temp_name_export")
-        self.verticalLayout_2.addWidget(self.label_temp_name_export)
-        self.line_edit_temp_name_export = QLineEdit(self.export_temp_page)
-        self.line_edit_temp_name_export.setMinimumSize(QSize(0, 24))
-        self.line_edit_temp_name_export.setMaximumSize(QSize(16777215, 24))
-        self.line_edit_temp_name_export.setObjectName("line_edit_temp_name_export")
-        self.verticalLayout_2.addWidget(self.line_edit_temp_name_export)
-        self.label_paralist_export = QLabel(self.export_temp_page)
-        self.label_paralist_export.setMinimumSize(QSize(0, 24))
-        self.label_paralist_export.setMaximumSize(QSize(16777215, 24))
-        self.label_paralist_export.setObjectName("label_paralist_export")
-        self.verticalLayout_2.addWidget(self.label_paralist_export)
-        self.list_paralist_export = QListWidget(self.export_temp_page)
-        self.list_paralist_export.setObjectName("list_paralist_export")
-        self.verticalLayout_2.addWidget(self.list_paralist_export)
-        self.horizontalLayout_3 = QHBoxLayout()
-        self.horizontalLayout_3.setSpacing(10)
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem1)
-        self.button_save_export = QPushButton(self.export_temp_page)
-        self.button_save_export.setMinimumSize(QSize(0, 24))
-        self.button_save_export.setMaximumSize(QSize(16777215, 24))
-        self.button_save_export.setObjectName("button_save_export")
-        self.horizontalLayout_3.addWidget(self.button_save_export)
-        self.button_cancel_export = QPushButton(self.export_temp_page)
-        self.button_cancel_export.setMinimumSize(QSize(0, 24))
-        self.button_cancel_export.setMaximumSize(QSize(16777215, 24))
-        self.button_cancel_export.setObjectName("button_cancel_export")
-        self.horizontalLayout_3.addWidget(self.button_cancel_export)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
-        self.horizontalLayout_5.addLayout(self.verticalLayout_2)
-        self.stackedWidget.addWidget(self.export_temp_page)
-        
-#        绘图模板编辑页
-        self.plot_temp_page = QWidget()
-        self.plot_temp_page.setObjectName("page_2")
-        self.horizontalLayout_6 = QHBoxLayout(self.plot_temp_page)
-        self.horizontalLayout_6.setContentsMargins(0, 0, 0, 0)
-        self.horizontalLayout_6.setSpacing(4)
-        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        self.verticalLayout_4 = QVBoxLayout()
-        self.verticalLayout_4.setObjectName("verticalLayout_4")
-        self.label_5 = QLabel(self.plot_temp_page)
-        self.label_5.setMinimumSize(QSize(0, 24))
-        self.label_5.setMaximumSize(QSize(16777215, 24))
-        self.label_5.setObjectName("label_5")
-        self.verticalLayout_4.addWidget(self.label_5)
-        self.line_edit_temp_name_plot = QLineEdit(self.plot_temp_page)
-        self.line_edit_temp_name_plot.setMinimumSize(QSize(0, 24))
-        self.line_edit_temp_name_plot.setMaximumSize(QSize(16777215, 24))
-        self.line_edit_temp_name_plot.setObjectName("line_edit_temp_name_plot")
-        self.verticalLayout_4.addWidget(self.line_edit_temp_name_plot)
-        self.label_4 = QLabel(self.plot_temp_page)
-        self.label_4.setMinimumSize(QSize(0, 24))
-        self.label_4.setMaximumSize(QSize(16777215, 24))
-        self.label_4.setObjectName("label_4")
-        self.verticalLayout_4.addWidget(self.label_4)
-        self.list_paralist_plot = QListWidget(self.plot_temp_page)
-        self.list_paralist_plot.setObjectName("list_paralist_plot")
-        self.verticalLayout_4.addWidget(self.list_paralist_plot)
-        self.horizontalLayout_4 = QHBoxLayout()
-        self.horizontalLayout_4.setSpacing(10)
-        self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.horizontalLayout_4.addItem(spacerItem2)
-        self.button_save_plot = QPushButton(self.plot_temp_page)
-        self.button_save_plot.setMinimumSize(QSize(0, 24))
-        self.button_save_plot.setMaximumSize(QSize(16777215, 24))
-        self.button_save_plot.setObjectName("button_save_plot")
-        self.horizontalLayout_4.addWidget(self.button_save_plot)
-        self.button_cancel_plot = QPushButton(self.plot_temp_page)
-        self.button_cancel_plot.setMinimumSize(QSize(0, 24))
-        self.button_cancel_plot.setMaximumSize(QSize(16777215, 24))
-        self.button_cancel_plot.setObjectName("button_cancel_plot")
-        self.horizontalLayout_4.addWidget(self.button_cancel_plot)
-        self.verticalLayout_4.addLayout(self.horizontalLayout_4)
-        self.horizontalLayout_6.addLayout(self.verticalLayout_4)
-        self.stackedWidget.addWidget(self.plot_temp_page)
-        
-#        参数字典编辑页
-        self.para_dictionary_page = QWidget()
-        self.stackedWidget.addWidget(self.para_dictionary_page)
-        
-        self.horizontalLayout_2.addWidget(self.stackedWidget)
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.label_para_template = QLabel(self.group_box_template_setting)
+        self.label_para_template.setMinimumSize(QSize(0, 24))
+        self.label_para_template.setMaximumSize(QSize(16777215, 24))
+        self.label_para_template.setObjectName("label_para_template")
+        self.verticalLayout_2.addWidget(self.label_para_template)
+        self.line_edit_paras_template_name = QLineEdit(self.group_box_template_setting)
+        self.line_edit_paras_template_name.setMinimumSize(QSize(0, 24))
+        self.line_edit_paras_template_name.setMaximumSize(QSize(16777215, 24))
+        self.line_edit_paras_template_name.setObjectName("line_edit_paras_template_name")
+        self.verticalLayout_2.addWidget(self.line_edit_paras_template_name)
+        self.label_parameters = QLabel(self.group_box_template_setting)
+        self.label_parameters.setMinimumSize(QSize(0, 24))
+        self.label_parameters.setMaximumSize(QSize(16777215, 24))
+        self.label_parameters.setObjectName("label_parameters")
+        self.verticalLayout_2.addWidget(self.label_parameters)
+        self.list_parameters_for_ana = QListWidget(self.group_box_template_setting)
+        self.list_parameters_for_ana.setObjectName("list_parameters_for_ana")
+        self.verticalLayout_2.addWidget(self.list_parameters_for_ana)
+        self.btn_box_para_template = QDialogButtonBox(self.group_box_template_setting)
+        self.btn_box_para_template.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        self.btn_box_para_template.setObjectName("btn_box_para_template")
+        self.verticalLayout_2.addWidget(self.btn_box_para_template)
+        self.horizontalLayout_2.addWidget(self.group_box_template_setting)
+        self.horizontalLayout_2.setStretch(0, 2)
+        self.horizontalLayout_2.setStretch(1, 5)
+        self.stackedWidget.addWidget(self.page_para_templates)
+        self.page_plot_templates = QWidget()
+        self.page_plot_templates.setObjectName("page_plot_templates")
+        self.stackedWidget.addWidget(self.page_plot_templates)
+        self.page_parametes_dict = QWidget()
+        self.page_parametes_dict.setObjectName("page_parametes_dict")
+        self.stackedWidget.addWidget(self.page_parametes_dict)
+        self.verticalLayout_3.addWidget(self.stackedWidget)
 
         self.retranslateUi()
+#        加载模板
+        self.load_temps()
         self.stackedWidget.setCurrentIndex(0)
+
+#        设置每个item是可以被选择的
+        self.list_para_templates.setSelectionMode(
+                QAbstractItemView.ExtendedSelection)
+        
+#       让树可支持右键菜单(step 1)
+        self.list_para_templates.setContextMenuPolicy(Qt.CustomContextMenu)
+      
+#        添加右键动作
+        self.action_delete_templates = QAction(self.list_para_templates)
+        self.action_delete_templates.setText(QCoreApplication.
+                                             translate('ParalistDock', '删除模板'))
 
 # =======连接信号与槽
 # =============================================================================        
-        self.combobox_index.currentIndexChanged.connect(self.slot_show_page)
+        self.comboBox_manage_type.currentIndexChanged.connect(self.slot_show_page)
+        self.list_para_templates.itemClicked.connect(self.slot_display_template)
+        
+#        使右键时能弹出菜单(step 2)
+        self.list_para_templates.customContextMenuRequested.connect(
+                self.on_list_para_templates_menu)
+        self.action_delete_templates.triggered.connect(self.slot_delete_templates)
+        
 
 # =============================================================================
 # slots模块
 # =============================================================================
+#    右键菜单的事件处理(step 3)
+    def on_list_para_templates_menu(self, pos):
+        
+#        记录右击时鼠标所在的item
+        sel_item = self.list_para_templates.itemAt(pos)
+        
+#        如果鼠标不在item上，不显示右键菜单
+        if sel_item:
+#            创建菜单，添加动作，显示菜单
+            menu = QMenu(self.list_para_templates)
+            menu.addActions([self.action_delete_templates])
+            
+            menu.exec_(self.list_para_templates.mapToGlobal(pos))
+            
     def slot_show_page(self, index):
         
         self.stackedWidget.setCurrentIndex(index)
-        if (index == 2):
-            self.widget.setHidden(True)
-            self.line_2.setHidden(True)
-        else:
-            self.widget.setHidden(False)
-            self.line_2.setHidden(False)
+    
+#    直接覆盖同名的模板,当分析参数窗口保存模板时触发
+    def slot_add_para_template(self, template : dict):
+        
+        if template:
+            for name in template:
+                self.paras_temps[name] = template[name]
+                self.redisplay_para_templates()
+                
+    def slot_add_plot_template(self, template : dict):
+        
+        if template:
+            for name in template:
+                self.plot_temps[name] = template[name]
 
+#    显示模板信息
+    def slot_display_template(self, item):
+
+        self.list_parameters_for_ana.clear()
+        self.line_edit_paras_template_name.clear()
+#        显示参数列表
+        for paraname in self.paras_temps[item.text()]:
+            QListWidgetItem(paraname, self.list_parameters_for_ana).setIcon(self.paraicon)
+#        显示模板名
+        self.line_edit_paras_template_name.setText(item.text())
+    
+#    删除模板    
+    def slot_delete_templates(self):
+        
+        sel_items = self.list_para_templates.selectedItems()
+        if len(sel_items):
+            message = QMessageBox.warning(self,
+                          QCoreApplication.translate('DataExportWindow', '删除模板'),
+                          QCoreApplication.translate('DataExportWindow', '确定要删除这些模板吗'),
+                          QMessageBox.Yes | QMessageBox.No)
+            if (message == QMessageBox.Yes):
+                for item in sel_items:
+                    self.list_para_templates.takeItem(self.list_para_templates.row(item))
+                    self.paras_temps.pop(item.text())
+#                如果删除完模板后，还有模板就显示第一个模板的信息
+                if self.paras_temps:
+                    self.list_para_templates.setCurrentRow(0)
+                    self.slot_display_template(self.list_para_templates.currentItem())
+        
+            
 # =============================================================================
 # 功能函数模块
 # =============================================================================
+#    从文件中加载参数模板进入内存
+    def load_temps(self):
+        
+#        导入导出参数的模板
+        try:
+            with open(self.SETUP_DIR + r'\data\templates_export_paras.txt', 'r') as file:
+                while file.readline():
+    #                readline函数会把'\n'也读进来
+                     name = file.readline()
+    #                 去除'\n'
+                     name = name.strip('\n')
+                     str_paralist = file.readline()
+                     str_paralist = str_paralist.strip('\n')
+                     paralist = str_paralist.split(' ')
+                     self.paras_temps[name] = paralist
+        except IOError:
+#            对抛出的文件错误，不予理睬
+            pass
+        self.redisplay_para_templates()            
+        
+#        导入绘图模板
+        try:
+            with open(self.SETUP_DIR + r'\data\templates_plot.txt', 'r') as file:
+                while file.readline():
+    #                readline函数会把'\n'也读进来
+                     name = file.readline()
+    #                 去除'\n'
+                     name = name.strip('\n')
+                     str_paralist = file.readline()
+                     str_paralist = str_paralist.strip('\n')
+                     paralist = str_paralist.split(' ')
+                     self.plot_temps[name] = paralist
+        except IOError:
+            pass
+        
+#    将内存中的模板导出到文件
+    def output_temps(self):
 
+#        判断是否有模板存在
+        if self.paras_temps:
+#                打开保存模板的文件（将从头写入，覆盖之前的内容）
+            with open(self.SETUP_DIR + r'\data\templates_export_paras.txt', 'w') as file:
+#                将内存中的模板一一写入文件
+                for temp in self.paras_temps:
+                    file.write('========\n')
+                    file.write(temp)
+                    file.write('\n')
+                    paralist = ''
+                    index = 1
+                    length = len(self.paras_temps[temp])
+                    for para in self.paras_temps[temp]:
+                        if index == length:
+                            paralist += (para + '\n')
+                        else:
+                            paralist += (para + ' ')
+                        index += 1
+                    file.write(paralist)
+                    
+#        判断是否有模板存在
+        if self.plot_temps:
+#                打开保存模板的文件（将从头写入，覆盖之前的内容）
+            with open(self.SETUP_DIR + r'\data\templates_plot.txt', 'w') as file:
+#                将内存中的模板一一写入文件
+                for temp in self.plot_temps:
+                    file.write('========\n')
+                    file.write(temp)
+                    file.write('\n')
+                    paralist = ''
+                    index = 1
+                    length = len(self.plot_temps[temp])
+                    for para in self.plot_temps[temp]:
+                        if index == length:
+                            paralist += (para + '\n')
+                        else:
+                            paralist += (para + ' ')
+                        index += 1
+                    file.write(paralist)
+                    
+#    更新模板显示
+    def redisplay_para_templates(self):
+
+#        显示模板信息
+        if self.paras_temps:
+            self.list_para_templates.clear()
+#            显示模板列表
+            for name in self.paras_temps:
+                QListWidgetItem(name, self.list_para_templates).setIcon(self.tempicon)
+#            设置当前的模板为第一个模板并显示模板信息
+            self.list_para_templates.setCurrentRow(0)
+            item = self.list_para_templates.currentItem()
+            self.slot_display_template(item)
 # =============================================================================
 # 汉化
 # =============================================================================
     
     def retranslateUi(self):
         _translate = QCoreApplication.translate
-        self.label_datatype.setText(_translate("DataManageWindow", "数据管理对象"))
-        self.combobox_index.setItemText(0, _translate("DataManageWindow", "参数导出模板"))
-        self.combobox_index.setItemText(1, _translate("DataManageWindow", "绘图模板"))
-        self.combobox_index.setItemText(2, _translate("DataManageWindow", "参数字典"))
-        self.label_templist.setText(_translate("Form", "模板列表"))
-        self.label_temp_name_export.setText(_translate("DataManageWindow", "模板名"))
-        self.label_paralist_export.setText(_translate("DataManageWindow", "参数列表"))
-        self.button_save_export.setText(_translate("DataManageWindow", "保存"))
-        self.button_cancel_export.setText(_translate("DataManageWindow", "取消"))
-        self.label_5.setText(_translate("DataManageWindow", "模板名"))
-        self.label_4.setText(_translate("DataManageWindow", "参数列表"))
-        self.button_save_plot.setText(_translate("DataManageWindow", "保存"))
-        self.button_cancel_plot.setText(_translate("DataManageWindow", "取消"))
+        self.label_manage_type.setText(_translate("DataManageWindow", "数据管理类型"))
+        self.comboBox_manage_type.setItemText(0, _translate("DataManageWindow", "参数模板"))
+        self.comboBox_manage_type.setItemText(1, _translate("DataManageWindow", "绘图模板"))
+        self.comboBox_manage_type.setItemText(2, _translate("DataManageWindow", "参数字典"))
+        self.group_box_templates.setTitle(_translate("DataManageWindow", "模板列表"))
+        self.group_box_template_setting.setTitle(_translate("DataManageWindow", "模板信息"))
+        self.label_para_template.setText(_translate("DataManageWindow", "模板名"))
+        self.label_parameters.setText(_translate("DataManageWindow", "参数列表"))

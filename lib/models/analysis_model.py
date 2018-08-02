@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
-import time
+#import time      #用于时间测试
 import re
 import pandas as pd
 from models.datafile_model import Normal_DataFile
+
 class DataAnalysis(object):
     def __init__(self):
         pass
+    
+#================数据筛选================================
     def condition_sift_preserved(self,file_list=[], condition="",search_para=[]):
         dict_result={}
         for filedir in file_list:
@@ -246,8 +249,9 @@ class DataAnalysis(object):
                 return None
 #            dict_result[filedir]=df_result
         return dict_result
-
-#=======================================================
+#================================================================
+#========================数据升降频===============================
+#升降频方法
 #最初版本    
     def downsample_old(self,df,f,closed='left',label='left'):
         timestr=str(1/f)+'S'
@@ -334,7 +338,9 @@ class DataAnalysis(object):
         result[timecol]=result.index.to_timestamp().strftime('%H:%M:%S:%f')
 #        result=sample.reset_index(drop=True)
         return result
-#==============================================================
+#=======================================================================
+#=========================数据时间同步===================================
+#时间同步方法
     def synchro(self,df,f,closed='left',label='left'):
         timestr=str(round(1000/f,3))+'ms'
         timecol=df.columns.tolist()[0]
@@ -356,7 +362,10 @@ class DataAnalysis(object):
         return df_used
     
     
-
+#================================================================
+        
+#====================class sift_session==========================
+#用于筛选结果展示的类
 class sift_session(object):
     def __init__(self, filedir="", df_session=None, skiprows=[]):
         if filedir and df_session is not None:
@@ -396,7 +405,7 @@ class sift_session(object):
             file_session.save_file(filedir,df_output,sep='\t')
         if mode=='a':
             file_session.append_file(filedir,df_output,sep='\t')
-        
+#=============================================================        
         
         
     

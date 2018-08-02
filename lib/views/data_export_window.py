@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QListWidget,
 from models.datafile_model import DataFile, Normal_DataFile
 import models.time_model as Time
 from views.custom_dialog import SelectTemplateDialog, SaveTemplateDialog
-import views.src_icon as ICON
+import views.constant as CONSTANT
 # =============================================================================
 # SelectedParasTree
 # =============================================================================
@@ -93,8 +93,8 @@ class DataExportWindow(QWidget):
         self.default_testpoint_del = False
         self.testpoint_count = 0
 #        设置文件与参数的图标
-        self.fileicon = QIcon(ICON.ICON_FILE)
-        self.paraicon = QIcon(ICON.ICON_PARA)
+        self.fileicon = QIcon(CONSTANT.ICON_FILE)
+        self.paraicon = QIcon(CONSTANT.ICON_PARA)
 
 # =============================================================================
 # UI模块    
@@ -102,43 +102,43 @@ class DataExportWindow(QWidget):
     def setup(self):
 
         self.verticalLayout = QVBoxLayout(self)
-        self.verticalLayout.setObjectName("verticalLayout")
+        self.verticalLayout.setObjectName('verticalLayout')
         self.verticalLayout.setContentsMargins(4, 0, 4, 0)
         self.verticalLayout.setSpacing(4)
         
         self.vlayout_sel_testpoints = QVBoxLayout()
-        self.vlayout_sel_testpoints.setObjectName("vlayout_sel_testpoints")
+        self.vlayout_sel_testpoints.setObjectName('vlayout_sel_testpoints')
         self.label_sel_testpoint = QLabel(self)
         self.label_sel_testpoint.setMinimumSize(QSize(0, 24))
         self.label_sel_testpoint.setMaximumSize(QSize(16777215, 24))
-        self.label_sel_testpoint.setObjectName("label_sel_testpoint")
+        self.label_sel_testpoint.setObjectName('label_sel_testpoint')
         self.vlayout_sel_testpoints.addWidget(self.label_sel_testpoint)
         self.hlayout_sel_testpoints_tool = QHBoxLayout()
         self.hlayout_sel_testpoints_tool.setSpacing(2)
-        self.hlayout_sel_testpoints_tool.setObjectName("hlayout_sel_testpoints_tool")
+        self.hlayout_sel_testpoints_tool.setObjectName('hlayout_sel_testpoints_tool')
         self.tool_button_add = QToolButton(self)
         self.tool_button_add.setMinimumSize(QSize(24, 24))
         self.tool_button_add.setMaximumSize(QSize(24, 24))
-        self.tool_button_add.setObjectName("tool_button_add")
-        self.tool_button_add.setIcon(QIcon(ICON.ICON_ADD))
+        self.tool_button_add.setObjectName('tool_button_add')
+        self.tool_button_add.setIcon(QIcon(CONSTANT.ICON_ADD))
         self.hlayout_sel_testpoints_tool.addWidget(self.tool_button_add)
         self.tool_button_delete = QToolButton(self)
         self.tool_button_delete.setMinimumSize(QSize(24, 24))
         self.tool_button_delete.setMaximumSize(QSize(24, 24))
-        self.tool_button_delete.setObjectName("tool_button_delete")
-        self.tool_button_delete.setIcon(QIcon(ICON.ICON_DEL))
+        self.tool_button_delete.setObjectName('tool_button_delete')
+        self.tool_button_delete.setIcon(QIcon(CONSTANT.ICON_DEL))
         self.hlayout_sel_testpoints_tool.addWidget(self.tool_button_delete)
         self.tool_button_copy = QToolButton(self)
         self.tool_button_copy.setMinimumSize(QSize(24, 24))
         self.tool_button_copy.setMaximumSize(QSize(24, 24))
-        self.tool_button_copy.setObjectName("tool_button_copy")
-        self.tool_button_copy.setIcon(QIcon(ICON.ICON_COPY))
+        self.tool_button_copy.setObjectName('tool_button_copy')
+        self.tool_button_copy.setIcon(QIcon(CONSTANT.ICON_COPY))
         self.hlayout_sel_testpoints_tool.addWidget(self.tool_button_copy)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout_sel_testpoints_tool.addItem(spacerItem)
         self.vlayout_sel_testpoints.addLayout(self.hlayout_sel_testpoints_tool)
         self.table_testpoint = QTableWidget(self)
-        self.table_testpoint.setObjectName("table_testpoint")
+        self.table_testpoint.setObjectName('table_testpoint')
         self.table_testpoint.setColumnCount(4)
         item = QTableWidgetItem()
         self.table_testpoint.setHorizontalHeaderItem(0, item)
@@ -160,34 +160,34 @@ class DataExportWindow(QWidget):
         self.line = QFrame(self)
         self.line.setFrameShape(QFrame.HLine)
         self.line.setFrameShadow(QFrame.Sunken)
-        self.line.setObjectName("line")
+        self.line.setObjectName('line')
         self.verticalLayout.addWidget(self.line)
 
         self.hlayout_selpara_and_output = QHBoxLayout()
-        self.hlayout_selpara_and_output.setObjectName("hlayout_selpara_and_output")
+        self.hlayout_selpara_and_output.setObjectName('hlayout_selpara_and_output')
         self.hlayout_selpara_and_output.setSpacing(4)
         self.vlayout_sel_para = QVBoxLayout()
-        self.vlayout_sel_para.setObjectName("vlayout_sel_para")
+        self.vlayout_sel_para.setObjectName('vlayout_sel_para')
         self.label_sel_para = QLabel(self)
         self.label_sel_para.setMinimumSize(QSize(0, 24))
         self.label_sel_para.setMaximumSize(QSize(16777215, 24))
-        self.label_sel_para.setObjectName("label_sel_para")
+        self.label_sel_para.setObjectName('label_sel_para')
         self.vlayout_sel_para.addWidget(self.label_sel_para)
         
         self.hlayout_paras_tool = QHBoxLayout()
         self.hlayout_paras_tool.setSpacing(2)
-        self.hlayout_paras_tool.setObjectName("hlayout_paras_tool")
+        self.hlayout_paras_tool.setObjectName('hlayout_paras_tool')
         self.tool_button_sel_temp = QToolButton(self)
         self.tool_button_sel_temp.setMinimumSize(QSize(24, 24))
         self.tool_button_sel_temp.setMaximumSize(QSize(24, 24))
-        self.tool_button_sel_temp.setObjectName("tool_button_sel_temp")
-        self.tool_button_sel_temp.setIcon(QIcon(ICON.ICON_SEL_TEMP))
+        self.tool_button_sel_temp.setObjectName('tool_button_sel_temp')
+        self.tool_button_sel_temp.setIcon(QIcon(CONSTANT.ICON_SEL_TEMP))
         self.hlayout_paras_tool.addWidget(self.tool_button_sel_temp)
         self.tool_button_save_temp = QToolButton(self)
         self.tool_button_save_temp.setMinimumSize(QSize(24, 24))
         self.tool_button_save_temp.setMaximumSize(QSize(24, 24))
-        self.tool_button_save_temp.setObjectName("tool_button_save_temp")
-        self.tool_button_save_temp.setIcon(QIcon(ICON.ICON_SAVE_TEMP))
+        self.tool_button_save_temp.setObjectName('tool_button_save_temp')
+        self.tool_button_save_temp.setIcon(QIcon(CONSTANT.ICON_SAVE_TEMP))
         self.hlayout_paras_tool.addWidget(self.tool_button_save_temp)
         self.line_x = QFrame(self)
         self.line_x.setFrameShape(QFrame.VLine)
@@ -196,18 +196,18 @@ class DataExportWindow(QWidget):
         self.tool_button_up_para = QToolButton(self)
         self.tool_button_up_para.setMinimumSize(QSize(24, 24))
         self.tool_button_up_para.setMaximumSize(QSize(24, 24))
-        self.tool_button_up_para.setIcon(QIcon(ICON.ICON_UP))
+        self.tool_button_up_para.setIcon(QIcon(CONSTANT.ICON_UP))
         self.hlayout_paras_tool.addWidget(self.tool_button_up_para)
         self.tool_button_down_para = QToolButton(self)
         self.tool_button_down_para.setMinimumSize(QSize(24, 24))
         self.tool_button_down_para.setMaximumSize(QSize(24, 24))
-        self.tool_button_down_para.setIcon(QIcon(ICON.ICON_DOWN))
+        self.tool_button_down_para.setIcon(QIcon(CONSTANT.ICON_DOWN))
         self.hlayout_paras_tool.addWidget(self.tool_button_down_para)
         self.tool_button_del_para = QToolButton(self)
         self.tool_button_del_para.setMinimumSize(QSize(24, 24))
         self.tool_button_del_para.setMaximumSize(QSize(24, 24))
-        self.tool_button_del_para.setObjectName("tool_button_del_para")
-        self.tool_button_del_para.setIcon(QIcon(ICON.ICON_DEL))
+        self.tool_button_del_para.setObjectName('tool_button_del_para')
+        self.tool_button_del_para.setIcon(QIcon(CONSTANT.ICON_DEL))
         self.hlayout_paras_tool.addWidget(self.tool_button_del_para)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout_paras_tool.addItem(spacerItem)
@@ -215,7 +215,7 @@ class DataExportWindow(QWidget):
         
 #        使用自定义的树控件
         self.list_sel_para = SelectedParasList(self)
-        self.list_sel_para.setObjectName("list_sel_para")
+        self.list_sel_para.setObjectName('list_sel_para')
         self.list_sel_para.setSelectionMode(
                 QAbstractItemView.ExtendedSelection)
         
@@ -224,53 +224,53 @@ class DataExportWindow(QWidget):
         self.line_2 = QFrame(self)
         self.line_2.setFrameShape(QFrame.VLine)
         self.line_2.setFrameShadow(QFrame.Sunken)
-        self.line_2.setObjectName("line_2")
+        self.line_2.setObjectName('line_2')
         self.hlayout_selpara_and_output.addWidget(self.line_2)
         self.vlayout_output_config = QVBoxLayout()
-        self.vlayout_output_config.setObjectName("vlayout_output_config")
+        self.vlayout_output_config.setObjectName('vlayout_output_config')
         self.label = QLabel(self)
         self.label.setMinimumSize(QSize(0, 24))
         self.label.setMaximumSize(QSize(16777215, 24))
-        self.label.setObjectName("label")
+        self.label.setObjectName('label')
         self.vlayout_output_config.addWidget(self.label)
         self.hlayout_out_filetype = QHBoxLayout()
-        self.hlayout_out_filetype.setObjectName("hlayout_out_filetype")
+        self.hlayout_out_filetype.setObjectName('hlayout_out_filetype')
         self.label_file_type = QLabel(self)
         self.label_file_type.setMinimumSize(QSize(80, 24))
         self.label_file_type.setMaximumSize(QSize(80, 24))
-        self.label_file_type.setObjectName("label_file_type")
+        self.label_file_type.setObjectName('label_file_type')
         self.hlayout_out_filetype.addWidget(self.label_file_type)
         self.combo_box_file_type = QComboBox(self)
         self.combo_box_file_type.setMinimumSize(QSize(0, 24))
         self.combo_box_file_type.setMaximumSize(QSize(16777215, 24))
-        self.combo_box_file_type.setObjectName("combo_box_file_type")
-        self.combo_box_file_type.addItem("")
+        self.combo_box_file_type.setObjectName('combo_box_file_type')
+        self.combo_box_file_type.addItem('')
 #        设置每个项目的数据，为后续选择导出文件所使用
-        self.combo_box_file_type.setItemData(0, ".txt", Qt.UserRole)
-        self.combo_box_file_type.addItem("")
-        self.combo_box_file_type.setItemData(1, ".csv", Qt.UserRole)
-        self.combo_box_file_type.addItem("")
-        self.combo_box_file_type.setItemData(2, ".mat", Qt.UserRole)
+        self.combo_box_file_type.setItemData(0, '.txt', Qt.UserRole)
+        self.combo_box_file_type.addItem('')
+        self.combo_box_file_type.setItemData(1, '.csv', Qt.UserRole)
+        self.combo_box_file_type.addItem('')
+        self.combo_box_file_type.setItemData(2, '.mat', Qt.UserRole)
         self.hlayout_out_filetype.addWidget(self.combo_box_file_type)
         spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.hlayout_out_filetype.addItem(spacerItem1)
         self.vlayout_output_config.addLayout(self.hlayout_out_filetype)
         self.hlayout_out_loc = QHBoxLayout()
-        self.hlayout_out_loc.setObjectName("hlayout_out_loc")
+        self.hlayout_out_loc.setObjectName('hlayout_out_loc')
         self.label_output_loc = QLabel(self)
         self.label_output_loc.setMinimumSize(QSize(80, 0))
         self.label_output_loc.setMaximumSize(QSize(80, 16777215))
-        self.label_output_loc.setObjectName("label_output_loc")
+        self.label_output_loc.setObjectName('label_output_loc')
         self.hlayout_out_loc.addWidget(self.label_output_loc)
         self.line_edit_location = QLineEdit(self)
         self.line_edit_location.setMinimumSize(QSize(0, 24))
         self.line_edit_location.setMaximumSize(QSize(16777215, 24))
-        self.line_edit_location.setObjectName("line_edit_location")
+        self.line_edit_location.setObjectName('line_edit_location')
         self.hlayout_out_loc.addWidget(self.line_edit_location)
         self.button_sel_dir = QToolButton(self)
         self.button_sel_dir.setMinimumSize(QSize(24, 24))
         self.button_sel_dir.setMaximumSize(QSize(24, 24))
-        self.button_sel_dir.setObjectName("button_sel_dir")
+        self.button_sel_dir.setObjectName('button_sel_dir')
         self.hlayout_out_loc.addWidget(self.button_sel_dir)
         self.vlayout_output_config.addLayout(self.hlayout_out_loc)
         spacerItem2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -281,23 +281,23 @@ class DataExportWindow(QWidget):
         self.line_3 = QFrame(self)
         self.line_3.setFrameShape(QFrame.HLine)
         self.line_3.setFrameShadow(QFrame.Sunken)
-        self.line_3.setObjectName("line_3")
+        self.line_3.setObjectName('line_3')
         self.verticalLayout.addWidget(self.line_3)
         
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setSpacing(10)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.horizontalLayout.setObjectName('horizontalLayout')
         spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem3)
         self.button_confirm = QPushButton(self)
         self.button_confirm.setMinimumSize(QSize(0, 24))
         self.button_confirm.setMaximumSize(QSize(16777215, 24))
-        self.button_confirm.setObjectName("button_confirm")
+        self.button_confirm.setObjectName('button_confirm')
         self.horizontalLayout.addWidget(self.button_confirm)
         self.button_reset = QPushButton(self)
         self.button_reset.setMinimumSize(QSize(0, 24))
         self.button_reset.setMaximumSize(QSize(16777215, 24))
-        self.button_reset.setObjectName("button_reset")
+        self.button_reset.setObjectName('button_reset')
         self.horizontalLayout.addWidget(self.button_reset)
         self.verticalLayout.addLayout(self.horizontalLayout)
 
@@ -344,58 +344,52 @@ class DataExportWindow(QWidget):
         
         if paras_dict:
             ex_paras = []
-            dict_sel_paras = self.get_dict_sel_paras()
             for file_dir in paras_dict:
-#                判断是否导入的文件已经存在
-                if  file_dir in dict_sel_paras:
+                tr = Normal_DataFile(file_dir).time_range
+                row_count = self.table_testpoint.rowCount()
+                if row_count == 0:
+                    self.table_testpoint.insertRow(0)
+                    name = QTableWidgetItem('Default(total time)')
+                    name.setData(Qt.UserRole, 'Default(total time)')
+                    name.setFlags(Qt.NoItemFlags)
+                    self.table_testpoint.setItem(0, 0, name)
+                    start = QTableWidgetItem(tr[0])
+                    start.setData(Qt.UserRole, tr[0])
+                    start.setFlags(Qt.NoItemFlags) 
+                    self.table_testpoint.setItem(0, 1, start)
+                    end = QTableWidgetItem(tr[1])
+                    end.setData(Qt.UserRole, tr[1])
+                    end.setFlags(Qt.NoItemFlags) 
+                    self.table_testpoint.setItem(0, 2, end)
+                    filename = QTableWidgetItem('Untitled')
+                    filename.setData(Qt.UserRole, 'Untitled')
+                    self.table_testpoint.setItem(0, 3, filename)
+
                     ex_paras += self.add_file_para(file_dir,
                                                    paras_dict[file_dir])
                 else:
-                    tr = Normal_DataFile(file_dir).time_range
-                    row_count = self.table_testpoint.rowCount()
-                    if row_count == 0:
-                        self.table_testpoint.insertRow(0)
-                        name = QTableWidgetItem("Default(total time)")
-                        name.setData(Qt.UserRole, "Default(total time)")
-                        name.setFlags(Qt.NoItemFlags)
-                        self.table_testpoint.setItem(0, 0, name)
-                        start = QTableWidgetItem(tr[0])
-                        start.setData(Qt.UserRole, tr[0])
-                        start.setFlags(Qt.NoItemFlags) 
-                        self.table_testpoint.setItem(0, 1, start)
-                        end = QTableWidgetItem(tr[1])
-                        end.setData(Qt.UserRole, tr[1])
-                        end.setFlags(Qt.NoItemFlags) 
-                        self.table_testpoint.setItem(0, 2, end)
-                        filename = QTableWidgetItem("Untitled")
-                        filename.setData(Qt.UserRole, "Untitled")
-                        self.table_testpoint.setItem(0, 3, filename)
-
+                    if (self.table_testpoint.item(0, 1).data(Qt.UserRole) == tr[0] and 
+                        self.table_testpoint.item(0, 2).data(Qt.UserRole) == tr[1]):
                         ex_paras += self.add_file_para(file_dir,
                                                        paras_dict[file_dir])
                     else:
-                        if (self.table_testpoint.item(0, 1).data(Qt.UserRole) == tr[0] and 
-                            self.table_testpoint.item(0, 2).data(Qt.UserRole) == tr[1]):
-                            ex_paras += self.add_file_para(file_dir,
-                                                           paras_dict[file_dir])
-                        else:
-                            QMessageBox.information(self,
-                                    QCoreApplication.translate("DataExportWindow", "导入错误"),
-                                    QCoreApplication.translate("DataExportWindow", "文件时间不一致"))
+                        QMessageBox.information(self,
+                                QCoreApplication.translate('DataExportWindow', '导入错误'),
+                                QCoreApplication.translate('DataExportWindow', '文件时间不一致'))
             if ex_paras:
-                print_para = "<br>以下参数已存在："
+                print_para = '<br>以下参数已存在：'
                 for pa in ex_paras:
-                    print_para += ("<br>" + pa)
+                    print_para += ('<br>' + pa)
                 QMessageBox.information(self,
-                        QCoreApplication.translate("DataExportWindow", "导入提示"),
-                        QCoreApplication.translate("DataExportWindow",
+                        QCoreApplication.translate('DataExportWindow', '导入提示'),
+                        QCoreApplication.translate('DataExportWindow',
                                                    print_para))
 
 #    让用户选择项目的路径
     def slot_sel_dir(self):
         
-        filedir = QFileDialog.getExistingDirectory(self, "Export directory",
-                                                   r"E:\\")
+        filedir = QFileDialog.getExistingDirectory(self, 'Export directory',
+                                                   r'E:\\')
         if filedir:
             filedir = filedir.replace('/','\\')
             self.line_edit_location.setText(filedir)
@@ -405,8 +399,8 @@ class DataExportWindow(QWidget):
         sel_items = self.list_sel_para.selectedItems()
         if len(sel_items):
             message = QMessageBox.warning(self,
-                          QCoreApplication.translate("DataExportWindow", "删除参数"),
-                          QCoreApplication.translate("DataExportWindow", "确定要删除这些参数吗"),
+                          QCoreApplication.translate('DataExportWindow', '删除参数'),
+                          QCoreApplication.translate('DataExportWindow', '确定要删除这些参数吗'),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:
@@ -443,12 +437,12 @@ class DataExportWindow(QWidget):
                     self.slot_import_para(export_paras)
                 else:
                     QMessageBox.information(self,
-                            QCoreApplication.translate("DataExportWindow", "导入模板错误"),
-                            QCoreApplication.translate("DataExportWindow", "没有发现数据文件"))
+                            QCoreApplication.translate('DataExportWindow', '导入模板错误'),
+                            QCoreApplication.translate('DataExportWindow', '没有发现数据文件'))
         else:
             QMessageBox.information(self,
-                    QCoreApplication.translate("DataExportWindow", "导入模板错误"),
-                    QCoreApplication.translate("DataExportWindow", "没有模板"))            
+                    QCoreApplication.translate('DataExportWindow', '导入模板错误'),
+                    QCoreApplication.translate('DataExportWindow', '没有模板'))            
 
 #    保存参数导出模板
     def slot_save_temp(self):
@@ -467,12 +461,12 @@ class DataExportWindow(QWidget):
                     self.signal_save_temp.emit(temp)
                 else:
                     QMessageBox.information(self,
-                            QCoreApplication.translate("DataExportWindow", "输入提示"),
-                            QCoreApplication.translate("DataExportWindow", "未输入模板名"))
+                            QCoreApplication.translate('DataExportWindow', '输入提示'),
+                            QCoreApplication.translate('DataExportWindow', '未输入模板名'))
         else:
             QMessageBox.information(self,
-                    QCoreApplication.translate("DataExportWindow", "保存错误"),
-                    QCoreApplication.translate("DataExportWindow", "没有发现参数"))
+                    QCoreApplication.translate('DataExportWindow', '保存错误'),
+                    QCoreApplication.translate('DataExportWindow', '没有发现参数'))
                 
 #    确认导出            
     def slot_confirm(self):
@@ -482,7 +476,7 @@ class DataExportWindow(QWidget):
             row_count = self.table_testpoint.rowCount()
             for index_testpoint in range(row_count):
                 filename = self.table_testpoint.item(index_testpoint, 3).data(Qt.UserRole)
-                filepath = (self.line_edit_location.text() +
+                filepath = (self.line_edit_location.text() + r'\\' +
                             filename +
                             self.combo_box_file_type.currentData(Qt.UserRole))
                 if filename != ' ':
@@ -500,6 +494,7 @@ class DataExportWindow(QWidget):
 #                        将时间添加到第一列
                         if flag:
                             dict_sel_paras[file_dir].insert(0, file.paras_in_file[0])
+                            para_list.insert(0, file.paras_in_file[0])
                             flag = False
                         df = file.cols_input(file_dir, dict_sel_paras[file_dir], '\s+', 
                                              self.table_testpoint.item(index_testpoint, 1).data(Qt.UserRole),
@@ -520,12 +515,12 @@ class DataExportWindow(QWidget):
                     if filetype_index == 2:
                         file_outpout.save_matfile(filepath, df_all)
             QMessageBox.information(self,
-                QCoreApplication.translate("DataExportWindow", "导出提示"),
-                QCoreApplication.translate("DataExportWindow", "导出成功"))   
+                QCoreApplication.translate('DataExportWindow', '导出提示'),
+                QCoreApplication.translate('DataExportWindow', '导出成功'))   
         else:
             QMessageBox.information(self,
-                QCoreApplication.translate("DataExportWindow", "导出错误"),
-                QCoreApplication.translate("DataExportWindow", "没有选择参数或文件"))            
+                QCoreApplication.translate('DataExportWindow', '导出错误'),
+                QCoreApplication.translate('DataExportWindow', '没有选择参数或文件'))            
 #    重置
     def slot_reset(self):
         
@@ -533,7 +528,7 @@ class DataExportWindow(QWidget):
         self.list_sel_para.clear()
         self.table_testpoint.clearContents()
         self.table_testpoint.setRowCount(0)
-        self.line_edit_location.setText("")
+        self.line_edit_location.setText('')
     
 #    表格中的数据改变后存储试验点的变量的值也要发生改变
     def slot_table_item_changed(self, row, col):
@@ -565,13 +560,13 @@ class DataExportWindow(QWidget):
                         item.setData(Qt.UserRole, changed_str)
                     else:
                         QMessageBox.information(self,
-                                QCoreApplication.translate("DataExportWindow", "时间错误"),
-                                QCoreApplication.translate("DataExportWindow", "时间不在范围内"))
+                                QCoreApplication.translate('DataExportWindow', '时间错误'),
+                                QCoreApplication.translate('DataExportWindow', '时间不在范围内'))
                         item.setData(Qt.DisplayRole, item.data(Qt.UserRole))
                 else:
                     QMessageBox.information(self,
-                            QCoreApplication.translate("DataExportWindow", "时间错误"),
-                            QCoreApplication.translate("DataExportWindow", "时间格式错误"))
+                            QCoreApplication.translate('DataExportWindow', '时间错误'),
+                            QCoreApplication.translate('DataExportWindow', '时间格式错误'))
                     item.setData(Qt.DisplayRole, item.data(Qt.UserRole))
             else:
                 item.setText(changed_str)
@@ -738,29 +733,29 @@ class DataExportWindow(QWidget):
 # =============================================================================
     def retranslateUi(self):
         _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate("DataExportWindow", "DataExportWindow"))
-        self.label_sel_para.setText(_translate("DataExportWindow", "已选参数"))
-        self.label_sel_testpoint.setText(_translate("DataExportWindow", "已选试验点"))
-        self.tool_button_add.setToolTip(_translate("DataExportWindow", "新增试验点"))
-        self.tool_button_delete.setToolTip(_translate("DataExportWindow", "删除试验点"))
-        self.tool_button_copy.setToolTip(_translate("DataExportWindow", "拷贝试验点"))
+        self.setWindowTitle(_translate('DataExportWindow', 'DataExportWindow'))
+        self.label_sel_para.setText(_translate('DataExportWindow', '已选参数'))
+        self.label_sel_testpoint.setText(_translate('DataExportWindow', '已选试验点'))
+        self.tool_button_add.setToolTip(_translate('DataExportWindow', '新增试验点'))
+        self.tool_button_delete.setToolTip(_translate('DataExportWindow', '删除试验点'))
+        self.tool_button_copy.setToolTip(_translate('DataExportWindow', '拷贝试验点'))
         item = self.table_testpoint.horizontalHeaderItem(0)
-        item.setText(_translate("DataExportWindow", "试验点"))
+        item.setText(_translate('DataExportWindow', '试验点'))
         item = self.table_testpoint.horizontalHeaderItem(1)
-        item.setText(_translate("DataExportWindow", "起始时间"))
+        item.setText(_translate('DataExportWindow', '起始时间'))
         item = self.table_testpoint.horizontalHeaderItem(2)
-        item.setText(_translate("DataExportWindow", "终止时间"))
+        item.setText(_translate('DataExportWindow', '终止时间'))
         item = self.table_testpoint.horizontalHeaderItem(3)
-        item.setText(_translate("DataExportWindow", "输出文件名"))
-        self.label.setText(_translate("DataExportWindow", "输出设置"))
-        self.label_file_type.setText(_translate("DataExportWindow", "输出文件类型"))
-        self.combo_box_file_type.setItemText(0, _translate("DataExportWindow", "TXT file"))
-        self.combo_box_file_type.setItemText(1, _translate("DataExportWindow", "CSV file"))
-        self.combo_box_file_type.setItemText(2, _translate("DataExportWindow", "MAT file"))
-        self.label_output_loc.setText(_translate("DataExportWindow", "输出文件路径"))
-        self.button_sel_dir.setText(_translate("DataExportWindow", "..."))
-        self.button_confirm.setText(_translate("DataExportWindow", "确认导出"))
-        self.button_reset.setText(_translate("DataExportWindow", "重置"))
-        self.tool_button_del_para.setToolTip(_translate("DataExportWindow", "删除参数"))
-        self.tool_button_save_temp.setToolTip(_translate("DataExportWindow", "保存模板"))
-        self.tool_button_sel_temp.setToolTip(_translate("DataExportWindow", "选择模板"))
+        item.setText(_translate('DataExportWindow', '输出文件名'))
+        self.label.setText(_translate('DataExportWindow', '输出设置'))
+        self.label_file_type.setText(_translate('DataExportWindow', '输出文件类型'))
+        self.combo_box_file_type.setItemText(0, _translate('DataExportWindow', 'TXT file'))
+        self.combo_box_file_type.setItemText(1, _translate('DataExportWindow', 'CSV file'))
+        self.combo_box_file_type.setItemText(2, _translate('DataExportWindow', 'MAT file'))
+        self.label_output_loc.setText(_translate('DataExportWindow', '输出文件路径'))
+        self.button_sel_dir.setText(_translate('DataExportWindow', '...'))
+        self.button_confirm.setText(_translate('DataExportWindow', '确认导出'))
+        self.button_reset.setText(_translate('DataExportWindow', '重置'))
+        self.tool_button_del_para.setToolTip(_translate('DataExportWindow', '删除参数'))
+        self.tool_button_save_temp.setToolTip(_translate('DataExportWindow', '保存模板'))
+        self.tool_button_sel_temp.setToolTip(_translate('DataExportWindow', '选择模板'))

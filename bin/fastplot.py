@@ -19,11 +19,9 @@ import os.path as osp
 #要使普通的文件夹成为Python包需在此文件夹下添加一个__init__.py文件，此文件可以为空
 #若不是Python包则无法被Python模块使用
 #需要解决自定义包访问的问题，通过改变工作路径
-
 SETUP_DIR = osp.abspath(osp.join(osp.dirname(sys.argv[0]), osp.pardir))
 EVRIONMENT = SETUP_DIR + r"\lib"
 sys.path.append(EVRIONMENT)
-
 
 from app.start import main
 
