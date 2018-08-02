@@ -10,106 +10,128 @@
 # =======日志
 # 
 # =============================================================================
-
+import re
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import Qt, pyqtSignal, QCoreApplication
-from PyQt5.QtGui import QCloseEvent, QIcon
+from PyQt5.QtCore import (Qt, pyqtSignal, QCoreApplication, QMimeData, 
+                          QByteArray, QDataStream, QIODevice)
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import (QWidget, QDockWidget,QLineEdit, QMenu, 
-                             QTreeWidget, QTreeWidgetItem, QAction,
-                             QSizePolicy, QVBoxLayout, QAbstractItemView,
-                             QHeaderView)
+                             QTreeWidget, QTreeWidgetItem, QAction, 
+                             QVBoxLayout, QAbstractItemView, QMessageBox)
+# =============================================================================
+# Package views imports
+# =============================================================================
+import views.constant as CONSTANT
 
+# =============================================================================
+# ParasTree
+# =============================================================================
+class ParasTree(QTreeWidget):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+#        可拖出树部件中的项
+        self.setDragEnabled(True)
+    
+#    自定义MIME type的结构，将参数名和参数所在的文件名存入
+    def mimeData(self, items):
+        mime_data = QMimeData()
+        byte_array = QByteArray()
+        stream = QDataStream(byte_array, QIODevice.WriteOnly)
+        for item in items:
+            if item:
+                if item.parent():
+                    stream.writeQString(item.text(0))
+                    stream.writeQString(item.parent().data(0, Qt.UserRole))
+        mime_data.setData('application/x-parasname', byte_array)
+        return mime_data
+        
 # =============================================================================
 # ParalistWindow
 # =============================================================================
 class ParalistWindow(QDockWidget):
-
 # =============================================================================
 # 自定义信号模块
 # =============================================================================
-#    参数窗口关闭信号
-    signal_close = pyqtSignal()
 #    导出数据的信号，带有字典型参数（存储了文件路径和参数名的信息）
-    signal_export_para = pyqtSignal(dict)
+    signal_into_analysis = pyqtSignal(list)
 #    快速绘图的信号，带有字典型参数（存储了文件路径和参数名的信息）
-    signal_quick_plot = pyqtSignal(dict)
-#    搜索参数的信号
-    signal_search_para = pyqtSignal(str)
+    signal_quick_plot = pyqtSignal(tuple)
+    
+    signal_delete_files = pyqtSignal(list)
     
 # =============================================================================
 # 初始化
 # =============================================================================
     def __init__(self, parent = None):
+        
         super().__init__(parent)
 #        设置文件与参数的图标
-        self.fileicon = QIcon(r"E:\DAGUI\lib\icon\datafile.png")
-        self.paraicon = QIcon(r"E:\DAGUI\lib\icon\parameter.png")
+        self.fileicon = QIcon(CONSTANT.ICON_FILE)
+        self.paraicon = QIcon(CONSTANT.ICON_PARA)
     
 # =============================================================================
 # UI模块
 # =============================================================================
     def setup(self):
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
-        self.setSizePolicy(sizePolicy)
-        self.layout_paralist_dock = QWidget(self)
-        self.layout_paralist_dock.setObjectName("layout_paralist_dock")
-        self.vlayout_paralist_dock = QVBoxLayout(self.layout_paralist_dock)
-        self.vlayout_paralist_dock.setContentsMargins(1, 1, 1, 1)
+        
+        self.setWindowTitle(QCoreApplication.translate('ParalistDock', '参数浏览器'))
+
+        self.paralist_dock_contents = QWidget(self)
+        self.paralist_dock_contents.setObjectName('paralist_dock_contents')
+        self.vlayout_paralist_dock = QVBoxLayout(self.paralist_dock_contents)
+        self.vlayout_paralist_dock.setContentsMargins(2, 2, 2, 2)
         self.vlayout_paralist_dock.setSpacing(2)
-        self.vlayout_paralist_dock.setObjectName("vlayout_paralist_dock")
+        self.vlayout_paralist_dock.setObjectName('vlayout_paralist_dock')
         
 #        行输入部件的定义
-        self.line_edit_search_para = QLineEdit(self.layout_paralist_dock)
-        self.line_edit_search_para.setToolTip("")
-        self.line_edit_search_para.setInputMask("")
-        self.line_edit_search_para.setText("")
+        self.line_edit_search_para = QLineEdit(self.paralist_dock_contents)
+        self.line_edit_search_para.setPlaceholderText(QCoreApplication.
+                                                      translate('ParalistDock', '过滤器'))
+        self.line_edit_search_para.setMinimumHeight(28)
         self.line_edit_search_para.setMaxLength(32766)
         self.line_edit_search_para.setFrame(True)
         self.line_edit_search_para.setEchoMode(QLineEdit.Normal)
         self.line_edit_search_para.setAlignment(
                 Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.line_edit_search_para.setReadOnly(False)
-        self.line_edit_search_para.setObjectName("line_edit_search_para")
+        self.line_edit_search_para.setObjectName('line_edit_search_para')
         self.vlayout_paralist_dock.addWidget(self.line_edit_search_para)
         
 #        文件树显示部件的定义
-        self.tree_widget_display_datafile = QTreeWidget(self.layout_paralist_dock)
-        self.tree_widget_display_datafile.setObjectName(
-                "tree_widget_display_datafile")
-        self.tree_widget_display_datafile.header().setVisible(False)
+        self.datafiles_tree = ParasTree(self.paralist_dock_contents)
+        self.datafiles_tree.setObjectName(
+                'datafiles_tree')
+        self.datafiles_tree.header().setVisible(False)
 #        设置每个item是可以被选择的
-        self.tree_widget_display_datafile.setSelectionMode(
+        self.datafiles_tree.setSelectionMode(
                 QAbstractItemView.ExtendedSelection)
 #        让树可支持右键菜单(step 1)
-        self.tree_widget_display_datafile.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.vlayout_paralist_dock.addWidget(self.tree_widget_display_datafile)        
+        self.datafiles_tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.vlayout_paralist_dock.addWidget(self.datafiles_tree)        
 #        添加右键动作
-        self.action_export = QAction(self.tree_widget_display_datafile)
-        self.action_export.setText(QCoreApplication.
-                                   translate("ParalistDock", "导出参数"))
-        self.action_quick_plot = QAction(self.tree_widget_display_datafile)
+        self.action_into_analysis = QAction(self.datafiles_tree)
+        self.action_into_analysis.setText(QCoreApplication.
+                                   translate('ParalistDock', '添加到分析参数'))
+        self.action_quick_plot = QAction(self.datafiles_tree)
         self.action_quick_plot.setText(QCoreApplication.
-                                       translate("ParalistDock", "快速绘图"))
-        self.action_delete_file = QAction(self.tree_widget_display_datafile)
-        self.action_delete_file.setText(QCoreApplication.
-                                       translate("ParalistDock", "删除文件"))
+                                       translate('ParalistDock', '快速绘图'))
+        self.action_delete_files = QAction(self.datafiles_tree)
+        self.action_delete_files.setText(QCoreApplication.
+                                       translate('ParalistDock', '删除文件'))
         
-        self.setWidget(self.layout_paralist_dock)
+        self.setWidget(self.paralist_dock_contents)
         
 # =======连接信号与槽
 # =============================================================================
 #        使右键时能弹出菜单(step 2)
-        self.tree_widget_display_datafile.customContextMenuRequested.connect(
+        self.datafiles_tree.customContextMenuRequested.connect(
                 self.on_tree_context_menu)
         
-        self.action_export.triggered.connect(self.slot_export_para)
+        self.action_into_analysis.triggered.connect(self.slot_into_analysis)
         self.action_quick_plot.triggered.connect(self.slot_quick_plot)
-        self.action_delete_file.triggered.connect(self.slot_delete_file)
+        self.action_delete_files.triggered.connect(self.slot_delete_files)
         
         self.line_edit_search_para.textChanged.connect(self.slot_search_para)
 
@@ -120,79 +142,121 @@ class ParalistWindow(QDockWidget):
     def on_tree_context_menu(self, pos):
         
 #        记录右击时鼠标所在的item
-        sel_item = self.tree_widget_display_datafile.itemAt(pos)
+        sel_item = self.datafiles_tree.itemAt(pos)
         
 #        如果鼠标不在item上，不显示右键菜单
         if sel_item:
 #            创建菜单，添加动作，显示菜单
-            menu = QMenu(self.tree_widget_display_datafile)
-            menu.addAction(self.action_export)
-            menu.addAction(self.action_quick_plot)
-            menu.addAction(self.action_delete_file)
+            menu = QMenu(self.datafiles_tree)
+            menu.addActions([self.action_quick_plot,
+                             self.action_into_analysis,
+                             self.action_delete_files])
             if sel_item.parent():
-                self.action_delete_file.setDisabled(True)
+                self.action_into_analysis.setDisabled(False)
+                self.action_quick_plot.setDisabled(False)
+                self.action_delete_files.setDisabled(True)
             else:
-                self.action_delete_file.setDisabled(False)
-            menu.exec_(self.tree_widget_display_datafile.mapToGlobal(pos))
+                self.action_into_analysis.setDisabled(True)
+                self.action_quick_plot.setDisabled(True)
+                self.action_delete_files.setDisabled(False)
+            menu.exec_(self.datafiles_tree.mapToGlobal(pos))
             
-    def slot_export_para(self):
+    def slot_import_datafiles(self, file_dirs):
+        
+        if file_dirs:
+            for file_dir in file_dirs:
+                root = QTreeWidgetItem(self.datafiles_tree) 
+#                    设置图标
+                root.setIcon(0,self.fileicon)
+#                    显示文件名而不是路径
+                pos = file_dir.rindex('\\')
+                filename = file_dir[pos+1:]
+                root.setText(0, filename)
+#                    将路径作为数据存入item中
+                root.setData(0, Qt.UserRole, file_dir)
+                root.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+                flag = True
+                for para in file_dirs[file_dir]:
+#                        跳过时间这个参数名
+                    if flag:
+                        flag = False
+                    else:
+                        child = QTreeWidgetItem(root)
+                        child.setIcon(0,self.paraicon)
+                        child.setText(0,para)
+
+    def slot_delete_files(self):
+
+#        获取选中的item列表
+        file_list = []
+        sel_items = self.datafiles_tree.selectedItems()
+        if sel_items:
+            message = QMessageBox.warning(self,
+                          QCoreApplication.translate('ParalistWindow', '删除文件'),
+                          QCoreApplication.translate('ParalistWindow',
+                                            '''<p>确定要删除文件吗？'''),
+                          QMessageBox.Yes | QMessageBox.No)
+            if (message == QMessageBox.Yes):
+                for item in sel_items:
+#                    判断选中的是参数还是文件
+                    if item.parent():
+                        pass
+                    else:
+                        file_list.append(item.data(0, Qt.UserRole))
+                        index = self.datafiles_tree.indexOfTopLevelItem(item)
+                        self.datafiles_tree.takeTopLevelItem(index)
+        if file_list:
+            self.signal_delete_files.emit(file_list)
+
+#    搜索参数并显示在参数窗口里
+    def slot_search_para(self, para_name):
+        
+        if self.datafiles_tree:
+            count = self.datafiles_tree.topLevelItemCount()
+            pattern = re.compile('.*' + para_name + '.*')
+            for i in range(count):
+                num_para_in_show = 0
+                item = self.datafiles_tree.topLevelItem(i)
+                child_count = item.childCount()
+                for child_index in range(child_count):
+                    paraname = item.child(child_index).text(0)
+                    if re.match(pattern, paraname):
+                        item.child(child_index).setHidden(False)
+                        num_para_in_show += 1
+                    else:
+                        item.child(child_index).setHidden(True)
+                if num_para_in_show == 0:
+                    item.setHidden(True)
+                else:
+                    item.setHidden(False)
+            self.datafiles_tree.expandAll()
+    
+    def slot_into_analysis(self):
 #        获得被选项的文件路径和参数列表
-        sel_items = self.get_dict_sel_item()
+        dict_r, list_r = self.get_sel_item()
 #        传递出去
-        self.signal_export_para.emit(sel_items)
+        self.signal_into_analysis.emit(list_r)
     
     def slot_quick_plot(self):
         
 #        获得被选项的文件路径和参数列表
-        sel_items = self.get_dict_sel_item()
+        dict_r, list_r = self.get_sel_item()
+        sorted_para = []
+        for para_tuple in list_r:
+            paraname, file_dir = para_tuple
+            sorted_para.append(paraname)
 #        传递出去
-        self.signal_quick_plot.emit(sel_items)
-
-    def slot_delete_file(self):
-        
-        pass
-    
-#    当参数搜索行有用户输入时将搜索参数的信号发出
-    def slot_search_para(self, paraname):
-        self.signal_search_para.emit(paraname)
-
-#    重载关闭事件，需要增加一个关闭的信号让菜单栏下的勾选去掉        
-    def closeEvent(self, event: QCloseEvent):
-        event.accept()
-        self.signal_close.emit()
+        self.signal_quick_plot.emit((dict_r, sorted_para))
 
 # =============================================================================
 # 功能函数模块   
 # =============================================================================
-    def display_file_group(self, file_group , is_expand_all = False):
-
-#        不确定是否真的删除了
-        self.tree_widget_display_datafile.clear()        
-        if file_group:  #file_name is a dict
-            
-            for file_dir in file_group:
-                root = QTreeWidgetItem(self.tree_widget_display_datafile) #QTreeWidgetItem object: root
-#                设置图标
-                root.setIcon(0,self.fileicon)
-#                显示文件名而不是路径
-                pos = file_dir.rindex('\\')
-                filename = file_dir[pos+1:]
-                root.setText(0, filename) #set text of treewidget
-#                将路径作为数据存入item中
-                root.setData(0, Qt.UserRole, file_dir)
-                for para in file_group[file_dir]:
-                    child = QTreeWidgetItem(root)  #child of root
-                    child.setIcon(0,self.paraicon)
-                    child.setText(0,para)
-            
-            if is_expand_all:
-                self.tree_widget_display_datafile.expandAll()
-
-    def get_dict_sel_item(self):
+    def get_sel_item(self):
         
-        result = {}
+        dict_result = {}
+        list_result = []
 #        获取选中的item列表
-        sel_items = self.tree_widget_display_datafile.selectedItems()
+        sel_items = self.datafiles_tree.selectedItems()
         if sel_items:
             for item in sel_items:
     #            判断选中的是参数还是文件
@@ -200,9 +264,25 @@ class ParalistWindow(QDockWidget):
                     fileitem = item.parent()
                     file_dir = fileitem.data(0, Qt.UserRole)
 #                    判断文件是否已经存在
-                    if (file_dir in result):
-                        result[file_dir].append(item.text(0))
+                    if (file_dir in dict_result):
+                        dict_result[file_dir].append(item.text(0))
                     else:
-                        result[file_dir] = []
-                        result[file_dir].append(item.text(0))
-        return result        
+                        dict_result[file_dir] = []
+                        dict_result[file_dir].append(item.text(0))
+                    list_result.append((item.text(0), file_dir))
+        return (dict_result, list_result)
+
+    def get_dict_files_tree(self):
+        
+        result = {}
+        count = self.datafiles_tree.topLevelItemCount()
+        if count > 0:            
+            for i in range(count):
+                item = self.datafiles_tree.topLevelItem(i)
+                file_dir = item.data(0, Qt.UserRole)
+                result[file_dir] = []
+                child_count = item.childCount()
+                for child_index in range(child_count):
+                    paraname = item.child(child_index).text(0)
+                    result[file_dir].append(paraname)
+        return result

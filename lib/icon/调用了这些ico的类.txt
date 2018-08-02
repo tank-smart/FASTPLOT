@@ -1,3 +1,4 @@
 mainwindow.py
 paralist_window.py
 plot_window.py
+select_template_dialog.py
