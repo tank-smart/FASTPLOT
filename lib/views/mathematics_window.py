@@ -101,16 +101,21 @@ class MathematicsWindow(QWidget):
         print('Export')
 
     def slot_add_result_para(self, result):
-        
+        col_list = result.columns.values.tolist()
         length  = len(self.dict_result_paras)
-        paraname = 'result' + str(length + 1)
+        if col_list[1]!='Result':
+            paraname=col_list[1]
+        else:
+            paraname = 'result' + str(length + 1)
         item = QTreeWidgetItem(self.tree_widget_result_paras)
         item.setText(0, paraname)
         item.setIcon(0, self.time_series_icon)
-        col_list = result.columns.values.tolist()
+#        col_list = result.columns.values.tolist()
         if col_list[0] == 'Time':
-            max_value = result['Result'].max()
-            min_value = result['Result'].min()
+#            max_value = result['Result'].max()
+#            min_value = result['Result'].min()
+            max_value = result[col_list[1]].max()
+            min_value = result[col_list[1]].min()
             item.setText(1, 'Time Series: ' + result.iloc[0, 0] + ' - ' + result.iloc[-1, 0])
             item.setText(2, str(max_value))
             item.setText(3, str(min_value))         

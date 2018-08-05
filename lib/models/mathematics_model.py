@@ -160,7 +160,7 @@ class MathematicsEditor(QPlainTextEdit):
                 text_cursor.insertText('>')
         self.setTextCursor(text_cursor)
         
-    def slot_exec_block(self, count):
+    def slot_exec_block_wxl(self, count):
         
 #        经过slot_cursor_pos和keyPressEvent函数，已保证了MATLAB那种代码交互效果
 #        所以当blockcount变化时，当前的block是新输入block，前一个block是需要执行的代码
@@ -190,6 +190,57 @@ class MathematicsEditor(QPlainTextEdit):
                     else:
                         df_result = pd.DataFrame({'Label' : 1,
                                                   'Result': result}, columns = ['Label', 'Result'])
+                    self.signal_compute_result.emit(df_result)
+                except:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("MathematicsEditor", "提示"),
+                            QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
+            else:
+                QMessageBox.information(self,
+                        QCoreApplication.translate("MathematicsEditor", "提示"),
+                        QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
+#======yanhua改
+    def slot_exec_block(self, count):
+        
+#        经过slot_cursor_pos和keyPressEvent函数，已保证了MATLAB那种代码交互效果
+#        所以当blockcount变化时，当前的block是新输入block，前一个block是需要执行的代码
+        document = self.document()
+        current_block = document.lastBlock()
+        exec_block = current_block.previous()
+        exec_text = exec_block.text()
+        if (len(exec_text) > 2):
+#            剔除输入标志'>>'
+            exec_text = exec_text[2 : ]
+            self.pre_exper = exec_text
+#            解析exec_text，如果满足要求，则执行运算
+            if self.lex(exec_text) and self.paras_on_expr:
+                reg_df = self.pretreat_paras()
+#                将参数的数据读入内存
+                for paraname in self.paras_on_expr:
+                    exper = paraname + ' = reg_df[\'' + paraname + '\']'
+                    exec(exper)
+                try:
+                    if exec_text.find('=')!=-1:
+                        exec(exec_text)
+                        result_name=exec_text.split('=')[0]            
+                        result=eval(result_name)
+                        self.paras_on_expr.append(result_name)
+#                        print(result)
+                    else:
+#                       注意此时result是series对象
+                        result = eval(exec_text)
+                        result_name='Result'
+#                       判断结果是否仍然是时间序列
+                    if len(result) == len(reg_df):
+                        print(result_name)
+                        print(result)
+                        df_result = pd.DataFrame({'Time' : reg_df.iloc[:, 0], 
+                                                  result_name: result}, columns = ['Time', result_name])
+#                    否则认为是一个数
+                        print(df_result)
+                    else:
+                        df_result = pd.DataFrame({'Label' : 1,
+                                                  result_name: result}, columns = ['Label', result_name])
                     self.signal_compute_result.emit(df_result)
                 except:
                     QMessageBox.information(self,
