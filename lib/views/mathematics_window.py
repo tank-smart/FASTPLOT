@@ -103,9 +103,11 @@ class MathematicsWindow(QWidget):
     def slot_add_result_para(self, result):
         col_list = result.columns.values.tolist()
         length  = len(self.dict_result_paras)
+#            yanhua修改
         if col_list[1]!='Result':
             paraname=col_list[1]
         else:
+#            yanhua修改结束
             paraname = 'result' + str(length + 1)
         item = QTreeWidgetItem(self.tree_widget_result_paras)
         item.setText(0, paraname)
@@ -114,8 +116,10 @@ class MathematicsWindow(QWidget):
         if col_list[0] == 'Time':
 #            max_value = result['Result'].max()
 #            min_value = result['Result'].min()
+#            yanhua修改
             max_value = result[col_list[1]].max()
             min_value = result[col_list[1]].min()
+#            yanhua修改结束
             item.setText(1, 'Time Series: ' + result.iloc[0, 0] + ' - ' + result.iloc[-1, 0])
             item.setText(2, str(max_value))
             item.setText(3, str(min_value))         

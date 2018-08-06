@@ -66,6 +66,7 @@ class MathematicsEditor(QPlainTextEdit):
 
         self._current_files = []
 #        存储上一条语句
+        self.scope={}
         self.pre_exper = ''
         self.RESERVED = 'RESERVED'
         self.PARA = 'PARA'
@@ -213,31 +214,38 @@ class MathematicsEditor(QPlainTextEdit):
             exec_text = exec_text[2 : ]
             self.pre_exper = exec_text
 #            解析exec_text，如果满足要求，则执行运算
-            if self.lex(exec_text) and self.paras_on_expr:
+#!!!!!            if self.lex(exec_text) and self.paras_on_expr:
+            if self.lex(exec_text):
                 reg_df = self.pretreat_paras()
+                self.scope['reg_df']=reg_df
+                
 #                将参数的数据读入内存
                 for paraname in self.paras_on_expr:
                     exper = paraname + ' = reg_df[\'' + paraname + '\']'
-                    exec(exper)
+                    exec(exper,self.scope)
+#                    print(paraname)
+#                    scope[str_name]=paraname
                 try:
                     if exec_text.find('=')!=-1:
-                        exec(exec_text)
+                        if 'aa' in self.scope:
+                            print(self.scope['aa'])
+                        exec(exec_text,self.scope)
                         result_name=exec_text.split('=')[0]            
-                        result=eval(result_name)
-                        self.paras_on_expr.append(result_name)
+                        result=eval(result_name,self.scope)
+#                        self.paras_on_expr.append(result_name)
 #                        print(result)
                     else:
 #                       注意此时result是series对象
-                        result = eval(exec_text)
+                        result = eval(exec_text,self.scope)
                         result_name='Result'
 #                       判断结果是否仍然是时间序列
                     if len(result) == len(reg_df):
-                        print(result_name)
-                        print(result)
+#                        print(result_name)
+#                        print(result)
                         df_result = pd.DataFrame({'Time' : reg_df.iloc[:, 0], 
                                                   result_name: result}, columns = ['Time', result_name])
 #                    否则认为是一个数
-                        print(df_result)
+#                        print(df_result)
                     else:
                         df_result = pd.DataFrame({'Label' : 1,
                                                   result_name: result}, columns = ['Label', result_name])
@@ -245,7 +253,7 @@ class MathematicsEditor(QPlainTextEdit):
                 except:
                     QMessageBox.information(self,
                             QCoreApplication.translate("MathematicsEditor", "提示"),
-                            QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
+                            QCoreApplication.translate("MathematicsEditor", '无法执行这条语句sb'))
             else:
                 QMessageBox.information(self,
                         QCoreApplication.translate("MathematicsEditor", "提示"),
@@ -316,7 +324,7 @@ class MathematicsEditor(QPlainTextEdit):
 # =============================================================================
 # 功能函数模块   
 # =============================================================================            
-#    需要保证charaters非空，找到这个charaters中包含的参数并且保证只执行taoken_exprs限制的运算
+#    需要保证charaters非空，找到这个charaters中包含的参数并且保证只执行token_exprs限制的运算
     def lex(self, charaters):
         
         pos = 0
