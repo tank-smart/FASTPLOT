@@ -69,7 +69,7 @@ class DataAnalysis(object):
 #            list_forskip=[item+1 for item in index_all if item not in list_result]
 #            dict_result[filedir]=(list_result,list_forskip)
             dict_result[filedir]=(df_result,skip_list)
-            return dict_result
+        return dict_result
         
     def sift_output(self, filedir="", fileout="", mode='w', index_list=None, skip_list=None):
         

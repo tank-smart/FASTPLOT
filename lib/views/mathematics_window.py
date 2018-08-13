@@ -95,20 +95,19 @@ class MathematicsWindow(QWidget):
         item = self.tree_widget_result_paras.currentItem()
         name = item.text(0)
 #        emit一个tuple形式为([dataframelist],[paralist])
-        self.signal_plot_result_para.emit(([self.dict_result_paras[name]],['Result']))
+        self.signal_plot_result_para.emit(([self.dict_result_paras[name]],[name]))
     
     def slot_export_result(self):
         print('Export')
 
     def slot_add_result_para(self, result):
         col_list = result.columns.values.tolist()
-        length  = len(self.dict_result_paras)
+#        length  = len(self.dict_result_paras)
 #            yanhua修改
-        if col_list[1]!='Result':
-            paraname=col_list[1]
-        else:
+
+        paraname=col_list[1]
+
 #            yanhua修改结束
-            paraname = 'result' + str(length + 1)
         item = QTreeWidgetItem(self.tree_widget_result_paras)
         item.setText(0, paraname)
         item.setIcon(0, self.time_series_icon)
@@ -124,7 +123,7 @@ class MathematicsWindow(QWidget):
             item.setText(2, str(max_value))
             item.setText(3, str(min_value))         
         else:
-            item.setText(1, str(result['Result']))        
+            item.setText(1, str(result[col_list[1]].values[0]))        
         self.dict_result_paras[paraname] = result
 
     def retranslateUi(self):
@@ -135,4 +134,8 @@ class MathematicsWindow(QWidget):
         self.tree_widget_result_paras.headerItem().setText(1, _translate('MathematicsWindow', '数值'))
         self.tree_widget_result_paras.headerItem().setText(2, _translate('MathematicsWindow', '最大值'))
         self.tree_widget_result_paras.headerItem().setText(3, _translate('MathematicsWindow', '最小值'))
-
+#yanhua改，现实现方法，需要使用类方法实现qt界面上的clear    
+    @classmethod
+    def clear(self):
+        self.dict_result_paras={}
+        self.tree_widget_result_paras.clear()
