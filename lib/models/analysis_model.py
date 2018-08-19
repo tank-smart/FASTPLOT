@@ -50,6 +50,9 @@ class DataAnalysis(object):
 #            para_parse=re.split(r">|<|=",s.strip())[0]
 #            if para_parse not in search_para:
 #                search_para.append(para_parse)
+#        判断搜索参数是否在条件中出现
+        
+        
         for filedir in file_list:
             try:
                 para_list=search_para

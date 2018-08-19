@@ -40,7 +40,7 @@ class MathematicsWindow(QWidget):
         self.time_series_icon = QIcon(CONSTANT.ICON_CURVE)
         
     def setup(self):
-
+        
         self.verticalLayout = QVBoxLayout(self)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.group_box_commandline = QGroupBox(self)
@@ -76,6 +76,8 @@ class MathematicsWindow(QWidget):
         self.action_export.triggered.connect(self.slot_export_result)
         self.plain_text_edit_conmandline.signal_compute_result.connect(
                 self.slot_add_result_para)
+        self.plain_text_edit_conmandline.signal_clear.connect(
+                self.slot_clear)   #yanhua加
 
         self.retranslateUi()
 
@@ -135,7 +137,8 @@ class MathematicsWindow(QWidget):
         self.tree_widget_result_paras.headerItem().setText(2, _translate('MathematicsWindow', '最大值'))
         self.tree_widget_result_paras.headerItem().setText(3, _translate('MathematicsWindow', '最小值'))
 #yanhua改，现实现方法，需要使用类方法实现qt界面上的clear    
-    @classmethod
-    def clear(self):
-        self.dict_result_paras={}
-        self.tree_widget_result_paras.clear()
+    
+    def slot_clear(self, clear_signal):
+        if clear_signal:
+            self.dict_result_paras={}
+            self.tree_widget_result_paras.clear()

@@ -26,7 +26,7 @@ from PyQt5.QtCore import Qt, QRegExp, QCoreApplication, pyqtSignal
 # =============================================================================
 from models.datafile_model import Normal_DataFile
 from views.custom_dialog import SelParasDialog
-#from views.mathematics_window import MathematicsWindow
+
 
 #用于将特定字符加高亮
 class Highlighter(QSyntaxHighlighter):
@@ -60,6 +60,7 @@ class Highlighter(QSyntaxHighlighter):
 class MathematicsEditor(QPlainTextEdit):
 
     signal_compute_result = pyqtSignal(pd.DataFrame)
+    signal_clear = pyqtSignal(bool)
     
     def __init__(self, parent = None):
         
@@ -246,9 +247,12 @@ class MathematicsEditor(QPlainTextEdit):
 #                       注意此时result是series对象
                         result = eval(exec_text,self.scope)
                         result_name='Result'+str(self.count+1)
-                        self.count = self.count+1
+                        print(result_name)
+                        if result is not None:
+                            self.count = self.count+1
 #                       判断结果是否仍然是时间序列
                     if result is not None:
+                        
                         if self.time_df is not None and isinstance(result, type(self.time_df)) and (len(result) == len(self.time_df)):
                             print('==========')
 #                            print(self.time_df)
@@ -281,7 +285,7 @@ class MathematicsEditor(QPlainTextEdit):
         self.scope_setup()
         self.time_df=None
         self.count=0
-        MathematicsWindow.clear()
+        self.signal_clear.emit(True)
         
 #=================新思路========                
     def slot_exec_block_new(self, count):
