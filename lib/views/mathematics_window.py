@@ -97,6 +97,10 @@ class MathematicsWindow(QWidget):
         
         self.plain_text_edit_conmandline.signal_compute_result.connect(
                 self.slot_add_result_para)
+#----------yanhua加：
+        self.plain_text_edit_conmandline.signal_clear.connect(
+                self.slot_clear)
+#----------yanhua加
 
         self.retranslateUi()
 
@@ -120,14 +124,20 @@ class MathematicsWindow(QWidget):
         paras = []
         for item in items:
             name = item.text(0)
-            dsp[name] = self.dict_result_paras[name]
-            paralist = self.dict_result_paras[name].get_paralist()
-            for paraname in paralist:
-                paras.append((paraname, name))
+            if name in self.dict_result_paras:
+                dsp[name] = self.dict_result_paras[name]
+                paralist = self.dict_result_paras[name].get_paralist()
+                for paraname in paralist:
+                    paras.append((paraname, name))
+            else:   
+                QMessageBox.information(self,
+                            QCoreApplication.translate("MathematicsWindow","提示"),
+                            QCoreApplication.translate("MathematicsWindow","无法对选中的常数绘图"))
         if dsp and paras:
             self.signal_plot_result_para.emit((dsp, paras))
     
     def slot_export_result(self):
+        
         print('Export')
         
     def slot_sendto_analysis(self):
@@ -136,7 +146,13 @@ class MathematicsWindow(QWidget):
         dsp = {}
         for item in items:
             name = item.data(0, Qt.UserRole)
-            dsp[name] = self.dict_result_paras[name]
+            if name in self.dict_result_paras:
+                dsp[name] = self.dict_result_paras[name]
+            else:
+                QMessageBox.information(self,
+                            QCoreApplication.translate("MathematicsWindow","提示"),
+                            QCoreApplication.translate("MathematicsWindow","无法添加常数到分析参数"))
+                
         if dsp:
             self.signal_sendto_ananlysis.emit(dsp)
     
@@ -154,7 +170,7 @@ class MathematicsWindow(QWidget):
                     self.tree_widget_result_paras.takeTopLevelItem(
                             self.tree_widget_result_paras.indexOfTopLevelItem(item))
 
-    def slot_add_result_para(self, result):
+    def slot_add_result_para_wxl(self, result):
         
         num  = self.count_created_result + 1
         paraname = 'result' + str(num)
@@ -174,6 +190,41 @@ class MathematicsWindow(QWidget):
         result.rename(columns = {'Result' : paraname}, inplace=True)
         self.dict_result_paras[paraname] = DataFactory(result)
         self.count_created_result += 1
+
+#            yanhua修改        
+    def slot_add_result_para(self, result):
+        col_list = result.columns.values.tolist()
+#        length  = len(self.dict_result_paras)
+
+        paraname=col_list[1]
+
+
+        item = QTreeWidgetItem(self.tree_widget_result_paras)
+        item.setText(0, paraname)
+        item.setData(0, Qt.UserRole, paraname)
+        item.setIcon(0, self.math_result_icon)
+#        col_list = result.columns.values.tolist()
+        if col_list[0] == 'Time':
+#            max_value = result['Result'].max()
+#            min_value = result['Result'].min()
+#            yanhua修改
+            max_value = result[col_list[1]].max()
+            min_value = result[col_list[1]].min()
+#            yanhua修改结束
+            item.setText(1, 'Time Series: ' + result.iloc[0, 0] + ' - ' + result.iloc[-1, 0])
+            item.setText(2, str(max_value))
+            item.setText(3, str(min_value))
+            self.dict_result_paras[paraname] = DataFactory(result)
+        else:
+            item.setText(1, str(result[col_list[1]].values[0]))        
+#            yanhua修改结束
+
+#yanhua改，现实现方法，需要使用类方法实现qt界面上的clear    
+    
+    def slot_clear(self, clear_signal):
+        if clear_signal:
+            self.dict_result_paras={}
+            self.tree_widget_result_paras.clear()
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate

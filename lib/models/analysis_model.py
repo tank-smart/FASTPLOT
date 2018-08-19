@@ -52,7 +52,7 @@ class DataAnalysis(object):
 #                search_para.append(para_parse)
         for filedir in file_list:
             try:
-                para_list=search_para
+                para_list=search_para.copy()
                 file_search=Normal_DataFile(filedir)                
                 para_list.insert(0,file_search.paras_in_file[0])
                 df_sift=file_search.cols_input(filedir,para_list)
@@ -65,7 +65,7 @@ class DataAnalysis(object):
 #                print(df_result)
 #                list_result=df_result.index.tolist() #result index list
             except:
-                df_result=None
+                 return None
 #            list_forskip=[item+1 for item in index_all if item not in list_result]
 #            dict_result[filedir]=(list_result,list_forskip)
             dict_result[filedir]=(df_result,skip_list)
@@ -110,7 +110,8 @@ class DataAnalysis(object):
 #                search_para.append(para_parse)
         for filedir in file_list:
             try:
-                para_list=search_para
+                print(search_para)
+                para_list=search_para.copy()
                 file_search=Normal_DataFile(filedir)                
                 para_list.insert(0,file_search.paras_in_file[0])
                 df_sift=file_search.cols_input(filedir,para_list)
@@ -120,8 +121,9 @@ class DataAnalysis(object):
                 df_result=df_sift[eval(index)]
 #                print(df_result)
             except:
-                df_result=None
+                return None
 #            dict_result[filedir]=df_result
+    
             session_list=[]
             #list_forskip=[item+1 for item in index_all if item not in list_result]
             skip_index=df_sift.index.drop(df_result.index)+1
@@ -147,10 +149,11 @@ class DataAnalysis(object):
                     
                     session=sift_session(filedir,df_session,indexsession_skip)
                     session_list.append(session)
-                    
+            return (session_list,list_forskip)
+        
                 
 #            dict_result[filedir]=(list_result,list_forskip,session_list)
-        return (session_list,list_forskip)
+#        return (session_list,list_forskip)
 
 #----------------可选用的函数-------------------
 #solution1: 任何语法不正确，搜索参数不在文件中（只要有一个参数不在文件中）都会使得字典值为None

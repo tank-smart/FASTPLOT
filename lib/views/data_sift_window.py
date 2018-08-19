@@ -194,9 +194,16 @@ class DataSiftWindow(QWidget):
         str_condition = self.plain_text_edit_expression.toPlainText()
         if list_files and str_condition:
             sift_object = DataAnalysis()
-            sift_results, skips = sift_object.condition_sift_class(list_files,
+            result_tuple = sift_object.condition_sift_class(list_files,
                                                                    str_condition,
                                                                    self.sift_search_paras)
+            if result_tuple:
+                sift_results=result_tuple[0]
+                skips=result_tuple[1]
+            else:
+                QMessageBox.information(self,
+                        QCoreApplication.translate("DataAnalysisWindow", "提示"),
+                        QCoreApplication.translate("DataAnalysisWindow", '语法错误'))
 #            创建一个结果显示窗口
             self.tab_result_count += 1
             tab_sift_result = SiftResultViewWidget(self.tab_widget_datasift,  str_condition)
@@ -239,6 +246,7 @@ class DataSiftWindow(QWidget):
             QMessageBox.information(self,
                     QCoreApplication.translate('DataAnalysisWindow', '提示'),
                     QCoreApplication.translate('DataAnalysisWindow','没有足够的输入'))
+        
         
     def slot_sift_cancel(self):
         

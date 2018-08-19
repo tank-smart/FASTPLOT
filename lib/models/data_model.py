@@ -191,7 +191,12 @@ class DataFactory(object):
                     return self.data[self.get_paralist()][stime_index : (etime_index + 1)]
         else:
             return None
-        
+
+#---------yanhua加        
+    def get_shape(self):
+        return self.data.shape
+    
+#---------yanhua          
         
 if __name__ == '__main__':
     
