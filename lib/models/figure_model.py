@@ -32,8 +32,13 @@ from matplotlib.text import Annotation
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QPoint, Qt
 import views.constant as CONSTANT
 from views.custom_dialog import (LineSettingDialog, AnnotationSettingDialog,
-                                 AxisSettingDialog, FigureCanvasSetiingDialog)
+                                 AxisSettingDialog, FigureCanvasSetiingDialog,
+                                 ParameterExportDialog, SelFunctionDialog,
+                                 FileProcessDialog)
+import models.time_model as Time_Model
+from models.data_model import DataFactory
 from PyQt5.QtGui import QIcon
+import scipy.io as sio
 #------王--改动结束
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -42,7 +47,8 @@ from matplotlib.dates import AutoDateLocator
 from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator, LinearLocator, FixedLocator
 import pandas as pd
 from models.datafile_model import Normal_DataFile
-from PyQt5.QtWidgets import QSizePolicy, QMenu, QAction, QMessageBox, QDialog
+from PyQt5.QtWidgets import (QSizePolicy, QMenu, QAction, QMessageBox, QDialog,
+                             QInputDialog, QLineEdit, QFileDialog)
 # =======类基本信息
 #class PlotCanvas
 #说明：绘图类，继承自FigureCanvas
@@ -63,7 +69,9 @@ class PlotCanvas(FigureCanvas):
 
 #------王--改动开始
     signal_cursor_xdata = pyqtSignal(str, list)
-    signal_send_save_paravalue = pyqtSignal()
+    signal_send_time = pyqtSignal()
+    signal_send_tinterval = pyqtSignal(tuple)
+    signal_get_data_dict = pyqtSignal()
 
 #------王--改动结束
     
@@ -87,17 +95,25 @@ class PlotCanvas(FigureCanvas):
         self.toolbar.hide()
 #------王--改动开始
 
+        self._current_files = []
+        self._data_dict = {}
 #        存储曲线颜色
         prop_cycle = plt.rcParams['axes.prop_cycle']
 #        默认的是十种颜色
         self.curve_colors = prop_cycle.by_key()['color']
         self.color_index = 0
+#        默认字体大小
+        self.default_fontsize = 9
 #        存储参数数据
-        self.total_data = []
-        self.time_series_list = []
+        self.total_data = {}
+        self.time_series_list = {}
+        self.count_created_data = 0
         self.sorted_paralist = []
+        self.count_axes = 0
 #        定义下面这个变量是为了存入模板
         self.paralist = []
+#        时间段
+        self.time_intervals = {}
         
 #        当前鼠标在坐标内的光标样式
         self.current_cursor_inaxes = None
@@ -149,9 +165,12 @@ class PlotCanvas(FigureCanvas):
         self.action_show_vgrid.setChecked(True)
         self.action_show_vgrid.setText(QCoreApplication.
                                        translate('PlotCanvas', '显示垂直网格线'))
-        self.action_save_paravalue = QAction(self)
-        self.action_save_paravalue.setText(QCoreApplication.
-                                         translate('PlotCanvas', '保存此刻参数值'))
+        self.action_save_time = QAction(self)
+        self.action_save_time.setText(QCoreApplication.
+                                         translate('PlotCanvas', '保存时刻'))
+        self.action_save_tinterval = QAction(self)
+        self.action_save_tinterval.setText(QCoreApplication.
+                                        translate('PlotCanvas', '保存时间段'))
         self.action_axis_setting = QAction(self)
         self.action_axis_setting.setText(QCoreApplication.
                                          translate('PlotCanvas', '坐标轴设置'))
@@ -188,7 +207,8 @@ class PlotCanvas(FigureCanvas):
 #        文字相关的动作连接
         self.action_add_text.triggered.connect(self.slot_add_annotation)
         
-        self.action_save_paravalue.triggered.connect(self.slot_save_paravalue)
+        self.action_save_time.triggered.connect(self.slot_save_time)
+        self.action_save_tinterval.triggered.connect(self.slot_save_tinterval)
 
         self.mpl_connect('motion_notify_event', self.slot_set_cursor)
         
@@ -208,7 +228,8 @@ class PlotCanvas(FigureCanvas):
             menu = QMenu(self)
             menu.addActions([self.action_show_hgrid, 
                              self.action_show_vgrid,
-                             self.action_save_paravalue,
+                             self.action_save_time,
+                             self.action_save_tinterval,
                              self.action_axis_setting,
                              self.action_add_text])
             menu_markline = QMenu(menu)
@@ -223,13 +244,15 @@ class PlotCanvas(FigureCanvas):
             if event.inaxes:
                 self.axis_menu_on = event.inaxes
                 self.action_axis_setting.setEnabled(True)
+                self.action_save_tinterval.setEnabled(True)
             else:
                 self.action_axis_setting.setEnabled(False)
+                self.action_save_tinterval.setEnabled(False)
                 
-            if self.is_save_paravalue:
-                self.action_save_paravalue.setEnabled(True)
+            if self.is_save_paravalue and event.inaxes:
+                self.action_save_time.setEnabled(True)
             else:
-                self.action_save_paravalue.setEnabled(False)
+                self.action_save_time.setEnabled(False)
             if self.picked_del_artist:
                 self.action_del_artist.setEnabled(True)
             else:
@@ -450,28 +473,6 @@ class PlotCanvas(FigureCanvas):
         if event.inaxes:
             self.current_axes = event.inaxes
             
-    def slot_connect_display_paravalue(self):
-        
-        self.is_save_paravalue = True
-        self.cid_display_paravalue = self.mpl_connect('motion_notify_event',
-                                                      self.slot_display_paravalue)
-    
-    def slot_diaconnect_display_paravalue(self):
-        
-        self.is_save_paravalue = False
-        self.mpl_disconnect(self.cid_display_paravalue)
-        
-    def slot_save_paravalue(self):
-        
-        self.signal_send_save_paravalue.emit()
-        
-    def slot_display_paravalue(self, event):
-        
-        if event.inaxes:
-            time = mdates.num2date(event.xdata).time().isoformat(timespec='milliseconds')
-            datatime_sel = mdates.num2date(event.xdata)
-            self.signal_cursor_xdata.emit(time, self.get_paravalue(datatime_sel))
-        
 #    右键菜单时调用；相应动作完成也调用
     def slot_disconnect(self, event):
 
@@ -508,9 +509,9 @@ class PlotCanvas(FigureCanvas):
         
         self.fig.clf()
         self.draw()
-        self.total_data = []
+        self.total_data = {}
         self.sorted_paralist = []
-        self.time_series_list = []
+        self.time_series_list = {}
         self.color_index = 0
         
     def slot_plot_setting(self):
@@ -521,119 +522,338 @@ class PlotCanvas(FigureCanvas):
             rs = dialog.exec_()
             if rs == QDialog.Accepted:
                 self.draw()
+                
+    def slot_connect_display_paravalue(self):
+        
+        self.is_save_paravalue = True
+        self.cid_display_paravalue = self.mpl_connect('motion_notify_event',
+                                                      self.slot_display_paravalue)
+    
+    def slot_diaconnect_display_paravalue(self):
+        
+        self.is_save_paravalue = False
+        self.mpl_disconnect(self.cid_display_paravalue)
+        
+    def slot_save_time(self):
+        
+        self.signal_send_time.emit()
+        
+    def slot_save_tinterval(self):
+        
+        ti_name = 'Interval0'
+        i = 1
+        while ti_name in self.time_intervals:
+            ti_name = 'Interval' + str(i)
+            i += 1
+        name, ok = QInputDialog.getText(self,
+                                        QCoreApplication.translate('PlotCanvas', '命名时间段'),
+                                        QCoreApplication.translate('PlotCanvas', '时间段名'),
+                                        QLineEdit.Normal,
+                                        ti_name)
+        
+        if (ok and name):
+            axes = self.fig.axes
+            if axes:
+                axis = axes[0]
+                st,et = axis.get_xlim()
+                stime = mdates.num2date(st).time().isoformat(timespec='milliseconds')
+                etime = mdates.num2date(et).time().isoformat(timespec='milliseconds')
+                self.time_intervals[name] = (stime, etime)
+                self.signal_send_tinterval.emit((name, stime, etime))
+        
+    def slot_display_paravalue(self, event):
+        
+        if event.inaxes:
+            time = mdates.num2date(event.xdata).time().isoformat(timespec='milliseconds')
+            datatime_sel = mdates.num2date(event.xdata)
+            self.signal_cursor_xdata.emit(time, self.get_paravalue(datatime_sel))
+                
+    def slot_set_tlim(self, name):
+        
+        axes = self.fig.axes
+        stime, etime = self.time_intervals[name]
+        if axes:
+            st = mdates.date2num(Time_Model.str_to_datetime(stime))
+            et = mdates.date2num(Time_Model.str_to_datetime(etime))
+            axis = axes[0]
+            axis.set_xlim(st, et)
+            for ax in axes:
+                ax.autoscale(axis = 'y')
+            self.draw()    
+                    
+    def slot_sel_function(self):
+        
+        if self.time_intervals:
+            dialog = SelFunctionDialog(self)
+            return_signal = dialog.exec_()
+            if return_signal == QDialog.Accepted:
+                index = dialog.index
+                try:
+                    if index == 0:
+                        self.slot_export_tinterval_data_fig()
+                    elif index == 1:
+                        self.slot_export_tinterval_data_file()
+                    elif index == 2:
+                        self.slot_export_tinterval_data_aggregate('mean')
+                    elif index == 3:
+                        self.slot_export_tinterval_data_aggregate('max')
+                    elif index == 4:
+                        self.slot_export_tinterval_data_aggregate('min')
+                    else:
+                        pass
+                except:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate('PlotCanvas', '保存提示'),
+                            QCoreApplication.translate('PlotCanvas', '出现错误！'))
 
+    def slot_export_tinterval_data_fig(self):
+        
+        if self.time_intervals:
+            data_container = {}
+            for i, data_factory in enumerate(self.total_data):
+                for j, tname in enumerate(self.time_intervals):
+                    name = '_PLOTDATA '+ tname + str(i + 1) + str(j + 1)
+                    stime, etime = self.time_intervals[tname]
+    #                get到的数据是拷贝，注意内存空间和速度
+                    data = self.total_data[data_factory].get_trange_data(stime, etime)
+                    if not data.empty:
+                        data_container[name] = data
+            if data_container:
+                dialog = ParameterExportDialog(self, data_container)
+                return_signal = dialog.exec_()
+                if return_signal == QDialog.Accepted:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate('PlotCanvas', '保存提示'),
+                            QCoreApplication.translate('PlotCanvas', '保存成功！'))
+    
+    def slot_export_tinterval_data_file(self):
+        
+        files = self._current_files
+        if self.time_intervals:
+            dialog = FileProcessDialog(self, files, self.time_intervals)
+            return_signal = dialog.exec_()
+            if return_signal == QDialog.Accepted:
+                QMessageBox.information(self,
+                        QCoreApplication.translate('PlotCanvas', '保存提示'),
+                        QCoreApplication.translate('PlotCanvas', '保存成功！'))
+        
+    def slot_export_tinterval_data_aggregate(self, flag):
+        
+        if self.time_intervals:
+            para_list = ['INTERVAL_NAME']
+            for tuple_para in self.sorted_paralist:
+                pn, pos = tuple_para
+                para_list.append(pn)
+            dict_intervals = {}
+            dict_intervals['INTERVAL_NAME'] = []
+            df_total = None
+            for i, data_factory in enumerate(self.total_data):
+                list_paravalue = []
+                for j, tname in enumerate(self.time_intervals):
+                    stime, etime = self.time_intervals[tname]
+                    data = self.total_data[data_factory].get_trange_data(stime, etime, [], False)
+                    if not data.empty:
+                        if flag == 'mean':
+                            list_paravalue.append(data.mean())
+                        elif flag == 'max':
+                            list_paravalue.append(data.max())
+                        elif flag == 'min':
+                            list_paravalue.append(data.min())
+                    if i == 0:
+                        dict_intervals['INTERVAL_NAME'].append(tname)
+                if i == 0:
+                    df_intervals = pd.DataFrame(dict_intervals)
+                    df_total = df_intervals
+                if list_paravalue:
+                    df_paravalue = pd.DataFrame(list_paravalue)
+                    if not df_paravalue.empty:
+                        df_total = pd.concat([df_total, df_paravalue], axis = 1)
+
+            if not df_total.empty:
+                self.import_value(df_total, para_list)
+    
+# =============================================================================
+# 功能函数模块
+# =============================================================================
+    def import_value(self, value, paralist):
+        
+        if not value.empty:
+            if type(value) == pd.DataFrame:
+                df = value
+            if type(value) == dict:
+                df = pd.DataFrame(value)
+#            按指定顺序放置列
+            df = df[paralist]
+            file_dir, flag = QFileDialog.getSaveFileName(self, 
+                                                         QCoreApplication.translate('PlotCanvas', '保存参数值'),
+                                                         CONSTANT.SETUP_DIR,
+                                                         QCoreApplication.translate('PlotCanvas', 'Text Files (*.txt);;CSV Files (*.csv);;Matlab Files (*.mat)'))
+            if file_dir:
+                if flag == 'Text Files (*.txt)':
+                    df.to_csv(file_dir, '\t' , index=False, encoding='utf-8')
+                if flag == 'CSV Files (*.csv)':
+                    df.to_csv(file_dir, ',' , index=False, encoding='utf-8')
+                if flag == 'Matlab Files (*.mat)':
+                    sio.savemat(file_dir, df.to_dict('list'))
+                QMessageBox.information(self,
+                        QCoreApplication.translate('PlotCanvas', '保存提示'),
+                        QCoreApplication.translate('PlotCanvas', '保存成功'))
+    
     def my_format(self, x, pos=None):
         x = matplotlib.dates.num2date(x)
-        fmt = '%H:%M:%S.%f' 
-        label = x.strftime(fmt)
-        label = label[0:-3]
-        return label
+#        fmt = '%H:%M:%S.%f' 
+#        label = x.strftime(fmt)
+#        label = label[0:-3]
+#        return label
+        return Time_Model.datetime_to_timestr(x)
 
-    def process_data(self, datalist, sorted_paras):
+#    datadict中的参数和sorted_paras中的参数个数是一致的，这在输入时就保证了
+    def process_data(self, datadict, sorted_paras):
         
-        if datalist:
-#            文件加参数列表
-            if type(datalist) == dict:
-                for filedir in datalist:
-                    file = Normal_DataFile(filedir)
-                    datalist[filedir].insert(0,file.paras_in_file[0])
-                    df = file.cols_input(filedir, datalist[filedir], '\s+')
-                    self.total_data.append(df)
-#                    把时间列读出来
-                    self.time_series_list.append(pd.to_datetime(df.iloc[:, 0],
-                                                            format='%H:%M:%S:%f'))
-#            dataframe列表
-            if type(datalist) == list:
-                self.total_data.extend(datalist)
-                for df in datalist:
-#                    把时间列读出来
-                    self.time_series_list.append(pd.to_datetime(df.iloc[:, 0],
-                                                            format='%H:%M:%S:%f'))
-            for paraname in sorted_paras:
-                count_df = 0
-                for count_df, df in enumerate(self.total_data):
-                    list_para = df.columns.values.tolist()
-                    if paraname in list_para:
-                        self.sorted_paralist.append((paraname, count_df))
+        if datadict:
+            dict_data_project = {}
+            for datasource in datadict:
+                data = datadict[datasource]
+                if type(data) == list:
+#                    此时datasource是文件路径，data是参数列表
+                    data_factory = DataFactory(datasource, data)
+                elif type(data) == pd.DataFrame:
+                    data_factory = DataFactory(data)
+                elif type(data) == DataFactory:
+                    data_factory = data
+                else:
+                    data_factory = None
+                if data_factory:
+                    get_same_time_df = False
+                    for index_df in self.total_data:
+                        if self.total_data[index_df].is_extended_by(data_factory):
+                            get_same_time_df = True
+                            dict_data_project[datasource] = index_df
+                            self.total_data[index_df].extend_data(data_factory)
+                            break
+                    if not get_same_time_df:
+                        data_label = '_figure_data_' + str(self.count_created_data)
+                        dict_data_project[datasource] = data_label
+#                        total_data里存的就是当前绘图的参数数据，没有多余参数
+                        self.total_data[data_label] = data_factory
+#                        把时间列读出来
+                        self.time_series_list[data_label] = pd.to_datetime(data_factory.data.iloc[:, 0],
+                                                                           format='%H:%M:%S:%f')
+                        self.count_created_data += 1
+
+            exit_paras = []
+            for index_para in sorted_paras:
+                pn, sr = index_para
+                new_sr = dict_data_project[sr]
+                get_same_para = False
+                for index_sp in self.sorted_paralist:
+                    spn, sp_sr = index_sp
+                    if (pn == spn) and (new_sr == sp_sr):
+                        get_same_para = True
                         break
+                if not get_same_para:
+                    self.sorted_paralist.append((pn, new_sr))
+                else:
+                    exit_paras.append(pn)
+            
+            self.paralist = self.sorted_paralist
+                    
+            if exit_paras:
+                print_para = '<br>以下参数已存在：'
+                for pa in exit_paras:
+                    print_para += ('<br>' + pa)
+                QMessageBox.information(self,
+                        QCoreApplication.translate('PlotCanvas', '绘图提示'),
+                        QCoreApplication.translate('PlotCanvas', print_para))
+#            如果要绘制的参数都在，则不执行画图函数
+            if len(exit_paras) == len(sorted_paras):
+                return False
+            else:
+                return True
             
     def get_paravalue(self, dt):
         
         paravalue = []
         for para_tuple in self.sorted_paralist:
             paraname, index= para_tuple
-            get_fre = False
-            fre = 1
-            first_time = self.time_series_list[index][0]
-            length_time = len(self.time_series_list[index])
-            while (not get_fre) and fre <= length_time:
-                next_time = self.time_series_list[index][fre]
-                if (first_time.microsecond == next_time.microsecond and
-                    (next_time.second - first_time.second) == 1):
-                    get_fre = True
-                else:
-                    fre += 1
-            if not get_fre:
-                fre = 0
-            temp_line_index = int(((dt.hour - first_time.hour) * 3600 +
-                                   (dt.minute - first_time.minute) * 60 +
-                                   (dt.second - first_time.second) +
-                                   (dt.microsecond - first_time.microsecond) / 1000000) * fre)
-            if (temp_line_index >= 0 and temp_line_index < length_time):
-                paravalue.append((paraname, self.total_data[index][paraname].iloc[temp_line_index]))
+            pv = self.total_data[index].get_time_paravalue(dt, paraname)
+#            这样做会在数据字典很大时暴露出卡顿的问题
+            if paraname in self._data_dict:
+                pn = self._data_dict[paraname][0]
+                if pn != 'NaN':
+                    paraname = pn
+            if pv != None:
+                paravalue.append((paraname, pv))
             else:
                 paravalue.append((paraname, 'NaN'))
         return paravalue
         
     def subplot_para_wxl(self, datalist, sorted_paras):
 
-        self.process_data(datalist, sorted_paras)
-        self.paralist.append(sorted_paras)
+        is_plot = self.process_data(datalist, sorted_paras)
         
-        self.fig.clf()
-        matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
-        matplotlib.rcParams['ytick.direction'] = 'in'
-        
-        count = len(self.sorted_paralist)
-
-        axeslist = []
-        self.color_index = 0
-        for i, para_tuple in enumerate(self.sorted_paralist):
-            paraname, index = para_tuple
-            ax = None
-            if i == 0:
-                ax = self.fig.add_subplot(count, 1, 1)
-            else:
-                ax = self.fig.add_subplot(count, 1, i+1, sharex = axeslist[0])
-            axeslist.append(ax)
+        if is_plot:
+            self.fig.clf()
+            self.count_axes = 0
+            matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+            matplotlib.rcParams['ytick.direction'] = 'in'
+#            支持中文显示
+#            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+#            matplotlib.rcParams['axes.unicode_minus'] = False
             
-            ax.plot(self.time_series_list[index], 
-                    self.total_data[index][paraname],
-                    color = self.curve_colors[self.color_index],
-                    lw = 1)
-            
-            if i != (count - 1):
-                plt.setp(ax.get_xticklabels(), visible = False)
-            else:
-                plt.setp(ax.get_xticklabels(), fontsize = 8,
-                         horizontalalignment = 'center',
-                         rotation = 'horizontal')
-            plt.setp(ax.get_yticklabels(), fontsize = 8)
-            ax.legend(fontsize=8,loc=(0,1) , ncol=1 , frameon=False, borderpad = 0.15)
-            ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-            ax.xaxis.set_major_locator(MaxNLocator(nbins=8))
-            ax.xaxis.set_minor_locator(AutoMinorLocator(n=3))
-            ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
-            ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
-            ax.grid(which='major',linestyle='--',color = '0.45')
-            ax.grid(which='minor',linestyle='--',color = '0.75')
-#            一共有十种颜色可用
-            if self.color_index == 9:
-                self.color_index = 0
-            else:
-                self.color_index += 1
-            
-        self.set_subplot_adjust()
+            count = len(self.sorted_paralist)
+    
+            axeslist = []
+            self.color_index = 0
+            for i, para_tuple in enumerate(self.sorted_paralist):
+                paraname, index = para_tuple
+                ax = None
+                if i == 0:
+                    ax = self.fig.add_subplot(count, 1, 1)
+                else:
+                    ax = self.fig.add_subplot(count, 1, i+1, sharex = axeslist[0])
+                axeslist.append(ax)
+                if paraname in self._data_dict:
+                    pn = self._data_dict[paraname][0]
+                    unit = self._data_dict[paraname][1]
+                    if pn != 'NaN':
+                        if unit != 'NaN' and unit != '1':
+                            pn = pn + '(' + unit + ')'
+                        ax.plot(self.time_series_list[index], 
+                                self.total_data[index].data[paraname],
+                                label = pn,
+                                color = self.curve_colors[self.color_index],
+                                lw = 1)
+                else:
+                    ax.plot(self.time_series_list[index], 
+                            self.total_data[index].data[paraname],
+                            color = self.curve_colors[self.color_index],
+                            lw = 1)
+                
+                if i != (count - 1):
+                    plt.setp(ax.get_xticklabels(), visible = False)
+                else:
+                    plt.setp(ax.get_xticklabels(), fontsize = self.default_fontsize,
+                             horizontalalignment = 'center',
+                             rotation = 'horizontal')
+                plt.setp(ax.get_yticklabels(), fontsize = self.default_fontsize)
+                ax.legend(fontsize = self.default_fontsize,
+                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15)
+                ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+                ax.xaxis.set_major_locator(MaxNLocator(nbins=8))
+                ax.xaxis.set_minor_locator(AutoMinorLocator(n=3))
+                ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+                ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+                ax.grid(which='major',linestyle='--',color = '0.45')
+                ax.grid(which='minor',linestyle='--',color = '0.75')
+    #                一共有十种颜色可用
+                if self.color_index == 9:
+                    self.color_index = 0
+                else:
+                    self.color_index += 1
+                self.count_axes += 1
+                
+            self.set_subplot_adjust()
 #        Easter Egg
 #        if count >= 12:
 #            QMessageBox.information(self,

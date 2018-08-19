@@ -19,10 +19,9 @@ import scipy.io as sio
 # =============================================================================
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
-                             QDialog, QMessageBox, QScrollArea,
-                             QPushButton, QTableWidget, QFileDialog,
-                             QTableWidgetItem, QComboBox, QGroupBox,
-                             QLabel)
+                             QMessageBox, QScrollArea, QTableWidget,
+                             QFileDialog, QTableWidgetItem, 
+                             QComboBox, QGroupBox, QLabel)
 from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
                           QIODevice, Qt)
 from PyQt5.QtGui import QIcon
@@ -31,7 +30,7 @@ from PyQt5.QtGui import QIcon
 # Package views imports
 # =============================================================================
 from models.figure_model import PlotCanvas
-from views.custom_dialog import SelectTemplateDialog, SaveTemplateDialog
+#from views.custom_dialog import SelectTemplateDialog, SaveTemplateDialog
 import views.constant as CONSTANT
 # =============================================================================
 # CustomScrollArea
@@ -73,8 +72,8 @@ class CustomScrollArea(QScrollArea):
             sorted_paras = []
             while (not item_stream.atEnd()):
                 paraname = item_stream.readQString()
-                sorted_paras.append(paraname)
                 file_dir = item_stream.readQString()
+                sorted_paras.append((paraname, file_dir))
                 if not (file_dir in paras):
                     paras[file_dir] = []
                     paras[file_dir].append(paraname)
@@ -104,6 +103,7 @@ class PlotWindow(QWidget):
         self.use_markline = False
         
         self.count_axis = 0
+#        用户保存的时刻
         self.timestamps = []
 
 # =============================================================================
@@ -111,12 +111,10 @@ class PlotWindow(QWidget):
 # =============================================================================
     def setup(self):
         
-        self.setObjectName('PlotWindow')
 #        该窗口的主布局器，水平
         self.horizontalLayout_2 = QHBoxLayout(self)
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_2.setSpacing(0)
-        self.horizontalLayout_2.setObjectName('horizontalLayout_2')
 #        创建画布部件
         self.scrollarea = CustomScrollArea(self)
         self.plotcanvas = PlotCanvas(self.scrollarea)
@@ -125,89 +123,90 @@ class PlotWindow(QWidget):
         self.widget_plot_tools = QWidget(self)
         self.widget_plot_tools.setMinimumSize(QSize(32, 0))
         self.widget_plot_tools.setMaximumSize(QSize(32, 16777215))
-        self.widget_plot_tools.setObjectName('widget_plot_tools')
 #        子布局器，垂直，布局工具按钮
         self.verticalLayout = QVBoxLayout(self.widget_plot_tools)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setSpacing(0)
-        self.verticalLayout.setObjectName('verticalLayout')
 #        创建放大缩小按钮并加入工具栏
         self.button_home = QToolButton(self.widget_plot_tools)
-        self.button_home.setMinimumSize(QSize(28, 28))
-        self.button_home.setMaximumSize(QSize(28, 28))
-        self.button_home.setObjectName('button_home')
+        self.button_home.setMinimumSize(QSize(30, 30))
+        self.button_home.setMaximumSize(QSize(30, 30))
+        self.button_home.setIconSize(QSize(22, 22))
         self.button_home.setIcon(QIcon(CONSTANT.ICON_HOME))
         self.verticalLayout.addWidget(self.button_home)
         self.button_pan = QToolButton(self.widget_plot_tools)
-        self.button_pan.setMinimumSize(QSize(28, 28))
-        self.button_pan.setMaximumSize(QSize(28, 28))
+        self.button_pan.setMinimumSize(QSize(30, 30))
+        self.button_pan.setMaximumSize(QSize(30, 30))
+        self.button_pan.setIconSize(QSize(22, 22))
         self.button_pan.setCheckable(True)
-        self.button_pan.setObjectName('button_pan')
         self.button_pan.setIcon(QIcon(CONSTANT.ICON_PAN))
         self.verticalLayout.addWidget(self.button_pan)
         self.button_zoom = QToolButton(self.widget_plot_tools)
-        self.button_zoom.setMinimumSize(QSize(28, 28))
-        self.button_zoom.setMaximumSize(QSize(28, 28))
+        self.button_zoom.setMinimumSize(QSize(30, 30))
+        self.button_zoom.setMaximumSize(QSize(30, 30))
+        self.button_pan.setIconSize(QSize(22, 22))
         self.button_zoom.setCheckable(True)
-        self.button_zoom.setObjectName('button_zoom')
         self.button_zoom.setIcon(QIcon(CONSTANT.ICON_ZOOM))
         self.verticalLayout.addWidget(self.button_zoom)
         self.button_plot_setting = QToolButton(self.widget_plot_tools)
-        self.button_plot_setting.setMinimumSize(QSize(28, 28))
-        self.button_plot_setting.setMaximumSize(QSize(28, 28))
+        self.button_plot_setting.setMinimumSize(QSize(30, 30))
+        self.button_plot_setting.setMaximumSize(QSize(30, 30))
+        self.button_plot_setting.setIconSize(QSize(22, 22))
         self.button_plot_setting.setIcon(QIcon(CONSTANT.ICON_PLOT_SETTING))
         self.verticalLayout.addWidget(self.button_plot_setting)
 #        self.button_edit = QToolButton(self.widget_plot_tools)
-#        self.button_edit.setMinimumSize(QSize(28, 28))
-#        self.button_edit.setMaximumSize(QSize(28, 28))
+#        self.button_edit.setMinimumSize(QSize(30, 30))
+#        self.button_edit.setMaximumSize(QSize(30, 30))
 #        self.button_edit.setObjectName('button_edit')
 #        self.button_edit.setIcon(QIcon(CONSTANT.ICON_EDIT))
 #        self.verticalLayout.addWidget(self.button_edit)
-        self.button_config = QToolButton(self.widget_plot_tools)
-        self.button_config.setMinimumSize(QSize(28, 28))
-        self.button_config.setMaximumSize(QSize(28, 28))
-        self.button_config.setObjectName('button_config')
-        self.button_config.setIcon(QIcon(CONSTANT.ICON_CONFIG))
-        self.verticalLayout.addWidget(self.button_config)
+#        self.button_config = QToolButton(self.widget_plot_tools)
+#        self.button_config.setMinimumSize(QSize(30, 30))
+#        self.button_config.setMaximumSize(QSize(30, 30))
+#        self.button_config.setObjectName('button_config')
+#        self.button_config.setIcon(QIcon(CONSTANT.ICON_CONFIG))
+#        self.verticalLayout.addWidget(self.button_config)
         self.button_back = QToolButton(self.widget_plot_tools)
-        self.button_back.setMinimumSize(QSize(28, 28))
-        self.button_back.setMaximumSize(QSize(28, 28))
-        self.button_back.setObjectName('button_back')
+        self.button_back.setMinimumSize(QSize(30, 30))
+        self.button_back.setMaximumSize(QSize(30, 30))
+        self.button_back.setIconSize(QSize(22, 22))
         self.button_back.setIcon(QIcon(CONSTANT.ICON_BACK))
         self.verticalLayout.addWidget(self.button_back)
         self.button_forward = QToolButton(self.widget_plot_tools)
-        self.button_forward.setMinimumSize(QSize(28, 28))
-        self.button_forward.setMaximumSize(QSize(28, 28))
-        self.button_forward.setObjectName('button_forward')
+        self.button_forward.setMinimumSize(QSize(30, 30))
+        self.button_forward.setMaximumSize(QSize(30, 30))
+        self.button_forward.setIconSize(QSize(22, 22))
         self.button_forward.setIcon(QIcon(CONSTANT.ICON_FORWARD))
         self.verticalLayout.addWidget(self.button_forward)    
         self.button_save = QToolButton(self.widget_plot_tools)
-        self.button_save.setMinimumSize(QSize(28, 28))
-        self.button_save.setMaximumSize(QSize(28, 28))
-        self.button_save.setObjectName('button_save')
+        self.button_save.setMinimumSize(QSize(30, 30))
+        self.button_save.setMaximumSize(QSize(30, 30))
+        self.button_save.setIconSize(QSize(22, 22))
         self.button_save.setIcon(QIcon(CONSTANT.ICON_SAVE))
         self.verticalLayout.addWidget(self.button_save)
-        self.button_sel_temp = QToolButton(self.widget_plot_tools)
-        self.button_sel_temp.setMinimumSize(QSize(28, 28))
-        self.button_sel_temp.setMaximumSize(QSize(28, 28))
-        self.button_sel_temp.setObjectName('button_sel_temp')
-        self.button_sel_temp.setIcon(QIcon(CONSTANT.ICON_SEL_TEMP))
-        self.verticalLayout.addWidget(self.button_sel_temp)
-        self.button_save_temp = QToolButton(self.widget_plot_tools)
-        self.button_save_temp.setMinimumSize(QSize(28, 28))
-        self.button_save_temp.setMaximumSize(QSize(28, 28))
-        self.button_save_temp.setObjectName('button_save_temp')
-        self.button_save_temp.setIcon(QIcon(CONSTANT.ICON_SAVE_TEMP))
-        self.verticalLayout.addWidget(self.button_save_temp)
+#        self.button_sel_temp = QToolButton(self.widget_plot_tools)
+#        self.button_sel_temp.setMinimumSize(QSize(30, 30))
+#        self.button_sel_temp.setMaximumSize(QSize(30, 30))
+#        self.button_sel_temp.setObjectName('button_sel_temp')
+#        self.button_sel_temp.setIcon(QIcon(CONSTANT.ICON_SEL_TEMP))
+#        self.verticalLayout.addWidget(self.button_sel_temp)
+#        self.button_save_temp = QToolButton(self.widget_plot_tools)
+#        self.button_save_temp.setMinimumSize(QSize(30, 30))
+#        self.button_save_temp.setMaximumSize(QSize(30, 30))
+#        self.button_save_temp.setObjectName('button_save_temp')
+#        self.button_save_temp.setIcon(QIcon(CONSTANT.ICON_SAVE_TEMP))
+#        self.verticalLayout.addWidget(self.button_save_temp)
         self.button_clear_canvas = QToolButton(self.widget_plot_tools)
-        self.button_clear_canvas.setMinimumSize(QSize(28, 28))
-        self.button_clear_canvas.setMaximumSize(QSize(28, 28))
+        self.button_clear_canvas.setMinimumSize(QSize(30, 30))
+        self.button_clear_canvas.setMaximumSize(QSize(30, 30))
+        self.button_clear_canvas.setIconSize(QSize(22, 22))
         self.button_clear_canvas.setIcon(QIcon(CONSTANT.ICON_CLEAR))
         self.verticalLayout.addWidget(self.button_clear_canvas)
         self.button_get_paravalue = QToolButton(self.widget_plot_tools)
         self.button_get_paravalue.setCheckable(True)
-        self.button_get_paravalue.setMinimumSize(QSize(28, 28))
-        self.button_get_paravalue.setMaximumSize(QSize(28, 28))
+        self.button_get_paravalue.setMinimumSize(QSize(30, 30))
+        self.button_get_paravalue.setMaximumSize(QSize(30, 30))
+        self.button_get_paravalue.setIconSize(QSize(22, 22))
         self.button_get_paravalue.setIcon(QIcon(CONSTANT.ICON_PARA_VALUE))
         self.verticalLayout.addWidget(self.button_get_paravalue)
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -220,33 +219,33 @@ class PlotWindow(QWidget):
         self.vl_para_window = QVBoxLayout(self.para_value_window)
         self.vl_para_window.setContentsMargins(2, 2, 2, 0)
         self.vl_para_window.setSpacing(2)
-        self.group_box_time_range = QGroupBox(self.para_value_window)
-        self.vl_gbtr = QVBoxLayout(self.group_box_time_range)
+        self.group_box_time_interval = QGroupBox(self.para_value_window)
+        self.vl_gbtr = QVBoxLayout(self.group_box_time_interval)
         self.vl_gbtr.setContentsMargins(2, 2, 2, 2)
         self.vl_gbtr.setSpacing(2)
         self.hl_combo = QHBoxLayout()
         self.hl_combo.setSpacing(4)
-        self.combo_box_time_range = QComboBox(self.group_box_time_range)
-        self.combo_box_time_range.setMinimumSize(QSize(0, 24))
-        self.combo_box_time_range.setMaximumSize(QSize(16777215, 24))
-        self.hl_combo.addWidget(self.combo_box_time_range)
-        self.tool_btn_time_range = QToolButton(self.group_box_time_range)
-        self.tool_btn_time_range.setMinimumSize(QSize(24, 24))
-        self.tool_btn_time_range.setMaximumSize(QSize(24, 24))
-        self.hl_combo.addWidget(self.tool_btn_time_range)
+        self.combo_box_time_intervals = QComboBox(self.group_box_time_interval)
+        self.combo_box_time_intervals.setMinimumSize(QSize(0, 24))
+        self.combo_box_time_intervals.setMaximumSize(QSize(16777215, 24))
+        self.hl_combo.addWidget(self.combo_box_time_intervals)
+        self.tool_btn_time_interval = QToolButton(self.group_box_time_interval)
+        self.tool_btn_time_interval.setMinimumSize(QSize(24, 24))
+        self.tool_btn_time_interval.setMaximumSize(QSize(24, 24))
+        self.hl_combo.addWidget(self.tool_btn_time_interval)
         self.vl_gbtr.addLayout(self.hl_combo)
         self.hl_combo_2 = QHBoxLayout()
         self.hl_combo_2.setSpacing(4)
-        self.combo_box_time = QComboBox(self.group_box_time_range)
+        self.combo_box_time = QComboBox(self.group_box_time_interval)
         self.combo_box_time.setMinimumSize(QSize(0, 24))
         self.combo_box_time.setMaximumSize(QSize(16777215, 24))
         self.hl_combo_2.addWidget(self.combo_box_time)
-        self.tool_btn_time = QToolButton(self.group_box_time_range)
+        self.tool_btn_time = QToolButton(self.group_box_time_interval)
         self.tool_btn_time.setMinimumSize(QSize(24, 24))
         self.tool_btn_time.setMaximumSize(QSize(24, 24))
         self.hl_combo_2.addWidget(self.tool_btn_time)
         self.vl_gbtr.addLayout(self.hl_combo_2)
-        self.vl_para_window.addWidget(self.group_box_time_range)
+        self.vl_para_window.addWidget(self.group_box_time_interval)
         self.group_box_time = QGroupBox(self.para_value_window)
         self.vl_gbt = QVBoxLayout(self.group_box_time)
         self.vl_gbt.setContentsMargins(2, 2, 2, 0)
@@ -281,12 +280,12 @@ class PlotWindow(QWidget):
         self.button_zoom.clicked.connect(self.slot_zoom)
         self.button_plot_setting.clicked.connect(self.plotcanvas.slot_plot_setting)
 #        self.button_edit.clicked.connect(self.plotcanvas.toolbar.edit_parameters)
-        self.button_config.clicked.connect(self.plotcanvas.toolbar.configure_subplots)
+#        self.button_config.clicked.connect(self.plotcanvas.toolbar.configure_subplots)
         self.button_save.clicked.connect(self.slot_save_figure)
         self.button_back.clicked.connect(self.plotcanvas.toolbar.back)
         self.button_forward.clicked.connect(self.plotcanvas.toolbar.forward)
-        self.button_sel_temp.clicked.connect(self.slot_emit_request_plot_temps)
-        self.button_save_temp.clicked.connect(self.slot_save_temp)
+#        self.button_sel_temp.clicked.connect(self.slot_emit_request_plot_temps)
+#        self.button_save_temp.clicked.connect(self.slot_save_temp)
         self.button_clear_canvas.clicked.connect(self.slot_clear_canvas)
         self.button_get_paravalue.clicked.connect(self.slot_paravalue_btn_clicked)
         
@@ -296,11 +295,15 @@ class PlotWindow(QWidget):
         self.combo_box_time.activated.connect(self.slot_display_paravalue_ontime)
         self.tool_btn_time.clicked.connect(self.slot_import_paravalue)
         
+        self.combo_box_time_intervals.activated.connect(self.slot_display_tinterval)
+        self.tool_btn_time_interval.clicked.connect(self.plotcanvas.slot_sel_function)
+        
 #        画布的右键菜单
         self.signal_is_display_menu.connect(self.plotcanvas.slot_set_display_menu)
         
         self.plotcanvas.signal_cursor_xdata.connect(self.slot_display_paravalue)
-        self.plotcanvas.signal_send_save_paravalue.connect(self.slot_save_paravalue)
+        self.plotcanvas.signal_send_time.connect(self.slot_save_time)
+        self.plotcanvas.signal_send_tinterval.connect(self.slot_save_tinterval)
 
 # =============================================================================
 # slots模块
@@ -324,24 +327,25 @@ class PlotWindow(QWidget):
 #    输入参数为一个包含两个参数的元组，元组第一个参数是字典型，存储文件名及与之对应的变量列表
 #    元组第二个参数是列表，存储已排序的参数
 #    这样定义数据类型的原因是绘图既需要读取数据也需要参数排列顺序
-    def slot_plot(self, datalist_and_paralist : tuple):
+    def slot_plot(self, datadict_and_paralist : tuple):
         
-        datalist, sorted_paras = datalist_and_paralist
-        if datalist and sorted_paras:
-            self.count_axis += len(sorted_paras)
-            if self.count_axis >= 4:
+        datadict, sorted_paras = datadict_and_paralist
+        if datadict and sorted_paras:
+            self.plotcanvas.subplot_para_wxl(datadict, sorted_paras)
+            self.count_axis = self.plotcanvas.count_axes
+            if self.count_axis > 4:
                 self.scrollarea.setWidgetResizable(False)
 #                    乘以1.05是估计的，刚好能放下四张图，
 #                    减去的19是滚动条的宽度
-#                height = int(self.scrollarea.height() * 1.05) / 4
-#                self.plotcanvas.resize(self.scrollarea.width() - 19,
-#                                       self.count_axis * height)
-                height = self.count_axis * 180
+                height = int(self.scrollarea.height() * 1.05) / 4
                 self.plotcanvas.resize(self.scrollarea.width() - 19,
-                                       height)
+                                       self.count_axis * height)
+#                height = self.count_axis * 180
+#                self.plotcanvas.resize(self.scrollarea.width() - 19,
+#                                       height)
             else:
                 self.scrollarea.setWidgetResizable(True)
-            self.plotcanvas.subplot_para_wxl(datalist, sorted_paras)
+            
 
     def slot_resize_canvas(self, scroll_area_size):
         
@@ -393,62 +397,62 @@ class PlotWindow(QWidget):
                 self.button_pan.setChecked(False)
                 self.pan_on = False
         
-    def slot_emit_request_plot_temps(self):
+#    def slot_emit_request_plot_temps(self):
+#        
+#        self.signal_request_temps.emit('plot_template')
         
-        self.signal_request_temps.emit('plot_template')
-        
-    def slot_sel_temp(self, dict_files, templates):
-
-        if templates:
-            export_paras = {}
-            sorted_paras = []
-            dialog = SelectTemplateDialog(self, templates)
-            return_signal = dialog.exec_()
-            if (return_signal == QDialog.Accepted):
-                if dict_files:
-        #            遍历文件，搜索是否存在模板中的参数
-        #            不同文件下的同一参数都会找出（这样耗时较长）
-        #            也可以找到第一个就停止
-                    for paraname in templates[dialog.sel_temp]:
-                        for file_dir in dict_files:
-                            if paraname in dict_files[file_dir]:
-                                if file_dir in export_paras:
-                                    export_paras[file_dir].append(paraname)
-                                else:
-                                    export_paras[file_dir] = []
-                                    export_paras[file_dir].append(paraname)
-                                sorted_paras.append(paraname)
-        #                        加入以下语句实现找到第一个就停止的功能
-        #                        break
-                    self.slot_plot((export_paras, sorted_paras))
-                else:
-                    QMessageBox.information(self,
-                            QCoreApplication.translate('DataExportWindow', '导入模板错误'),
-                            QCoreApplication.translate('DataExportWindow', '没有发现数据文件'))
-        else:
-            QMessageBox.information(self,
-                    QCoreApplication.translate('DataExportWindow', '导入模板错误'),
-                    QCoreApplication.translate('DataExportWindow', '没有模板')) 
+#    def slot_sel_temp(self, dict_files, templates):
+#
+#        if templates:
+#            export_paras = {}
+#            sorted_paras = []
+#            dialog = SelectTemplateDialog(self, templates)
+#            return_signal = dialog.exec_()
+#            if (return_signal == QDialog.Accepted):
+#                if dict_files:
+#        #            遍历文件，搜索是否存在模板中的参数
+#        #            不同文件下的同一参数都会找出（这样耗时较长）
+#        #            也可以找到第一个就停止
+#                    for paraname in templates[dialog.sel_temp]:
+#                        for file_dir in dict_files:
+#                            if paraname in dict_files[file_dir]:
+#                                if file_dir in export_paras:
+#                                    export_paras[file_dir].append(paraname)
+#                                else:
+#                                    export_paras[file_dir] = []
+#                                    export_paras[file_dir].append(paraname)
+#                                sorted_paras.append(paraname)
+#        #                        加入以下语句实现找到第一个就停止的功能
+#        #                        break
+#                    self.slot_plot((export_paras, sorted_paras))
+#                else:
+#                    QMessageBox.information(self,
+#                            QCoreApplication.translate('DataExportWindow', '导入模板错误'),
+#                            QCoreApplication.translate('DataExportWindow', '没有发现数据文件'))
+#        else:
+#            QMessageBox.information(self,
+#                    QCoreApplication.translate('DataExportWindow', '导入模板错误'),
+#                    QCoreApplication.translate('DataExportWindow', '没有模板')) 
     
-    def slot_save_temp(self):
-        
-        if self.plotcanvas.paralist:
-            temp = {}
-            dialog = SaveTemplateDialog(self)
-            return_signal = dialog.exec_()
-            if (return_signal == QDialog.Accepted):
-                temp_name = dialog.temp_name
-                if temp_name:
-                    temp[temp_name] = self.plotcanvas.paralist[1:]
-                    self.signal_save_temp.emit(temp)
-                else:
-                    QMessageBox.information(self,
-                            QCoreApplication.translate('DataExportWindow', '输入提示'),
-                            QCoreApplication.translate('DataExportWindow', '未输入模板名'))
-        else:
-            QMessageBox.information(self,
-                    QCoreApplication.translate('DataExportWindow', '保存错误'),
-                    QCoreApplication.translate('DataExportWindow', '没有发现图表')) 
+#    def slot_save_temp(self):
+#        
+#        if self.plotcanvas.paralist:
+#            temp = {}
+#            dialog = SaveTemplateDialog(self)
+#            return_signal = dialog.exec_()
+#            if (return_signal == QDialog.Accepted):
+#                temp_name = dialog.temp_name
+#                if temp_name:
+#                    temp[temp_name] = self.plotcanvas.paralist[1:]
+#                    self.signal_save_temp.emit(temp)
+#                else:
+#                    QMessageBox.information(self,
+#                            QCoreApplication.translate('DataExportWindow', '输入提示'),
+#                            QCoreApplication.translate('DataExportWindow', '未输入模板名'))
+#        else:
+#            QMessageBox.information(self,
+#                    QCoreApplication.translate('DataExportWindow', '保存错误'),
+#                    QCoreApplication.translate('DataExportWindow', '没有发现图表')) 
         
     def slot_paravalue_btn_clicked(self):
         
@@ -459,11 +463,18 @@ class PlotWindow(QWidget):
             self.para_value_window.setHidden(True)
             self.plotcanvas.slot_diaconnect_display_paravalue()
             
-    def slot_save_paravalue(self):
+    def slot_save_time(self):
 
         self.timestamps.append(self.label_time.text())
         self.combo_box_time.addItem(self.label_time.text())
         self.combo_box_time.setCurrentIndex(self.combo_box_time.count() - 1)
+        
+    def slot_save_tinterval(self, timeinterval : tuple):
+        
+        name, stime, etime = timeinterval
+        tinterval = name + '(' + stime + ' - ' + etime + ')'
+        self.combo_box_time_intervals.addItem(tinterval, name)
+        self.combo_box_time_intervals.setCurrentIndex(self.combo_box_time_intervals.count() - 1)
         
     def slot_import_paravalue(self):
         
@@ -494,16 +505,18 @@ class PlotWindow(QWidget):
                                                          QCoreApplication.translate('PlotWindow', '保存参数值'),
                                                          CONSTANT.SETUP_DIR,
                                                          QCoreApplication.translate('PlotWindow', 'Text Files (*.txt);;CSV Files (*.csv);;Matlab Files (*.mat)'))
-            if flag == 'Text Files (*.txt)':
-                df.to_csv(file_dir, '\t' , index=False, encoding='utf-8')
-            if flag == 'CSV Files (*.csv)':
-                df.to_csv(file_dir, ',' , index=False, encoding='utf-8')
-            if flag == 'Matlab Files (*.mat)':
-                sio.savemat(file_dir, df.to_dict('list'))
-            QMessageBox.information(self,
-                    QCoreApplication.translate('PlotWindow', '保存提示'),
-                    QCoreApplication.translate('PlotWindow', '保存成功'))
+            if file_dir:
+                if flag == 'Text Files (*.txt)':
+                    df.to_csv(file_dir, '\t' , index=False, encoding='utf-8')
+                if flag == 'CSV Files (*.csv)':
+                    df.to_csv(file_dir, ',' , index=False, encoding='utf-8')
+                if flag == 'Matlab Files (*.mat)':
+                    sio.savemat(file_dir, df.to_dict('list'))
+                QMessageBox.information(self,
+                        QCoreApplication.translate('PlotWindow', '保存提示'),
+                        QCoreApplication.translate('PlotWindow', '保存成功'))
                                                  
+#    显示复选框中选中时刻对应的参数值
     def slot_display_paravalue_ontime(self, index):
         
         str_time = self.combo_box_time.itemText(index)
@@ -520,7 +533,13 @@ class PlotWindow(QWidget):
                 self.table_widget_value.setItem(row, 0, item1)
                 item2 = QTableWidgetItem(str(value))
                 self.table_widget_value.setItem(row, 1, item2)
+                
+    def slot_display_tinterval(self, index):
+        
+        name = self.combo_box_time_intervals.itemData(index)
+        self.plotcanvas.slot_set_tlim(name)
             
+#    实时显示参数值
     def slot_display_paravalue(self, time : str, paravalue : list):
         
 #        显示时间
@@ -543,23 +562,25 @@ class PlotWindow(QWidget):
         self.scrollarea.setWidgetResizable(True)
         self.count_axis = 0
         self.timestamps = []
+        self.plotcanvas.time_intervals = {}
         self.combo_box_time.clear()
-        self.combo_box_time_range.clear()
+        self.combo_box_time_intervals.clear()
         self.label_time.setText('00:00:00.000')
         self.table_widget_value.clearContents()
         self.table_widget_value.setRowCount(0)
         
     def slot_save_figure(self):
         
+        letter_space = 18
 #        将画布变形成合适的尺寸
         self.scrollarea.setWidgetResizable(False)
         h = self.count_axis * 150
         w = 680
         left_gap = round(50 / w, 2)
-        bottom_gap = round(16 / h, 2)
+        bottom_gap = round(letter_space / h, 2)
         right_gap = round((w - 10) / w, 2)
-        top_gap = round((h - 16) / h, 2)
-        hs = round(16 / 150, 2)
+        top_gap = round((h - letter_space) / h, 2)
+        hs = round(letter_space / 150, 2)
         self.plotcanvas.resize(w, h)
         self.plotcanvas.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                             right=right_gap,top=top_gap,hspace=hs)
@@ -567,11 +588,14 @@ class PlotWindow(QWidget):
         self.plotcanvas.toolbar.save_figure()
         
 #        将画布还原回查看状态下的尺寸
-        if self.count_axis >= 4:
+        if self.count_axis > 4:
             self.scrollarea.setWidgetResizable(False)
-            height = self.count_axis * 180
+            height = int(self.scrollarea.height() * 1.05) / 4
             self.plotcanvas.resize(self.scrollarea.width() - 19,
-                                   height)
+                                   self.count_axis * height)
+#            height = self.count_axis * 180
+#            self.plotcanvas.resize(self.scrollarea.width() - 19,
+#                                   height)
         else:
             self.scrollarea.setWidgetResizable(True)
         self.plotcanvas.set_subplot_adjust()
@@ -591,18 +615,18 @@ class PlotWindow(QWidget):
         self.button_pan.setToolTip(_translate('PlotWindow', '移动与缩放'))
         self.button_zoom.setToolTip(_translate('PlotWindow', '框选缩放'))
         self.button_plot_setting.setToolTip(_translate('PlotWindow', '绘图设置'))
-        self.button_config.setToolTip(_translate('PlotWindow', '画布设置'))
+#        self.button_config.setToolTip(_translate('PlotWindow', '画布设置'))
 #        self.button_edit.setToolTip(_translate('PlotWindow', '图表设置'))
         self.button_forward.setToolTip(_translate('PlotWindow', '前进'))
         self.button_back.setToolTip(_translate('PlotWindow', '后退'))
         self.button_save.setToolTip(_translate('PlotWindow', '保存'))
-        self.button_save_temp.setToolTip(_translate('PlotWindow', '保存模板'))
-        self.button_sel_temp.setToolTip(_translate('PlotWindow', '选择模板'))
+#        self.button_save_temp.setToolTip(_translate('PlotWindow', '保存模板'))
+#        self.button_sel_temp.setToolTip(_translate('PlotWindow', '选择模板'))
         self.button_clear_canvas.setToolTip(_translate('PlotWindow', '清空画布'))
         self.button_get_paravalue.setToolTip(_translate('PlotWindow', '取参数值'))
         
-        self.group_box_time_range.setTitle(_translate('PlotWindow', '时间'))
-        self.tool_btn_time_range.setText(_translate('PlotWindow', '...'))
+        self.group_box_time_interval.setTitle(_translate('PlotWindow', '时间查看器'))
+        self.tool_btn_time_interval.setText(_translate('PlotWindow', '...'))
         self.tool_btn_time.setText(_translate('PlotWindow', '...'))
         self.group_box_time.setTitle(_translate('PlotWindow', '参数值'))
         self.label_time.setText(_translate('PlotWindow', '00:00:00.000'))

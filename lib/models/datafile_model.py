@@ -26,7 +26,7 @@ import pandas as pd
 import scipy.io as sio
 import re
 import models.time_model as Time
-import time  #just for test
+
 # =======类基本信息
 #class DataFile
 #说明：通用文件类，是所有其它文件类的基类
@@ -220,8 +220,7 @@ class Normal_DataFile(DataFile):
         self.info_list=self.get_info(filedir)
         self.paras_in_file=self.get_paraslist(filedir)
         self.time_range=self.get_timerange(filedir)  #！可能造成IO过多，使得速度变慢
-#        self.sample_frequency = self.get_sample_frequency(filedir)
-        self.sample_frequency = self.get_sample_fre(filedir)
+        self.sample_frequency = self.get_sample_frequency(filedir)
 
 #get_paralist:获取文件中所有的的参数列表        
     def get_paraslist(self,filedir=''):
@@ -265,43 +264,32 @@ class Normal_DataFile(DataFile):
         if filedir=='':
             filedir=self.filedir
         
-        fre = 0
+        fre = 1
         with open(filedir,'r') as f:
             start_line = f.readline()
             start_line = f.readline()
             start_time = re.split('\s+', start_line)[0]
-            sec = Time.str_to_datetime(start_time).second
-            msec = Time.str_to_datetime(start_time).microsecond
-            t_msec = -1
-            t_sec = -1
+            get_fre = False
             line = f.readline()
-            while (not (msec == t_msec and (t_sec - sec) == 1)) and line:
+            while (not get_fre) and line:
                 t = re.split('\s+', line)[0]
-                t_sec = Time.str_to_datetime(t).second
-                t_msec = Time.str_to_datetime(t).microsecond
-                fre += 1
-                line = f.readline()
-            if not (msec == t_msec and (t_sec - sec) == 1):
+                count = Time.count_between_time(start_time, t, 1)
+                if count == 1:
+                    get_fre = True
+                else:
+                    fre += 1
+                    line = f.readline()
+            if not get_fre:
                 fre = 0
         return fre       
 
     def get_sample_fre(self,filedir=""):
         if filedir=="":
             filedir=self.filedir
-        with open(filedir,'r') as f:
-            start_line = f.readline() #skip first line
-            start_line = f.readline()
-            start_time = re.split('\s+', start_line)[0]
-            start_time = Time.str_to_datetime(start_time)
-            end_line = f.readline()
-            end_time = re.split('\s+', end_line)[0]
-            end_time = Time.str_to_datetime(end_time)
-            delta_time=end_time-start_time
-            delta=delta_time.total_seconds()
-            fre=round(1/delta)
-#            delta=delta_time.hours*3600+delta_time.minute*60+delta_time.second+delta_time.microsecond*1/100000
-#            fre=round(1/delta)
-        return fre
+        time_df=self.cols_input(filedir=filedir,cols=[self.paras_in_file[0]])
+        rows=time_df.shape[0]
+        time_interval=(time_df[-1,0]-time_df[0,0])/(rows-1)
+        return time_interval
         
 #get_info:根据一般试飞数据文件的文件名获取，试飞数据相关信息，返回信息列表        
     def get_info(self,filedir=''):
@@ -371,11 +359,12 @@ class Normal_DataFile(DataFile):
 #            定义参数顺序
             df = df[cols]
             if (start_time and stop_time):
-                start_rows = Time.timecount_between_strtimes(self.time_range[0],
+                start_rows = Time.count_between_time(self.time_range[0],
                                                              start_time, self.sample_frequency)
-                stop_rows = Time.timecount_between_strtimes(self.time_range[0],
+                stop_rows = Time.count_between_time(self.time_range[0],
                                                             stop_time, self.sample_frequency)
-                return df[start_rows : stop_rows].copy()
+#                按下面的dataframe访问方式是左闭右开，所以右边要加1
+                return df[start_rows : (stop_rows + 1)]
             else:
                 return df 
 
@@ -394,11 +383,3 @@ class Normal_DataFile(DataFile):
             if filedir.endswith(('.xls','.xlsx')):
                 df=pd.read_excel(f,header=None,usecols=cols,skiprows=skiprows)
         return df
-    
-if __name__ == "__main__":
-#    TEST1:
-    start = time.clock()
-    filename=u"D:\\flightdata\\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt"
-    file=Normal_DataFile(filename)
-    elapsed = (time.clock() - start)
-    print("Time used:",elapsed)

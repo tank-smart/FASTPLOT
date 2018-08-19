@@ -5,11 +5,10 @@ from matplotlib.text import Annotation
 from matplotlib.axes import Axes
 import matplotlib.colors as Color
 import matplotlib.dates as mdates
-from datetime import datetime
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import QSize, QCoreApplication, Qt, pyqtSignal
+from PyQt5.QtCore import QSize, QCoreApplication, Qt, pyqtSignal, QObject
 from PyQt5.QtGui import QFont, QIcon, QColor, QPalette
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
                              QLineEdit, QSpacerItem, QSizePolicy,
@@ -17,8 +16,8 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                              QListWidgetItem, QToolButton, QFrame, 
                              QAbstractItemView, QApplication, QComboBox,
                              QColorDialog, QGroupBox, QTreeWidget,
-                             QTreeWidgetItem, QDialogButtonBox,
-                             QHeaderView, QFileDialog)
+                             QTreeWidgetItem, QHeaderView, QFileDialog,
+                             QAction, QMenu)
 
 # =============================================================================
 # Package models imports
@@ -26,8 +25,11 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
 from models.datafile_model import DataFile, Normal_DataFile
 import views.constant as CONSTANT
 import models.time_model as Time_Model
+from models.data_model import DataFactory
+from models.analysis_model import DataAnalysis
 
-import sys, re
+import os, sys, re
+import pandas as pd
 
 #这个类可以用QInputDialog类代替，所以没必要创建，后续改进
 class SaveTemplateDialog(QDialog):
@@ -197,7 +199,7 @@ class SelectTemplateDialog(QDialog):
         self.setWindowTitle(_translate('SelectTemplateself', '选择模板'))
         self.label_temp.setText(_translate('SelectTemplateself', '模板列表'))
         self.label_para.setText(_translate('SelectTemplateself', '参数列表'))
-        self.button_confirm.setText(_translate('SelectTemplateself', '确认'))
+        self.button_confirm.setText(_translate('SelectTemplateself', '确定'))
         self.button_cancel.setText(_translate('SelectTemplateself', '取消'))
 
 class SelParasDialog(QDialog):
@@ -314,7 +316,7 @@ class SelParasDialog(QDialog):
         _translate = QCoreApplication.translate
         self.setWindowTitle(_translate('SelParasDialog', '选择参数'))
         self.line_edit_search.setPlaceholderText(_translate('SelParasDialog', '过滤器'))
-        self.btn_confirm.setText(_translate('SelParasDialog', '确认'))
+        self.btn_confirm.setText(_translate('SelParasDialog', '确定'))
         if self.sel_mode == QAbstractItemView.ExtendedSelection:
             self.btn_add.setText(_translate('SelParasDialog', '添加'))
         self.btn_cancel.setText(_translate('SelParasDialog', '取消'))
@@ -689,7 +691,7 @@ class LineSettingDialog(QDialog):
         self.label_line_lc.setText(_translate('LineSettingDialog', '线条颜色'))
         self.label_line_marker.setText(_translate('LineSettingDialog', '标记'))
         self.tool_btn_line_color.setText(_translate('LineSettingDialog', 'C'))
-        self.btn_confirm.setText(_translate('LineSettingDialog', '确认'))
+        self.btn_confirm.setText(_translate('LineSettingDialog', '确定'))
         self.btn_cancel.setText(_translate('LineSettingDialog', '取消'))
         count = len(self.enum_linestyle_name)
         for i in range(count):
@@ -936,7 +938,7 @@ class AnnotationSettingDialog(QDialog):
         self.combo_box_text_style.setItemText(0, _translate('AnnotationSettingDialog', 'Normal'))
         self.combo_box_text_style.setItemText(1, _translate('AnnotationSettingDialog', 'Italic'))
         self.combo_box_text_style.setItemText(2, _translate('AnnotationSettingDialog', 'Oblique'))
-        self.btn_confirm.setText(_translate('AnnotationSettingDialog', '确认'))
+        self.btn_confirm.setText(_translate('AnnotationSettingDialog', '确定'))
         self.btn_cancel.setText(_translate('AnnotationSettingDialog', '取消'))
         count = len(self.enum_text_rotation_name)
         for i in range(count):
@@ -1463,7 +1465,7 @@ class FigureCanvasSetiingDialog(QDialog):
         self.group_box_fontsize.setTitle(_translate('FigureCanvasSetiingDialog', '文字大小'))
         self.label_axis_fn.setText(_translate('FigureCanvasSetiingDialog', '刻度文字'))
         self.label_legend_fn.setText(_translate('FigureCanvasSetiingDialog', '图注文字'))
-        self.push_btn_confirm.setText(_translate('FigureCanvasSetiingDialog', '确认'))
+        self.push_btn_confirm.setText(_translate('FigureCanvasSetiingDialog', '确定'))
         self.push_btn_cancel.setText(_translate('FigureCanvasSetiingDialog', '取消'))
             
 class ParameterExportDialog(QDialog):
@@ -1475,8 +1477,10 @@ class ParameterExportDialog(QDialog):
         self.outfile_icon = QIcon(CONSTANT.ICON_FILE_EXPORT)
         self.para_icon = QIcon(CONSTANT.ICON_PARA)
         self.file_info = {}
+        self.current_file_dir = ''
         
         self.setup()
+        self.dict_data = {}
         self.display_file_info(dict_paras)
         
     def setup(self):
@@ -1505,10 +1509,10 @@ class ParameterExportDialog(QDialog):
         self.verticalLayout_3 = QVBoxLayout(self.group_box_setting)
         self.verticalLayout_3.setContentsMargins(2, 2, 2, 2)
         self.verticalLayout_3.setSpacing(2)
-        self.combo_box_filename = QComboBox(self.group_box_setting)
-        self.combo_box_filename.setMinimumSize(QSize(0, 24))
-        self.combo_box_filename.setMaximumSize(QSize(16777215, 24))
-        self.verticalLayout_3.addWidget(self.combo_box_filename)
+#        self.combo_box_filename = QComboBox(self.group_box_setting)
+#        self.combo_box_filename.setMinimumSize(QSize(0, 24))
+#        self.combo_box_filename.setMaximumSize(QSize(16777215, 24))
+#        self.verticalLayout_3.addWidget(self.combo_box_filename)
         self.groupBox = QGroupBox(self.group_box_setting)
         self.horizontalLayout = QHBoxLayout(self.groupBox)
         self.horizontalLayout.setContentsMargins(4, 2, 2, 2)
@@ -1529,12 +1533,12 @@ class ParameterExportDialog(QDialog):
         self.line_edit_endtime.setMinimumSize(QSize(0, 24))
         self.line_edit_endtime.setMaximumSize(QSize(16777215, 24))
         self.horizontalLayout.addWidget(self.line_edit_endtime)
-        self.push_btn_apply_all_files = QPushButton(self.groupBox)
-#        避免按钮默认选中并按Enter键会执行的情况
-        self.push_btn_apply_all_files.setFocusPolicy(Qt.NoFocus)        
-        self.push_btn_apply_all_files.setMinimumSize(QSize(100, 24))
-        self.push_btn_apply_all_files.setMaximumSize(QSize(100, 24))
-        self.horizontalLayout.addWidget(self.push_btn_apply_all_files)
+#        self.push_btn_apply_all_files = QPushButton(self.groupBox)
+##        避免按钮默认选中并按Enter键会执行的情况
+#        self.push_btn_apply_all_files.setFocusPolicy(Qt.NoFocus)        
+#        self.push_btn_apply_all_files.setMinimumSize(QSize(100, 24))
+#        self.push_btn_apply_all_files.setMaximumSize(QSize(100, 24))
+#        self.horizontalLayout.addWidget(self.push_btn_apply_all_files)
         self.verticalLayout_3.addWidget(self.groupBox)
         self.group_box_file_setting = QGroupBox(self.group_box_setting)
         self.verticalLayout_2 = QVBoxLayout(self.group_box_file_setting)
@@ -1591,6 +1595,11 @@ class ParameterExportDialog(QDialog):
         self.push_btn_easter_egg = QPushButton(self)
         self.push_btn_easter_egg.setHidden(True)
         self.horizontalLayout_5.addWidget(self.push_btn_easter_egg)
+        self.push_btn_apply_all_files = QPushButton(self.groupBox)
+        self.push_btn_apply_all_files.setFocusPolicy(Qt.NoFocus)
+        self.push_btn_apply_all_files.setMinimumSize(QSize(100, 24))
+        self.push_btn_apply_all_files.setMaximumSize(QSize(100, 24))
+        self.horizontalLayout_5.addWidget(self.push_btn_apply_all_files)
         self.push_btn_confirm = QPushButton(self)
         self.push_btn_confirm.setMinimumSize(QSize(0, 24))
         self.push_btn_confirm.setMaximumSize(QSize(16777215, 24))
@@ -1609,12 +1618,13 @@ class ParameterExportDialog(QDialog):
 # =======连接信号与槽
 # =============================================================================
         self.tool_btn_sel_filedir.clicked.connect(self.slot_sel_dir)        
-        self.combo_box_filename.currentIndexChanged.connect(self.slot_change_current_file)        
+#        self.combo_box_filename.currentIndexChanged.connect(self.slot_change_current_file)        
         self.combo_box_filetype.currentIndexChanged.connect(self.slot_change_filetype)        
         self.line_edit_file_name.editingFinished.connect(self.slot_change_filename)
         self.line_edit_starttime.editingFinished.connect(self.slot_change_file_stime)
         self.line_edit_endtime.editingFinished.connect(self.slot_change_file_etime)
         self.push_btn_apply_all_files.clicked.connect(self.slot_change_all_file_time)
+        self.tree_widget_export_paras.itemClicked.connect(self.slot_change_current_file)
         
         self.push_btn_confirm.clicked.connect(self.accept)
         self.push_btn_cancel.clicked.connect(self.reject)
@@ -1628,11 +1638,13 @@ class ParameterExportDialog(QDialog):
             filedir = filedir.replace('/','\\')
             self.line_edit_file_dir.setText(filedir)
             
-    def slot_change_current_file(self, index):
+    def slot_change_current_file(self, item):
         
-        file_dir = self.combo_box_filename.itemData(index, Qt.UserRole)
-        if file_dir:
-            filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+        index = self.tree_widget_export_paras.indexOfTopLevelItem(item)
+        if index != -1:
+            self.current_file_dir = item.data(0, Qt.UserRole)
+        if self.current_file_dir:
+            index, filename, filetype, stime, etime, paralist = self.file_info[self.current_file_dir]
             self.line_edit_starttime.setText(stime)
             self.line_edit_endtime.setText(etime)
             self.combo_box_filetype.setCurrentIndex(
@@ -1641,18 +1653,22 @@ class ParameterExportDialog(QDialog):
         
     def slot_change_filetype(self, index):
         
-        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.combo_box_filename.currentData()
+        file_dir = self.current_file_dir
         if file_dir:
-            filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
             filetype = self.combo_box_filetype.currentData()
-            self.file_info[file_dir] = (filename, filetype, stime, etime, paralist)
+            item = self.tree_widget_export_paras.topLevelItem(index)
+            item.setText(0, filename + filetype)
+            self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist)
             
     def slot_change_filename(self):
         
-        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.combo_box_filename.currentData()
+        file_dir = self.current_file_dir
         if file_dir:
             f = self.line_edit_file_name.text()
-            filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
             count = self.tree_widget_export_paras.topLevelItemCount()
             target_item = None
             is_exit = False
@@ -1663,27 +1679,35 @@ class ParameterExportDialog(QDialog):
                 if f == item.text(0):
                     is_exit = True
             if (not is_exit) and f:
-                self.combo_box_filename.setItemText(self.combo_box_filename.currentIndex(), f)
-                target_item.setText(0, f)
+#                self.combo_box_filename.setItemText(self.combo_box_filename.currentIndex(), f)
+                target_item.setText(0, f + filetype)
                 filename = f
-                self.file_info[file_dir] = (filename, filetype, stime, etime, paralist)
+                self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist)
             else:
                 self.line_edit_file_name.setText(filename)
                 
     def slot_change_file_stime(self):
         
-        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.combo_box_filename.currentData()
+        file_dir = self.current_file_dir
         if file_dir:
-            file = Normal_DataFile(file_dir)
+#            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
+            if file_dir[0] == '_':
+                data_stime = self.dict_data[file_dir].time_range[0]
+            else:
+                file = Normal_DataFile(file_dir)
+                data_stime = file.time_range[0]
             starttime = self.line_edit_starttime.text()
-            filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
             if Time_Model.is_std_format(starttime):
-                if Time_Model.is_in_range(file.time_range[0], etime, starttime):
+                if Time_Model.is_in_range(data_stime, etime, starttime):
 #                    输入正确的起始时间后，还需要转换成标准格式后再显示
                     self.line_edit_starttime.setText(
                             Time_Model.timestr_to_stdtimestr(starttime))
                     stime = Time_Model.timestr_to_stdtimestr(starttime)
-                    self.file_info[file_dir] = (filename, filetype, stime, etime, paralist)
+                    self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist)
+                    item = self.tree_widget_export_paras.topLevelItem(index)
+                    item.setText(1, stime)
                 else:
                     self.line_edit_starttime.setText(stime)
                     QMessageBox.information(self,
@@ -1702,18 +1726,26 @@ class ParameterExportDialog(QDialog):
     
     def slot_change_file_etime(self):
         
-        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.combo_box_filename.currentData()
+        file_dir = self.current_file_dir
         if file_dir:
-            file = Normal_DataFile(file_dir)
+#            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
+            if file_dir[0] == '_':
+                data_etime = self.dict_data[file_dir].time_range[1]
+            else:
+                file = Normal_DataFile(file_dir)
+                data_etime = file.time_range[1]
             endtime = self.line_edit_endtime.text()
-            filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
             if Time_Model.is_std_format(endtime):
-                if Time_Model.is_in_range(stime, file.time_range[1], endtime):
+                if Time_Model.is_in_range(stime, data_etime, endtime):
 #                    输入正确的起始时间后，还需要转换成标准格式后再显示
                     self.line_edit_endtime.setText(
                             Time_Model.timestr_to_stdtimestr(endtime))
                     etime = Time_Model.timestr_to_stdtimestr(endtime)
-                    self.file_info[file_dir] = (filename, filetype, stime, etime, paralist)
+                    self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist)
+                    item = self.tree_widget_export_paras.topLevelItem(index)
+                    item.setText(2, etime)
                 else:
                     self.line_edit_endtime.setText(etime)
                     QMessageBox.information(self,
@@ -1732,31 +1764,38 @@ class ParameterExportDialog(QDialog):
                 
     def slot_change_all_file_time(self):
         
-        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.combo_box_filename.currentData()
+        file_dir = self.current_file_dir
         if file_dir:
 #            确保时间是正确的
             self.slot_change_file_stime()
             self.slot_change_file_etime()
-            fn, ft, tstime, tetime, pl = self.file_info[file_dir]
+            index, fn, ft, tstime, tetime, pl = self.file_info[file_dir]
             for file in self.file_info:
                 if file != file_dir:
-                    filename, filetype, stime, etime, paralist = self.file_info[file]
+                    index, filename, filetype, stime, etime, paralist = self.file_info[file]
 #                    先判断开始时间
                     if Time_Model.is_in_range(stime, etime, tstime):
                         stime = tstime
-                        self.file_info[file] = (filename, filetype, stime, etime, paralist)
 #                    在判断结束时间
                     if Time_Model.is_in_range(stime, etime, tetime):
                         etime = tetime
-                        self.file_info[file] = (filename, filetype, stime, etime, paralist)
+                    item = self.tree_widget_export_paras.topLevelItem(index)
+                    item.setText(0, filename + ft)
+                    item.setText(1, stime)
+                    item.setText(2, etime)
+                    self.file_info[file] = (index, filename, ft, stime, etime, paralist)
                         
     def accept(self):
         
         for file_dir in self.file_info:
-            filename, filetype, stime, etime, paralist = self.file_info[file_dir]
-            file = Normal_DataFile(file_dir)
-            paralist.insert(0, file.paras_in_file[0])
-            data = file.cols_input(file_dir, paralist, '\s+', stime, etime)
+            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+#            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
+            if file_dir[0] == '_':
+                data = self.dict_data[file_dir].get_trange_data(stime, etime)
+            else:
+                data = DataFactory(file_dir, paralist)
+                data = data.get_trange_data(stime, etime)
             filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
             file_outpout = DataFile(filepath)
 #            导出TXT文件
@@ -1776,31 +1815,50 @@ class ParameterExportDialog(QDialog):
         stime = ''
         etime = ''
         f = ''
-        for i, file_dir in enumerate(dict_paras):
-            file = Normal_DataFile(file_dir)
-            filename = 'FASTPLOT datafile ' + str(i)
+        for index, file_dir in enumerate(dict_paras):
+            if type(dict_paras[file_dir]) == list:
+                file = Normal_DataFile(file_dir)
+                filename = file.filename[:-4] + '(export' + str(index) + ')'
+                start = file.time_range[0]
+                end = file.time_range[1]
+                paralist = dict_paras[file_dir]
+            elif type(dict_paras[file_dir]) == pd.DataFrame:
+                data = DataFactory(dict_paras[file_dir])
+                self.dict_data[file_dir] = data
+                filename = 'FastPlot DataFile ' + str(index)
+                start = data.time_range[0]
+                end = data.time_range[1]
+                paralist = data.get_paralist()
+            elif type(dict_paras[file_dir]) == DataFactory:
+                data = dict_paras[file_dir]
+                self.dict_data[file_dir] = data
+                filename = 'FastPlot DataFile ' + str(index)
+                start = data.time_range[0]
+                end = data.time_range[1]
+                paralist = data.get_paralist()
 #            在树组件中显示
             item = QTreeWidgetItem(self.tree_widget_export_paras)
             item.setIcon(0, self.outfile_icon)
-            item.setText(0, filename)
+            item.setText(0, filename + '.txt')
             item.setData(0, Qt.UserRole, file_dir)
-#            item.setText(1, 'TXT')
-#            item.setText(2, file.time_range[0])
-#            item.setText(3, file.time_range[1])
-            for paraname in dict_paras[file_dir]:
+            item.setText(1, start)
+            item.setText(2, end)
+            for paraname in paralist:
                 child_item = QTreeWidgetItem(item)
                 child_item.setText(0, paraname)
                 child_item.setIcon(0, self.para_icon)
 #            在复选框中显示
-            self.combo_box_filename.addItem(filename)
-            self.combo_box_filename.setItemData(i, file_dir, Qt.UserRole)
+#            self.combo_box_filename.addItem(filename)
+#            self.combo_box_filename.setItemData(i, file_dir, Qt.UserRole)
 #            存取文件信息（文件名，文件类型，起始时间，终止时间，排好序的参数列表），以供导出
-            self.file_info[file_dir] = (filename, '.txt', file.time_range[0], file.time_range[1], dict_paras[file_dir])
-            if i == 0:
-                stime = file.time_range[0]
-                etime = file.time_range[1]
+            self.file_info[file_dir] = (index, filename, '.txt', start, end, paralist)
+            if index == 0:
+                stime = start
+                etime = end
                 f = filename
-        self.combo_box_filename.setCurrentIndex(0)
+                self.current_file_dir = file_dir
+#        self.combo_box_filename.setCurrentIndex(0)
+        self.tree_widget_export_paras.setCurrentItem(self.tree_widget_export_paras.topLevelItem(0))
         self.combo_box_filetype.setCurrentIndex(0)
         self.line_edit_starttime.setText(stime)
         self.line_edit_endtime.setText(etime)
@@ -1813,14 +1871,13 @@ class ParameterExportDialog(QDialog):
         self.setWindowTitle(_translate('ParameterExportDialog', '导出参数数据'))
         self.group_box_preview.setTitle(_translate('ParameterExportDialog', '导出预览'))
         self.tree_widget_export_paras.headerItem().setText(0, _translate('ParameterExportDialog', '文件名'))
-#        self.tree_widget_export_paras.headerItem().setText(1, _translate('ParameterExportDialog', '文件类型'))
-#        self.tree_widget_export_paras.headerItem().setText(2, _translate('ParameterExportDialog', '起始时间'))
-#        self.tree_widget_export_paras.headerItem().setText(3, _translate('ParameterExportDialog', '终止时间'))
+        self.tree_widget_export_paras.headerItem().setText(1, _translate('ParameterExportDialog', '起始时间'))
+        self.tree_widget_export_paras.headerItem().setText(2, _translate('ParameterExportDialog', '终止时间'))
         self.group_box_setting.setTitle(_translate('ParameterExportDialog', '导出设置'))
         self.groupBox.setTitle(_translate('ParameterExportDialog', '时间设置'))
         self.label_starttime.setText(_translate('ParameterExportDialog', '起始时间'))
         self.label_endtime.setText(_translate('ParameterExportDialog', '终止时间'))
-        self.push_btn_apply_all_files.setText(_translate('ParameterExportDialog', '同步于所有文件'))
+        self.push_btn_apply_all_files.setText(_translate('ParameterExportDialog', '同步设置'))
         self.group_box_file_setting.setTitle(_translate('ParameterExportDialog', '文件设置'))
         self.label_file_type.setText(_translate('ParameterExportDialog', '文件类型'))
         self.label_file_name.setText(_translate('ParameterExportDialog', '文件名'))
@@ -1831,11 +1888,685 @@ class ParameterExportDialog(QDialog):
         self.combo_box_filetype.setItemText(2, _translate('ParameterExportDialog', 'MAT file'))
         self.push_btn_confirm.setText(_translate('ParameterExportDialog', '保存'))
         self.push_btn_cancel.setText(_translate('ParameterExportDialog', '取消'))
+        
+class FileProcessDialog(QDialog):
+    
+    def __init__(self, parent = None, files = [], time_intervals = {}):
+    
+        super().__init__(parent)
+        
+        self.outfile_icon = QIcon(CONSTANT.ICON_FILE_EXPORT)
+        self.para_icon = QIcon(CONSTANT.ICON_PARA)
+        self.file_icon = QIcon(CONSTANT.ICON_FILE)
+        self.file_info = {}
+        self.current_interval_item = None
+        self.current_floder_item = None
+        
+        self.setup()
+        self.display_file_info(files, time_intervals)
+    
+    def setup(self):
+        
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
+        self.resize(700, 480)
+        self.verticalLayout_5 = QVBoxLayout(self)
+        self.verticalLayout_5.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_5.setSpacing(2)
+        self.group_box_preview = QGroupBox(self)
+        self.verticalLayout = QVBoxLayout(self.group_box_preview)
+        self.verticalLayout.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout.setSpacing(2)
+        self.tree_widget_files = QTreeWidget(self.group_box_preview)
+#        让树可支持右键菜单(step 1)
+        self.tree_widget_files.setContextMenuPolicy(Qt.CustomContextMenu)
+#        添加右键动作
+        self.action_add_interval = QAction(self.tree_widget_files)
+        self.action_add_interval.setText(QCoreApplication.
+                                         translate('FileProcessDialog', '增加时间段'))
+        self.action_del_interval = QAction(self.tree_widget_files)
+        self.action_del_interval.setText(QCoreApplication.
+                                         translate('FileProcessDialog', '删除时间段'))
+        self.action_del_file = QAction(self.tree_widget_files)
+        self.action_del_file.setText(QCoreApplication.
+                                     translate('FileProcessDialog', '删除文件'))
+#        让顶级项没有扩展符空白
+#        self.tree_widget_files.setRootIsDecorated(False)
+#        设置树组件头部显示方式
+        headerview = self.tree_widget_files.header()
+        headerview.setSectionResizeMode(QHeaderView.ResizeToContents)
+        headerview.setMinimumSectionSize(100)
+        self.tree_widget_files.setHeader(headerview)
+        
+        self.verticalLayout.addWidget(self.tree_widget_files)
+        self.verticalLayout_5.addWidget(self.group_box_preview)
+        self.group_box_setting = QGroupBox(self)
+        self.verticalLayout_4 = QVBoxLayout(self.group_box_setting)
+        self.verticalLayout_4.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_4.setSpacing(2)
+#        self.combo_box_filename = QComboBox(self.group_box_setting)
+#        self.combo_box_filename.setMinimumSize(QSize(0, 24))
+#        self.combo_box_filename.setMaximumSize(QSize(16777215, 24))
+#        self.verticalLayout_4.addWidget(self.combo_box_filename)
+        self.groupBox = QGroupBox(self.group_box_setting)
+        self.horizontalLayout_7 = QHBoxLayout(self.groupBox)
+        self.horizontalLayout_7.setContentsMargins(2, 2, 2, 2)
+        self.horizontalLayout_7.setSpacing(2)
+        self.verticalLayout_3 = QVBoxLayout()
+        self.verticalLayout_3.setSpacing(2)
+        self.horizontalLayout = QHBoxLayout()
+        self.label_starttime = QLabel(self.groupBox)
+        self.label_starttime.setMinimumSize(QSize(60, 24))
+        self.label_starttime.setMaximumSize(QSize(60, 24))
+        self.horizontalLayout.addWidget(self.label_starttime)
+        self.line_edit_starttime = QLineEdit(self.groupBox)
+        self.line_edit_starttime.setMinimumSize(QSize(0, 24))
+        self.line_edit_starttime.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.line_edit_starttime)
+        self.label_endtime = QLabel(self.groupBox)
+        self.label_endtime.setMinimumSize(QSize(60, 24))
+        self.label_endtime.setMaximumSize(QSize(60, 24))
+        self.horizontalLayout.addWidget(self.label_endtime)
+        self.line_edit_endtime = QLineEdit(self.groupBox)
+        self.line_edit_endtime.setMinimumSize(QSize(0, 24))
+        self.line_edit_endtime.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.line_edit_endtime)
+        self.verticalLayout_3.addLayout(self.horizontalLayout)
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.label_fre = QLabel(self.groupBox)
+        self.label_fre.setMinimumSize(QSize(60, 24))
+        self.label_fre.setMaximumSize(QSize(60, 24))
+        self.horizontalLayout_6.addWidget(self.label_fre)
+        self.line_edit_fre = QLineEdit(self.groupBox)
+        self.line_edit_fre.setMinimumSize(QSize(0, 24))
+        self.line_edit_fre.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout_6.addWidget(self.line_edit_fre)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_6)
+        self.horizontalLayout_7.addLayout(self.verticalLayout_3)
+#        self.push_btn_apply_all_files = QPushButton(self.groupBox)
+#        self.push_btn_apply_all_files.setMinimumSize(QSize(100, 24))
+#        self.push_btn_apply_all_files.setMaximumSize(QSize(100, 24))
+##        避免按钮默认选中并按Enter键会执行的情况
+#        self.push_btn_apply_all_files.setFocusPolicy(Qt.NoFocus) 
+#        self.horizontalLayout_7.addWidget(self.push_btn_apply_all_files)
+        self.verticalLayout_4.addWidget(self.groupBox)
+        self.group_box_file_setting = QGroupBox(self.group_box_setting)
+        self.verticalLayout_2 = QVBoxLayout(self.group_box_file_setting)
+        self.verticalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_2.setSpacing(2)
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.label_file_type = QLabel(self.group_box_file_setting)
+        self.label_file_type.setMinimumSize(QSize(60, 24))
+        self.label_file_type.setMaximumSize(QSize(60, 24))
+        self.horizontalLayout_3.addWidget(self.label_file_type)
+        self.combo_box_filetype = QComboBox(self.group_box_file_setting)
+        self.combo_box_filetype.setMinimumSize(QSize(0, 24))
+        self.combo_box_filetype.setMaximumSize(QSize(16777215, 24))
+        self.combo_box_filetype.addItem('')
+#        设置每个项目的数据，为后续选择导出文件所使用
+        self.combo_box_filetype.setItemData(0, '.txt', Qt.UserRole)
+        self.combo_box_filetype.addItem('')
+        self.combo_box_filetype.setItemData(1, '.csv', Qt.UserRole)
+        self.combo_box_filetype.addItem('')
+        self.combo_box_filetype.setItemData(2, '.mat', Qt.UserRole)
+        self.horizontalLayout_3.addWidget(self.combo_box_filetype)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.label_file_name = QLabel(self.group_box_file_setting)
+        self.label_file_name.setMinimumSize(QSize(60, 24))
+        self.label_file_name.setMaximumSize(QSize(60, 24))
+        self.horizontalLayout_4.addWidget(self.label_file_name)
+        self.line_edit_file_name = QLineEdit(self.group_box_file_setting)
+        self.line_edit_file_name.setMinimumSize(QSize(0, 24))
+        self.line_edit_file_name.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout_4.addWidget(self.line_edit_file_name)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_4)
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.label_file_dir = QLabel(self.group_box_file_setting)
+        self.label_file_dir.setMinimumSize(QSize(60, 24))
+        self.label_file_dir.setMaximumSize(QSize(60, 24))
+        self.horizontalLayout_2.addWidget(self.label_file_dir)
+        self.line_edit_file_dir = QLineEdit(self.group_box_file_setting)
+        self.line_edit_file_dir.setMinimumSize(QSize(0, 24))
+        self.line_edit_file_dir.setMaximumSize(QSize(16777215, 24))
+        self.line_edit_file_dir.setReadOnly(True)
+        self.horizontalLayout_2.addWidget(self.line_edit_file_dir)
+        self.tool_btn_sel_filedir = QToolButton(self.group_box_file_setting)
+        self.tool_btn_sel_filedir.setMinimumSize(QSize(24, 24))
+        self.tool_btn_sel_filedir.setMaximumSize(QSize(24, 24))
+        self.horizontalLayout_2.addWidget(self.tool_btn_sel_filedir)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
+        self.verticalLayout_4.addWidget(self.group_box_file_setting)
+        self.verticalLayout_5.addWidget(self.group_box_setting)
+        self.horizontalLayout_5 = QHBoxLayout()
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_5.addItem(spacerItem)
+        self.push_btn_easter_egg = QPushButton(self)
+        self.push_btn_easter_egg.setHidden(True)
+        self.horizontalLayout_5.addWidget(self.push_btn_easter_egg)
+        self.push_btn_apply_all_files = QPushButton(self.groupBox)
+        self.push_btn_apply_all_files.setMinimumSize(QSize(100, 24))
+        self.push_btn_apply_all_files.setMaximumSize(QSize(100, 24))
+#        避免按钮默认选中并按Enter键会执行的情况
+        self.push_btn_apply_all_files.setFocusPolicy(Qt.NoFocus)
+        self.horizontalLayout_5.addWidget(self.push_btn_apply_all_files)
+        self.push_btn_confirm = QPushButton(self)
+        self.push_btn_confirm.setMinimumSize(QSize(0, 24))
+        self.push_btn_confirm.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout_5.addWidget(self.push_btn_confirm)
+        self.push_btn_cancel = QPushButton(self)
+        self.push_btn_cancel.setMinimumSize(QSize(0, 24))
+        self.push_btn_cancel.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout_5.addWidget(self.push_btn_cancel)
+        self.verticalLayout_5.addLayout(self.horizontalLayout_5)
+
+        self.retranslateUi()
+# =======连接信号与槽
+# =============================================================================
+#        使右键时能弹出菜单(step 2)
+        self.tree_widget_files.customContextMenuRequested.connect(
+                self.on_tree_context_menu)
+        self.action_add_interval.triggered.connect(self.slot_add_interval)
+        self.action_del_interval.triggered.connect(self.slot_del_interval)
+        self.action_del_file.triggered.connect(self.slot_del_file)
+        
+        self.tool_btn_sel_filedir.clicked.connect(self.slot_sel_dir)        
+#        self.combo_box_filename.currentIndexChanged.connect(self.slot_change_current_file)
+        self.tree_widget_files.itemClicked.connect(self.slot_change_current_file)
+        self.combo_box_filetype.currentIndexChanged.connect(self.slot_change_filetype)        
+        self.line_edit_file_name.editingFinished.connect(self.slot_change_filename)
+        self.line_edit_starttime.editingFinished.connect(self.slot_change_file_stime)
+        self.line_edit_endtime.editingFinished.connect(self.slot_change_file_etime)
+        self.line_edit_fre.editingFinished.connect(self.slot_change_fre)
+        self.push_btn_apply_all_files.clicked.connect(self.slot_change_all_file_time)
+        
+        self.push_btn_confirm.clicked.connect(self.accept)
+        self.push_btn_cancel.clicked.connect(self.reject)
+
+#    右键菜单的事件处理(step 3)
+    def on_tree_context_menu(self, pos):
+        
+#        记录右击时鼠标所在的item
+        sel_item = self.tree_widget_files.itemAt(pos)
+        
+#        如果鼠标不在item上，不显示右键菜单
+        if sel_item:
+#            创建菜单，添加动作，显示菜单
+            menu = QMenu(self.tree_widget_files)
+            menu.addActions([self.action_add_interval,
+                             self.action_del_interval,
+                             self.action_del_file])
+            if sel_item.parent():
+                self.slot_change_current_file(sel_item)
+                self.action_add_interval.setDisabled(True)
+                self.action_del_interval.setDisabled(False)
+                self.action_del_file.setDisabled(True)
+            else:
+                self.current_floder_item = sel_item
+                self.action_add_interval.setDisabled(False)
+                self.action_del_interval.setDisabled(True)
+                self.action_del_file.setDisabled(False)
+            menu.exec_(self.tree_widget_files.mapToGlobal(pos))
+            
+    def slot_add_interval(self):
+        
+        if self.current_floder_item:
+            file_dir = self.current_floder_item.data(0, Qt.UserRole)
+            file = Normal_DataFile(file_dir)
+            start = file.time_range[0]
+            end = file.time_range[1]
+            fre = file.sample_frequency
+            
+            label_file =  file_dir + 'Interval1'
+            i = 1
+            while label_file in self.file_info:
+                i += 1
+                label_file = file_dir + 'Interval' + str(i)
+            filename = 'Interval' + str(i)
+            
+            item = QTreeWidgetItem(self.current_floder_item)
+            item.setIcon(0, self.file_icon)
+            item.setText(0, filename + '.txt')
+            item.setData(0, Qt.UserRole, label_file)
+            item.setText(1, start)
+            item.setText(2, end)
+            item.setText(3, str(fre))
+            self.file_info[label_file] = (item, file_dir, filename, '.txt', start, end, fre)
+            self.slot_change_current_file(item)
+    
+    def slot_del_interval(self):
+        
+        if self.current_interval_item:
+            label_file = self.current_interval_item.data(0, Qt.UserRole)
+            del self.file_info[label_file] 
+            parent = self.current_interval_item.parent()
+            parent.takeChild(parent.indexOfChild(self.current_interval_item))
+            if parent.childCount() == 0:
+                self.tree_widget_files.takeTopLevelItem(
+                    self.tree_widget_files.indexOfTopLevelItem(parent))
+            self.current_interval_item = None
+            self.slot_change_current_file(None)
+    
+    def slot_del_file(self):
+        
+        if self.current_floder_item:
+            childs = self.current_floder_item.takeChildren()
+            if self.current_interval_item in childs:
+                self.current_interval_item = None
+                self.slot_change_current_file(None)
+            for child in childs:
+                label_file = child.data(0, Qt.UserRole)
+                del self.file_info[label_file]
+            self.tree_widget_files.takeTopLevelItem(
+                    self.tree_widget_files.indexOfTopLevelItem(self.current_floder_item))
+            self.current_floder_item = None
+        
+#    让用户选择项目的路径
+    def slot_sel_dir(self):
+        
+        filedir = QFileDialog.getExistingDirectory(self, QCoreApplication.translate('FileProcessDialog', '导出路径'),
+                                                   CONSTANT.SETUP_DIR)
+        if filedir:
+            filedir = filedir.replace('/','\\')
+            self.line_edit_file_dir.setText(filedir)
+            
+    def slot_change_current_file(self, item):
+        
+#        file_dir = self.combo_box_filename.itemData(index, Qt.UserRole)
+        index = self.tree_widget_files.indexOfTopLevelItem(item)
+        if index == -1:
+            self.current_interval_item = item
+        if self.current_interval_item:
+            self.group_box_setting.setEnabled(True)
+            label = self.current_interval_item.data(0, Qt.UserRole)
+            file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
+            self.line_edit_starttime.setText(stime)
+            self.line_edit_endtime.setText(etime)
+            self.line_edit_fre.setText(str(fre))
+            self.combo_box_filetype.setCurrentIndex(
+                    self.combo_box_filetype.findData(filetype, Qt.UserRole))
+            self.line_edit_file_name.setText(filename)
+        else:
+            self.group_box_setting.setEnabled(False)
+            self.line_edit_endtime.clear()
+            self.line_edit_starttime.clear()
+            self.line_edit_fre.clear()
+            self.line_edit_file_name.clear()
+        
+    def slot_change_filetype(self, index):
+        
+#        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.current_file_dir
+        if self.current_interval_item:
+            label = self.current_interval_item.data(0, Qt.UserRole)
+            file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
+            filetype = self.combo_box_filetype.currentData()
+            file_item.setText(0, filename + filetype)
+            self.file_info[label] = (file_item, file_dir, filename, filetype, stime, etime, fre)
+            
+    def slot_change_filename(self):
+        
+#        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.current_file_dir
+        if self.current_interval_item:
+            label = self.current_interval_item.data(0, Qt.UserRole)
+            f = self.line_edit_file_name.text()
+            file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
+            is_exit = False
+            for file_label in self.file_info:
+                fi, fd, fn, ft, st, et, fr = self.file_info[file_label]
+                if f == fn and label != file_label:
+                    is_exit = True
+            if (not is_exit) and f:
+#                self.combo_box_filename.setItemText(self.combo_box_filename.currentIndex(), f)
+                file_item.setText(0, f + filetype)
+                self.file_info[label] = (file_item, file_dir, f, filetype, stime, etime, fre)
+            else:
+                self.line_edit_file_name.setText(filename)
+                
+    def slot_change_file_stime(self):
+        
+#        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.current_file_dir
+        if self.current_interval_item:
+            parent = self.current_interval_item.parent()
+            file_dir = parent.data(0, Qt.UserRole)
+            label = self.current_interval_item.data(0, Qt.UserRole)
+#            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
+            file = Normal_DataFile(file_dir)
+            data_stime = file.time_range[0]
+            starttime = self.line_edit_starttime.text()
+            file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
+            if Time_Model.is_std_format(starttime):
+                if Time_Model.is_in_range(data_stime, etime, starttime):
+#                    输入正确的起始时间后，还需要转换成标准格式后再显示
+                    self.line_edit_starttime.setText(
+                            Time_Model.timestr_to_stdtimestr(starttime))
+                    stime = Time_Model.timestr_to_stdtimestr(starttime)
+                    self.file_info[label] = (file_item, file_dir, filename, filetype, stime, etime, fre)
+                    file_item.setText(1, stime)
+                else:
+                    self.line_edit_starttime.setText(stime)
+                    QMessageBox.information(self,
+                                    QCoreApplication.translate('FileProcessDialog', '输入提示'),
+                                    QCoreApplication.translate('FileProcessDialog', '起始时间不在范围内'))
+            else:
+                self.line_edit_starttime.setText(stime)
+                QMessageBox.information(self,
+                                QCoreApplication.translate('FileProcessDialog', '输入提示'),
+                                QCoreApplication.translate('FileProcessDialog', '''<b>请输入正确时间格式</b>
+                                                           <br>HH
+                                                           <br>HH:MM
+                                                           <br>HH:MM:SS
+                                                           <br>HH:MM:SS.FFF
+                                                           <br>HH:MM:SS:FFF'''))
+    
+    def slot_change_file_etime(self):
+        
+#        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.current_file_dir
+        if self.current_interval_item:
+            parent = self.current_interval_item.parent()
+            file_dir = parent.data(0, Qt.UserRole)
+            label = self.current_interval_item.data(0, Qt.UserRole)
+#            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
+            file = Normal_DataFile(file_dir)
+            data_etime = file.time_range[1]
+            endtime = self.line_edit_endtime.text()
+            file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
+            if Time_Model.is_std_format(endtime):
+                if Time_Model.is_in_range(stime, data_etime, endtime):
+#                    输入正确的起始时间后，还需要转换成标准格式后再显示
+                    self.line_edit_endtime.setText(
+                            Time_Model.timestr_to_stdtimestr(endtime))
+                    etime = Time_Model.timestr_to_stdtimestr(endtime)
+                    self.file_info[label] = (file_item, file_dir, filename, filetype, stime, etime, fre)
+                    file_item.setText(2, etime)
+                else:
+                    self.line_edit_endtime.setText(etime)
+                    QMessageBox.information(self,
+                                    QCoreApplication.translate('FileProcessDialog', '输入提示'),
+                                    QCoreApplication.translate('FileProcessDialog', '终止时间不在范围内'))
+            else:
+                self.line_edit_endtime.setText(etime)
+                QMessageBox.information(self,
+                                QCoreApplication.translate('FileProcessDialog', '输入提示'),
+                                QCoreApplication.translate('FileProcessDialog', '''<b>请输入正确时间格式</b>
+                                                           <br>HH
+                                                           <br>HH:MM
+                                                           <br>HH:MM:SS
+                                                           <br>HH:MM:SS.FFF
+                                                           <br>HH:MM:SS:FFF'''))
+    
+    def slot_change_fre(self):
+        
+#        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.current_file_dir
+        if self.current_interval_item:
+            label = self.current_interval_item.data(0, Qt.UserRole)
+            file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
+            str_fre = self.line_edit_fre.text()
+            if str_fre:
+                try:
+                    f = int(str_fre)
+                    if f <= 0:
+                        QMessageBox.information(self,
+                                        QCoreApplication.translate('FileProcessDialog', '输入提示'),
+                                        QCoreApplication.translate('FileProcessDialog', '频率不能小于等于0'))
+                    else:
+                        fre = f
+                except:
+                    QMessageBox.information(self,
+                                    QCoreApplication.translate('FileProcessDialog', '输入提示'),
+                                    QCoreApplication.translate('FileProcessDialog', '频率非整数'))
+                finally:
+                    pass
+                self.line_edit_fre.setText(str(fre))
+                file_item.setText(3, str(fre))
+                self.file_info[label] = (file_item, file_dir, filename, filetype, stime, etime, fre)
+                
+    def slot_change_all_file_time(self):
+        
+#        file_dir = self.combo_box_filename.currentData()
+#        file_dir = self.current_file_dir
+        if self.current_interval_item:
+            label = self.current_interval_item.data(0, Qt.UserRole)
+#            确保时间是正确的
+            self.slot_change_file_stime()
+            self.slot_change_file_etime()
+            self.slot_change_fre()
+            file_item, fd, fn, ft, tstime, tetime, f = self.file_info[label]
+            for file in self.file_info:
+                if file != label:
+                    file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[file]
+#                    先判断开始时间
+#                    if Time_Model.is_in_range(stime, etime, tstime):
+#                        stime = tstime
+#                    在判断结束时间
+#                    if Time_Model.is_in_range(stime, etime, tetime):
+#                        etime = tetime
+                    file_item.setText(0, filename + ft)
+#                    file_item.setText(1, stime)
+#                    file_item.setText(2, etime)
+                    file_item.setText(3, str(f))
+                    self.file_info[file] = (file_item, file_dir, filename, ft, stime, etime, f)
+                        
+    def accept(self):
+        
+#        if self.tree_widget_files:
+#            count = self.tree_widget_files.topLevelItemCount()
+#            for i in range(count):
+#                parent = self.tree_widget_files.topLevelItem(i)
+#                file_dir = parent.data(0, Qt.UserRole)
+#                file = Normal_DataFile(file_dir)
+#                data = file.cols_input(file_dir, file.paras_in_file, '\s+', stime, etime)
+#                childs = parent.child()
+        for label in self.file_info:
+            file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
+            file = Normal_DataFile(file_dir)
+            folder = self.line_edit_file_dir.text() + '\\' + file.filename[:-4]
+            if not os.path.exists(folder):
+                os.mkdir(folder)
+            data = file.cols_input(file_dir, file.paras_in_file, '\s+', stime, etime)
+            ana = DataAnalysis()
+            if fre > file.sample_frequency:
+                data = ana.upsample(data, fre)
+            if fre < file.sample_frequency:
+                data = ana.downsample(data, fre)
+            filepath = folder + '\\' + filename + filetype
+            file_outpout = DataFile(filepath)
+#            导出TXT文件
+            if filetype == '.txt':
+                file_outpout.save_file(filepath , data , sep = '\t')
+#            导出CSV文件
+            if filetype == '.csv':
+                file_outpout.save_file(filepath , data , sep = ',')
+#            导出MAT文件
+            if filetype == '.mat':
+                file_outpout.save_matfile(filepath, data)
+        
+        QDialog.accept(self)
+            
+    def display_file_info(self, files, time_intervals):
+
+        for index, file_dir in enumerate(files):
+            file = Normal_DataFile(file_dir)
+            filename = file.filename[:-4]
+            start = file.time_range[0]
+            end = file.time_range[1]
+            fre = file.sample_frequency
+#            在树组件中显示
+            item = QTreeWidgetItem(self.tree_widget_files)
+            item.setIcon(0, self.outfile_icon)
+            dis_str= filename + '-(' + start + '-' + end + ')-' + str(fre)
+            item.setText(0, dis_str)
+            item.setData(0, Qt.UserRole, file_dir)
+#            item.setText(1, start)
+#            item.setText(2, end)
+#            item.setText(3, str(fre))
+            if time_intervals:
+                for i, interval_name in enumerate(time_intervals):
+                    ti = time_intervals[interval_name]
+                    result_ti = Time_Model.and_time_intervals((start, end), ti)
+                    if result_ti:
+                        ti_st, ti_et = result_ti
+                        label_file = file_dir + interval_name
+                        child = QTreeWidgetItem(item)
+                        child.setIcon(0, self.file_icon)
+                        ti_name = interval_name
+                        child.setText(0, ti_name + '.txt')
+                        child.setData(0, Qt.UserRole, label_file)
+                        child.setText(1, ti_st)
+                        child.setText(2, ti_et)
+                        child.setText(3, str(fre))
+                        self.file_info[label_file] = (child, file_dir, ti_name, '.txt', ti_st, ti_et, fre)
+                        if index == 0 and i == 0:
+                            display_stime = ti_st
+                            display_etime = ti_et
+                            display_f = fre
+                            display_fname = ti_name
+                            self.current_interval_item = child
+#            如果没有输入时间段，则默认导出整段时间
+            else:
+                label_file = file_dir + ' Whole'
+                child = QTreeWidgetItem(item)
+                child.setIcon(0, self.file_icon)
+                child.setText(0, filename + '.txt')
+                child.setData(0, Qt.UserRole, label_file)
+                child.setText(1, start)
+                child.setText(2, end)
+                child.setText(3, str(fre))
+#            在复选框中显示
+#            self.combo_box_filename.addItem(filename)
+#            self.combo_box_filename.setItemData(i, file_dir, Qt.UserRole)
+#            存取文件信息（文件对应的item，文件路径，输出文件名，输出文件类型，起始时间，终止时间，频率），以供导出
+                self.file_info[label_file] = (child, file_dir, filename, '.txt', start, end, fre)
+                if index == 0:
+                    self.current_interval_item = child
+                    display_stime = start
+                    display_etime = end
+                    display_f = fre
+                    display_fname = filename
+#        self.combo_box_filename.setCurrentIndex(0)
+        self.tree_widget_files.setCurrentItem(self.current_interval_item)
+        self.tree_widget_files.expandAll()
+        self.combo_box_filetype.setCurrentIndex(0)
+        self.line_edit_starttime.setText(display_stime)
+        self.line_edit_endtime.setText(display_etime)
+        self.line_edit_fre.setText(str(display_f))
+        self.line_edit_file_name.setText(display_fname)
+        self.line_edit_file_dir.setText(CONSTANT.SETUP_DIR)
+
+    def retranslateUi(self):
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('FileProcessDialog', '文件处理'))
+        self.group_box_preview.setTitle(_translate('FileProcessDialog', '预览'))
+        self.tree_widget_files.headerItem().setText(0, _translate('FileProcessDialog', '文件名'))
+        self.tree_widget_files.headerItem().setText(1, _translate('FileProcessDialog', '起始时间'))
+        self.tree_widget_files.headerItem().setText(2, _translate('FileProcessDialog', '终止时间'))
+        self.tree_widget_files.headerItem().setText(3, _translate('FileProcessDialog', '频率'))
+        self.group_box_setting.setTitle(_translate('FileProcessDialog', '设置'))
+        self.groupBox.setTitle(_translate('FileProcessDialog', '时间设置'))
+        self.label_starttime.setText(_translate('FileProcessDialog', '起始时间'))
+        self.label_endtime.setText(_translate('FileProcessDialog', '终止时间'))
+        self.label_fre.setText(_translate('FileProcessDialog', '频率'))
+        self.push_btn_apply_all_files.setText(_translate('FileProcessDialog', '同步设置'))
+        self.group_box_file_setting.setTitle(_translate('FileProcessDialog', '文件设置'))
+        self.label_file_type.setText(_translate('FileProcessDialog', '文件类型'))
+        self.label_file_name.setText(_translate('FileProcessDialog', '文件名'))
+        self.label_file_dir.setText(_translate('FileProcessDialog', '文件路径'))
+        self.tool_btn_sel_filedir.setText(_translate('FileProcessDialog', '...'))
+        self.combo_box_filetype.setItemText(0, _translate('ParameterExportDialog', 'TXT file'))
+        self.combo_box_filetype.setItemText(1, _translate('ParameterExportDialog', 'CSV file'))
+        self.combo_box_filetype.setItemText(2, _translate('ParameterExportDialog', 'MAT file'))
+        self.push_btn_confirm.setText(_translate('FileProcessDialog', '保存'))
+        self.push_btn_cancel.setText(_translate('FileProcessDialog', '取消'))
+        
+class SelFunctionDialog(QDialog):
+    
+    def __init__(self, parent = None):
+    
+        super().__init__(parent)
+        
+        self.index = -1
+        
+        self.setup()
+        
+    def setup(self):
+
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
+        self.resize(250, 180)
+        self.verticalLayout_2 = QVBoxLayout(self)
+        self.verticalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_2.setSpacing(2)
+        self.groupBox = QGroupBox(self)
+        self.verticalLayout = QVBoxLayout(self.groupBox)
+        self.verticalLayout.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout.setSpacing(2)
+        self.btn_import_fig_paras = QPushButton(self.groupBox)
+        self.btn_import_fig_paras.setMinimumSize(QSize(0, 24))
+        self.btn_import_fig_paras.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout.addWidget(self.btn_import_fig_paras)
+        self.btn_import_files = QPushButton(self.groupBox)
+        self.btn_import_files.setMinimumSize(QSize(0, 24))
+        self.btn_import_files.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout.addWidget(self.btn_import_files)
+        self.btn_aver = QPushButton(self.groupBox)
+        self.btn_aver.setMinimumSize(QSize(0, 24))
+        self.btn_aver.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout.addWidget(self.btn_aver)
+        self.btn_max = QPushButton(self.groupBox)
+        self.btn_max.setMinimumSize(QSize(0, 24))
+        self.btn_max.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout.addWidget(self.btn_max)
+        self.btn_min = QPushButton(self.groupBox)
+        self.btn_min.setMinimumSize(QSize(0, 24))
+        self.btn_min.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout.addWidget(self.btn_min)
+        self.verticalLayout_2.addWidget(self.groupBox)
+
+        self.retranslateUi()
+        
+        self.btn_import_fig_paras.clicked.connect(self.slot_get_index)
+        self.btn_import_files.clicked.connect(self.slot_get_index)
+        self.btn_aver.clicked.connect(self.slot_get_index)
+        self.btn_max.clicked.connect(self.slot_get_index)
+        self.btn_min.clicked.connect(self.slot_get_index)
+        
+    def slot_get_index(self):
+        
+#        接收发出信号的那个对象
+        sender = QObject.sender(self)
+        if (sender == self.btn_import_fig_paras):
+            self.index = 0
+        if (sender == self.btn_import_files):
+            self.index = 1
+        if (sender == self.btn_aver):
+            self.index = 2
+        if (sender == self.btn_max):
+            self.index = 3
+        if (sender == self.btn_min):
+            self.index = 4
+        QDialog.accept(self)
+
+    def retranslateUi(self):
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('SelFunctionDialog', '选择功能'))
+        self.groupBox.setTitle(_translate('SelFunctionDialog', '请选择功能'))
+        self.btn_import_fig_paras.setText(_translate('SelFunctionDialog', '导出时间段数据（绘图参数）'))
+        self.btn_import_files.setText(_translate('SelFunctionDialog', '导出时间段数据（文件）'))
+        self.btn_aver.setText(_translate('SelFunctionDialog', '导出各时间段的平均值'))
+        self.btn_max.setText(_translate('SelFunctionDialog', '导出各时间段的最大值'))
+        self.btn_min.setText(_translate('SelFunctionDialog', '导出各时间段的最小值'))
+
 
 #测试用     
 if __name__ == '__main__':
     
     app = QApplication(sys.argv)
-    d = AxisSettingDialog()
+    d = SelFunctionDialog()
     d.show()
     app.exec_()
