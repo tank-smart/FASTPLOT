@@ -95,7 +95,18 @@ class PlotCanvas(FigureCanvas):
         self.toolbar.hide()
 #------王--改动开始
 
+#        Times New Roman字体的斜体
+#        self.font_timesi = matplotlib.font_manager.FontProperties(
+#                fname = CONSTANT.SETUP_DIR + r'\data\fonts\timesi.ttf')
+#        Times New Roman字体
+#        self.font_times = matplotlib.font_manager.FontProperties(
+#                fname = CONSTANT.SETUP_DIR + r'\data\fonts\times.ttf')
+#        微软雅黑
+#        self.font_msyh = matplotlib.font_manager.FontProperties(
+#                fname = CONSTANT.SETUP_DIR + r'\data\fonts\msyh.ttf')
+#        当前软件已导入的文件
         self._current_files = []
+#        当前的数据字典
         self._data_dict = {}
 #        存储曲线颜色
         prop_cycle = plt.rcParams['axes.prop_cycle']
@@ -125,8 +136,8 @@ class PlotCanvas(FigureCanvas):
         
         self.axis_menu_on = None
         
-        self.current_markline_color = 'black'
-        self.current_markline_style = '--'
+        self.current_markline_color = 'red'
+        self.current_markline_style = '-'
         
         self.cid_press_new_hline = None
         self.cid_press_new_vline = None
@@ -799,7 +810,7 @@ class PlotCanvas(FigureCanvas):
             matplotlib.rcParams['ytick.direction'] = 'in'
 #            支持中文显示
 #            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
-#            matplotlib.rcParams['axes.unicode_minus'] = False
+            matplotlib.rcParams['axes.unicode_minus'] = False
             
             count = len(self.sorted_paralist)
     
@@ -824,6 +835,11 @@ class PlotCanvas(FigureCanvas):
                                 label = pn,
                                 color = self.curve_colors[self.color_index],
                                 lw = 1)
+                    else:
+                        ax.plot(self.time_series_list[index], 
+                                self.total_data[index].data[paraname],
+                                color = self.curve_colors[self.color_index],
+                                lw = 1)
                 else:
                     ax.plot(self.time_series_list[index], 
                             self.total_data[index].data[paraname],
@@ -833,14 +849,19 @@ class PlotCanvas(FigureCanvas):
                 if i != (count - 1):
                     plt.setp(ax.get_xticklabels(), visible = False)
                 else:
+#                    若已指定fontproperties属性，则fontsize不起作用
                     plt.setp(ax.get_xticklabels(), fontsize = self.default_fontsize,
                              horizontalalignment = 'center',
-                             rotation = 'horizontal')
-                plt.setp(ax.get_yticklabels(), fontsize = self.default_fontsize)
+                             rotation = 'horizontal',
+                             fontproperties = CONSTANT.FONT_MSYH)
+#                    ax.set_xlabel('Time', fontproperties = self.font_times)
+                plt.setp(ax.get_yticklabels(), fontsize = self.default_fontsize,
+                         fontproperties = CONSTANT.FONT_MSYH)
                 ax.legend(fontsize = self.default_fontsize,
-                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15)
+                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
+                          prop = CONSTANT.FONT_MSYH)
                 ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-                ax.xaxis.set_major_locator(MaxNLocator(nbins=8))
+                ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
                 ax.xaxis.set_minor_locator(AutoMinorLocator(n=3))
                 ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
                 ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))

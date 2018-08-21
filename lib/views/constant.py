@@ -3,8 +3,12 @@
 #from PyQt5.QtGui import QIcon
 import sys
 import os.path as osp
+import matplotlib
 
 SETUP_DIR = osp.abspath(osp.join(osp.dirname(sys.argv[0]), osp.pardir))
+FONT_MSYH = matplotlib.font_manager.FontProperties(
+                fname = SETUP_DIR + r'\data\fonts\msyh.ttf',
+                size = 8)
 
 ICON_WINDOW = SETUP_DIR + r'\lib\icon\window.png'
 

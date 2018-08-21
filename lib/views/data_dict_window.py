@@ -233,7 +233,8 @@ class DataDictWindow(QWidget):
 #                        readline函数会把'\n'也读进来，去除'\n'
                         para_info = line.strip('\n')
                         para_info_list = para_info.split()
-                        self.data_dict[para_info_list[0]] = para_info_list[1:]
+                        if not(para_info_list[0] in self.data_dict):
+                            self.data_dict[para_info_list[0]] = para_info_list[1:]
                         line = file.readline()
         except:
             pass

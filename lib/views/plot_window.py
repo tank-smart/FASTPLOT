@@ -148,12 +148,12 @@ class PlotWindow(QWidget):
         self.button_zoom.setCheckable(True)
         self.button_zoom.setIcon(QIcon(CONSTANT.ICON_ZOOM))
         self.verticalLayout.addWidget(self.button_zoom)
-        self.button_plot_setting = QToolButton(self.widget_plot_tools)
-        self.button_plot_setting.setMinimumSize(QSize(30, 30))
-        self.button_plot_setting.setMaximumSize(QSize(30, 30))
-        self.button_plot_setting.setIconSize(QSize(22, 22))
-        self.button_plot_setting.setIcon(QIcon(CONSTANT.ICON_PLOT_SETTING))
-        self.verticalLayout.addWidget(self.button_plot_setting)
+#        self.button_plot_setting = QToolButton(self.widget_plot_tools)
+#        self.button_plot_setting.setMinimumSize(QSize(30, 30))
+#        self.button_plot_setting.setMaximumSize(QSize(30, 30))
+#        self.button_plot_setting.setIconSize(QSize(22, 22))
+#        self.button_plot_setting.setIcon(QIcon(CONSTANT.ICON_PLOT_SETTING))
+#        self.verticalLayout.addWidget(self.button_plot_setting)
 #        self.button_edit = QToolButton(self.widget_plot_tools)
 #        self.button_edit.setMinimumSize(QSize(30, 30))
 #        self.button_edit.setMaximumSize(QSize(30, 30))
@@ -278,7 +278,7 @@ class PlotWindow(QWidget):
         self.button_home.clicked.connect(self.plotcanvas.toolbar.home)
         self.button_pan.clicked.connect(self.slot_pan)
         self.button_zoom.clicked.connect(self.slot_zoom)
-        self.button_plot_setting.clicked.connect(self.plotcanvas.slot_plot_setting)
+#        self.button_plot_setting.clicked.connect(self.plotcanvas.slot_plot_setting)
 #        self.button_edit.clicked.connect(self.plotcanvas.toolbar.edit_parameters)
 #        self.button_config.clicked.connect(self.plotcanvas.toolbar.configure_subplots)
         self.button_save.clicked.connect(self.slot_save_figure)
@@ -557,30 +557,39 @@ class PlotWindow(QWidget):
 
     def slot_clear_canvas(self):
         
-        self.plotcanvas.slot_clear_canvas()
-#        如果画的图多会出现滚动条，此时清除画布，滚动条不会消失，因此采用此行解决
-        self.scrollarea.setWidgetResizable(True)
-        self.count_axis = 0
-        self.timestamps = []
-        self.plotcanvas.time_intervals = {}
-        self.combo_box_time.clear()
-        self.combo_box_time_intervals.clear()
-        self.label_time.setText('00:00:00.000')
-        self.table_widget_value.clearContents()
-        self.table_widget_value.setRowCount(0)
+        message = QMessageBox.warning(self,
+              QCoreApplication.translate('PlotWindow', '清除画布'),
+              QCoreApplication.translate('PlotWindow', '确定要清除画布吗'),
+              QMessageBox.Yes | QMessageBox.No)
+        if (message == QMessageBox.Yes):
+            self.plotcanvas.slot_clear_canvas()
+#            如果画的图多会出现滚动条，此时清除画布，滚动条不会消失，因此采用此行解决
+            self.scrollarea.setWidgetResizable(True)
+            self.count_axis = 0
+            self.timestamps = []
+            self.plotcanvas.time_intervals = {}
+            self.combo_box_time.clear()
+            self.combo_box_time_intervals.clear()
+            self.label_time.setText('00:00:00.000')
+            self.table_widget_value.clearContents()
+            self.table_widget_value.setRowCount(0)
         
     def slot_save_figure(self):
         
-        letter_space = 18
 #        将画布变形成合适的尺寸
         self.scrollarea.setWidgetResizable(False)
-        h = self.count_axis * 150
-        w = 680
+#        图注高度
+        legend_h = 18
+#        坐标高度
+        axis_h = 100
+#        画布尺寸
+        h = self.count_axis * (axis_h + legend_h) + legend_h
+        w = 650
         left_gap = round(50 / w, 2)
-        bottom_gap = round(letter_space / h, 2)
+        bottom_gap = round(legend_h * 1.2 / h, 2)
         right_gap = round((w - 10) / w, 2)
-        top_gap = round((h - letter_space) / h, 2)
-        hs = round(letter_space / 150, 2)
+        top_gap = round((h - legend_h) / h, 2)
+        hs = round(legend_h / (axis_h + legend_h), 2)
         self.plotcanvas.resize(w, h)
         self.plotcanvas.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                             right=right_gap,top=top_gap,hspace=hs)
@@ -614,7 +623,7 @@ class PlotWindow(QWidget):
         self.button_home.setToolTip(_translate('PlotWindow', '初始状态'))
         self.button_pan.setToolTip(_translate('PlotWindow', '移动与缩放'))
         self.button_zoom.setToolTip(_translate('PlotWindow', '框选缩放'))
-        self.button_plot_setting.setToolTip(_translate('PlotWindow', '绘图设置'))
+#        self.button_plot_setting.setToolTip(_translate('PlotWindow', '绘图设置'))
 #        self.button_config.setToolTip(_translate('PlotWindow', '画布设置'))
 #        self.button_edit.setToolTip(_translate('PlotWindow', '图表设置'))
         self.button_forward.setToolTip(_translate('PlotWindow', '前进'))
