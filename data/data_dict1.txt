@@ -1,6 +1,0 @@
-DataDict
-FCM1_Voted_Mach Mach 1 
-FCM1_Voted_Altitude_Rate Altitude_Rate ft/s 
-FCM2_Rudder_Position Rudder_Position degree 
-FCM_1_DS38_Slat_Invld Slat_Invld 1 
-FCM_3_ACE_1Status ACE_1_Status 1 

@@ -232,7 +232,7 @@ class DataDictWindow(QWidget):
                     while line:
 #                        readline函数会把'\n'也读进来，去除'\n'
                         para_info = line.strip('\n')
-                        para_info_list = para_info.split()
+                        para_info_list = para_info.split(',')
                         if not(para_info_list[0] in self.data_dict):
                             self.data_dict[para_info_list[0]] = para_info_list[1:]
                         line = file.readline()
@@ -251,9 +251,13 @@ class DataDictWindow(QWidget):
                 file.write('DataDict\n')
 #                将内存中的模板一一写入文件
                 for symbol in self.data_dict:
-                    temp = symbol + ' '
-                    for info in self.data_dict[symbol]:
-                        temp += info + ' '
+                    temp = symbol + ','
+                    count = len(self.data_dict[symbol])
+                    for i, info in enumerate(self.data_dict[symbol]):
+                        if i != (count - 1):
+                            temp += info + ','
+                        else:
+                            temp += info
                     file.write(temp + '\n')
         except:
             pass
