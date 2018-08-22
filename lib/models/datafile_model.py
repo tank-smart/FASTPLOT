@@ -26,6 +26,7 @@ import pandas as pd
 import scipy.io as sio
 import re
 import models.time_model as Time
+import time as time
 
 # =======类基本信息
 #class DataFile
@@ -341,32 +342,76 @@ class Normal_DataFile(DataFile):
 #                return df[start_rows : stop_rows].copy()
 #            else:
 #                return df 
-        
+
+#效率相对较低        
+#    def cols_input(self,filedir='',cols=[],sep='\s+',start_time='',stop_time=''):  #without chunkinput now!!
+#        st = time.time()
+#        if filedir=='':
+#            filedir=self.filedir
+#        if sep=='':
+#            sep=self.sep
+#        with open(filedir,'r') as f:
+#            if filedir.endswith(('.txt','.csv')):
+#                if sep=='all':
+#                    df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,engine='python')
+#                else:
+#                    df=pd.read_table(f,sep=sep,usecols=cols,engine='c')
+#            if filedir.endswith(('.xls','.xlsx')):
+#                df=pd.read_excel(f,usecols=cols)
+##            定义参数顺序
+#            df = df[cols]
+#            if (start_time and stop_time):
+#                start_rows = Time.count_between_time(self.time_range[0],
+#                                                             start_time, self.sample_frequency)
+#                stop_rows = Time.count_between_time(self.time_range[0],
+#                                                            stop_time, self.sample_frequency)
+#                et = time.time()
+#                print(et - st)
+##                按下面的dataframe访问方式是左闭右开，所以右边要加1
+#                return df[start_rows : (stop_rows + 1)]
+#            else:
+#                return df 
+
     def cols_input(self,filedir='',cols=[],sep='\s+',start_time='',stop_time=''):  #without chunkinput now!!
-        
+
         if filedir=='':
             filedir=self.filedir
         if sep=='':
             sep=self.sep
         with open(filedir,'r') as f:
-            if filedir.endswith(('.txt','.csv')):
-                if sep=='all':
-                    df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,engine='python')
-                else:
-                    df=pd.read_table(f,sep=sep,usecols=cols,engine='c')
-            if filedir.endswith(('.xls','.xlsx')):
-                df=pd.read_excel(f,usecols=cols)
-#            定义参数顺序
-            df = df[cols]
             if (start_time and stop_time):
+#                count_between_time函数返回的是两个时间的差值
                 start_rows = Time.count_between_time(self.time_range[0],
                                                              start_time, self.sample_frequency)
                 stop_rows = Time.count_between_time(self.time_range[0],
                                                             stop_time, self.sample_frequency)
-#                按下面的dataframe访问方式是左闭右开，所以右边要加1
-                return df[start_rows : (stop_rows + 1)]
+                if filedir.endswith(('.txt','.csv')):
+                    if sep=='all':
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,
+#                                         range是左闭右开
+                                         skiprows=list(range(1,start_rows+1)),
+                                         nrows=stop_rows-start_rows+1,
+                                         engine='python')
+                    else:
+                        df=pd.read_table(f,sep=sep,usecols=cols,
+                                         skiprows=list(range(1,start_rows+1)),
+                                         nrows=stop_rows-start_rows+1,
+                                         engine='c')
+                if filedir.endswith(('.xls','.xlsx')):
+                    df=pd.read_excel(f,usecols=cols,
+                                     skiprows=list(range(1,start_rows+1)),
+                                     nrows=stop_rows-start_rows+1)
             else:
-                return df 
+                if filedir.endswith(('.txt','.csv')):
+                    if sep=='all':
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,engine='python')
+                    else:
+                        df=pd.read_table(f,sep=sep,usecols=cols,engine='c')
+                if filedir.endswith(('.xls','.xlsx')):
+                    df=pd.read_excel(f,usecols=cols)
+#            定义参数顺序
+            df = df[cols]
+            return df
 
 #rowscols_input：在rows_input基础上增加按列读取文件功能
     def rowscols_input(self,filedir="",sep="",cols=[],skiprows=None):

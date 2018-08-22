@@ -557,22 +557,23 @@ class PlotWindow(QWidget):
 
     def slot_clear_canvas(self):
         
-        message = QMessageBox.warning(self,
-              QCoreApplication.translate('PlotWindow', '清除画布'),
-              QCoreApplication.translate('PlotWindow', '确定要清除画布吗'),
-              QMessageBox.Yes | QMessageBox.No)
-        if (message == QMessageBox.Yes):
-            self.plotcanvas.slot_clear_canvas()
-#            如果画的图多会出现滚动条，此时清除画布，滚动条不会消失，因此采用此行解决
-            self.scrollarea.setWidgetResizable(True)
-            self.count_axis = 0
-            self.timestamps = []
-            self.plotcanvas.time_intervals = {}
-            self.combo_box_time.clear()
-            self.combo_box_time_intervals.clear()
-            self.label_time.setText('00:00:00.000')
-            self.table_widget_value.clearContents()
-            self.table_widget_value.setRowCount(0)
+        if self.count_axis:
+            message = QMessageBox.warning(self,
+                  QCoreApplication.translate('PlotWindow', '清除画布'),
+                  QCoreApplication.translate('PlotWindow', '确定要清除画布吗'),
+                  QMessageBox.Yes | QMessageBox.No)
+            if (message == QMessageBox.Yes):
+                self.plotcanvas.slot_clear_canvas()
+#                如果画的图多会出现滚动条，此时清除画布，滚动条不会消失，因此采用此行解决
+                self.scrollarea.setWidgetResizable(True)
+                self.count_axis = 0
+                self.timestamps = []
+                self.plotcanvas.time_intervals = {}
+                self.combo_box_time.clear()
+                self.combo_box_time_intervals.clear()
+                self.label_time.setText('00:00:00.000')
+                self.table_widget_value.clearContents()
+                self.table_widget_value.setRowCount(0)
         
     def slot_save_figure(self):
         

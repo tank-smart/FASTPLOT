@@ -15,7 +15,7 @@
 # =============================================================================
 import re
 
-from PyQt5.QtCore import QSize, QCoreApplication, pyqtSignal
+from PyQt5.QtCore import QSize, QCoreApplication, pyqtSignal, Qt
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QSizePolicy, QLineEdit, 
                              QGroupBox, QSpacerItem, QTreeWidget, 
@@ -67,6 +67,8 @@ class DataDictWindow(QWidget):
         self.verticalLayout_3.setContentsMargins(2, 2, 2, 2)
         self.verticalLayout_3.setSpacing(2)
         self.label_symbol = QLabel(self.group_box_parachara)
+#        支持label中的文字可选择
+        self.label_symbol.setTextInteractionFlags(Qt.TextSelectableByMouse)
         self.label_symbol.setMinimumSize(QSize(0, 24))
         self.label_symbol.setMaximumSize(QSize(16777215, 24))
         self.verticalLayout_3.addWidget(self.label_symbol)
@@ -156,11 +158,11 @@ class DataDictWindow(QWidget):
         if self.current_para_item:
             symbol = self.label_symbol.text()
             text = self.line_edit_paraname.text()
-            text = text.split(' ')
+            text = text.split(',')
             if len(text) > 1:
                 QMessageBox.information(self,
                                 QCoreApplication.translate('DataDictWindow', '修改提示'),
-                                QCoreApplication.translate('DataDictWindow', '不支持带空格的参数名。'))
+                                QCoreApplication.translate('DataDictWindow', '不支持带逗号的参数名。'))
                 self.line_edit_paraname.setText(self.data_dict[symbol][0])
             if not self.line_edit_paraname.text():
                 self.line_edit_paraname.setText('NaN')
@@ -170,11 +172,11 @@ class DataDictWindow(QWidget):
         if self.current_para_item:
             symbol = self.label_symbol.text()
             text = self.line_edit_unit.text()
-            text = text.split(' ')
+            text = text.split(',')
             if len(text) > 1:
                 QMessageBox.information(self,
                                         QCoreApplication.translate('DataDictWindow', '修改提示'),
-                                        QCoreApplication.translate('DataDictWindow', '不支持带空格的单位。'))
+                                        QCoreApplication.translate('DataDictWindow', '不支持带逗号的单位。'))
                 self.line_edit_unit.setText(self.data_dict[symbol][1])
             if not self.line_edit_unit.text():
                 self.line_edit_unit.setText('NaN')

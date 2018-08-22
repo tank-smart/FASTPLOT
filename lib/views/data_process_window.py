@@ -75,6 +75,7 @@ class DataProcessWindow(QWidget):
     signal_para_for_plot = pyqtSignal(tuple)
     signal_request_temps = pyqtSignal(str)
     signal_save_temp = pyqtSignal(dict)
+    signal_send_status = pyqtSignal(str, int)
 # =============================================================================
 # 初始化    
 # =============================================================================    
@@ -202,13 +203,20 @@ class DataProcessWindow(QWidget):
                     item_para.setText(4, str(file.sample_frequency))
 
             if ex_paras:
-                print_para = '<br>以下参数已存在：'
+                print_para = '以下参数已存在：'
                 for pa in ex_paras:
                     print_para += ('<br>' + pa)
-                QMessageBox.information(self,
-                        QCoreApplication.translate('DataAnalysisWindow', '导入参数提示'),
-                        QCoreApplication.translate('DataAnalysisWindow',
-                                                   print_para))
+                ms_box = QMessageBox(QMessageBox.Information,
+                                     QCoreApplication.translate('DataAnalysisWindow', '导入参数提示'),
+                                     QCoreApplication.translate('DataAnalysisWindow', print_para),
+                                     QMessageBox.Ok,
+                                     self)
+                ms_box.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                ms_box.exec_()
+#                QMessageBox.information(self,
+#                        QCoreApplication.translate('DataAnalysisWindow', '导入参数提示'),
+#                        QCoreApplication.translate('DataAnalysisWindow',
+#                                                   print_para))
     
     def slot_import_datafactory(self, dict_data_factory):
         
@@ -259,13 +267,20 @@ class DataProcessWindow(QWidget):
                         if not isexist:
                             paras_noexist.append(paraname)
                     if paras_noexist:
-                        print_para = '<br>以下参数未找到：'
+                        print_para = '以下参数未找到：'
                         for pa in paras_noexist:
                             print_para += ('<br>' + pa)
-                        QMessageBox.information(self,
-                                                QCoreApplication.translate('DataAnalysisWindow', '导入模板提示'),
-                                                QCoreApplication.translate('DataAnalysisWindow',
-                                                                           print_para))
+                        ms_box = QMessageBox(QMessageBox.Information,
+                                             QCoreApplication.translate('DataAnalysisWindow', '导入参数提示'),
+                                             QCoreApplication.translate('DataAnalysisWindow', print_para),
+                                             QMessageBox.Ok,
+                                             self)
+                        ms_box.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                        ms_box.exec_()
+#                        QMessageBox.information(self,
+#                                                QCoreApplication.translate('DataAnalysisWindow', '导入模板提示'),
+#                                                QCoreApplication.translate('DataAnalysisWindow',
+#                                                                           print_para))
                     self.slot_import_paras(input_paras)
                 else:
                     QMessageBox.information(self,
@@ -274,7 +289,7 @@ class DataProcessWindow(QWidget):
         else:
             QMessageBox.information(self,
                     QCoreApplication.translate('DataAnalysisWindow', '导入模板错误'),
-                    QCoreApplication.translate('DataAnalysisWindow', '没有模板'))            
+                    QCoreApplication.translate('DataAnalysisWindow', '    没有模板    '))            
 
 #    保存参数导出模板
     def slot_save_temp(self):
@@ -329,11 +344,16 @@ class DataProcessWindow(QWidget):
         dict_paras, sorted_paras = para_tuple
         if dict_paras :
             dialog = ParameterExportDialog(self, dict_paras)
+            dialog.signal_send_status.connect(self.slot_send_status)
             return_signal = dialog.exec_()
             if return_signal == QDialog.Accepted:
                 QMessageBox.information(self,
                         QCoreApplication.translate('DataAnalysisWindow', '保存提示'),
                         QCoreApplication.translate('DataAnalysisWindow', '保存成功！'))
+                
+    def slot_send_status(self, message : str, timeout : int):
+        
+        self.signal_send_status.emit(message, timeout)
                 
     def slot_up_para(self):
         

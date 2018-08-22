@@ -1471,6 +1471,7 @@ class FigureCanvasSetiingDialog(QDialog):
             
 class ParameterExportDialog(QDialog):
     
+    signal_send_status = pyqtSignal(str, int)
     def __init__(self, parent = None, dict_paras : dict = {}):
         
         super().__init__(parent)
@@ -1789,6 +1790,7 @@ class ParameterExportDialog(QDialog):
                         
     def accept(self):
         
+        self.signal_send_status.emit('导出数据中...', 0)
         for file_dir in self.file_info:
             index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
 #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
@@ -1808,6 +1810,7 @@ class ParameterExportDialog(QDialog):
 #            导出MAT文件
             if filetype == '.mat':
                 file_outpout.save_matfile(filepath, data)
+        self.signal_send_status.emit('导出数据成功！', 1500)
         
         QDialog.accept(self)
             
@@ -1891,6 +1894,8 @@ class ParameterExportDialog(QDialog):
         self.push_btn_cancel.setText(_translate('ParameterExportDialog', '取消'))
         
 class FileProcessDialog(QDialog):
+    
+    signal_send_status = pyqtSignal(str, int)
     
     def __init__(self, parent = None, files = [], time_intervals = {}):
     
@@ -2355,6 +2360,7 @@ class FileProcessDialog(QDialog):
                         
     def accept(self):
         
+        self.signal_send_status.emit('导出数据中...', 0)
 #        if self.tree_widget_files:
 #            count = self.tree_widget_files.topLevelItemCount()
 #            for i in range(count):
@@ -2363,6 +2369,7 @@ class FileProcessDialog(QDialog):
 #                file = Normal_DataFile(file_dir)
 #                data = file.cols_input(file_dir, file.paras_in_file, '\s+', stime, etime)
 #                childs = parent.child()
+#        这样实现效率偏低
         for label in self.file_info:
             file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
             file = Normal_DataFile(file_dir)
@@ -2386,6 +2393,7 @@ class FileProcessDialog(QDialog):
 #            导出MAT文件
             if filetype == '.mat':
                 file_outpout.save_matfile(filepath, data)
+        self.signal_send_status.emit('导出数据成功！', 1500)
         
         QDialog.accept(self)
             

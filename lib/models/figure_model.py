@@ -72,6 +72,7 @@ class PlotCanvas(FigureCanvas):
     signal_send_time = pyqtSignal()
     signal_send_tinterval = pyqtSignal(tuple)
     signal_get_data_dict = pyqtSignal()
+    signal_send_status = pyqtSignal(str, int)
 
 #------王--改动结束
     
@@ -631,6 +632,7 @@ class PlotCanvas(FigureCanvas):
                         data_container[name] = data
             if data_container:
                 dialog = ParameterExportDialog(self, data_container)
+                dialog.signal_send_status.connect(self.slot_send_status)
                 return_signal = dialog.exec_()
                 if return_signal == QDialog.Accepted:
                     QMessageBox.information(self,
@@ -642,11 +644,16 @@ class PlotCanvas(FigureCanvas):
         files = self._current_files
         if self.time_intervals:
             dialog = FileProcessDialog(self, files, self.time_intervals)
+            dialog.signal_send_status.connect(self.slot_send_status)
             return_signal = dialog.exec_()
             if return_signal == QDialog.Accepted:
                 QMessageBox.information(self,
                         QCoreApplication.translate('PlotCanvas', '保存提示'),
                         QCoreApplication.translate('PlotCanvas', '保存成功！'))
+                
+    def slot_send_status(self, message : str, timeout : int):
+        
+        self.signal_send_status.emit(message, timeout)
         
     def slot_export_tinterval_data_aggregate(self, flag):
         
@@ -708,7 +715,7 @@ class PlotCanvas(FigureCanvas):
                     sio.savemat(file_dir, df.to_dict('list'))
                 QMessageBox.information(self,
                         QCoreApplication.translate('PlotCanvas', '保存提示'),
-                        QCoreApplication.translate('PlotCanvas', '保存成功'))
+                        QCoreApplication.translate('PlotCanvas', '保存成功！'))
     
     def my_format(self, x, pos=None):
         x = matplotlib.dates.num2date(x)
@@ -770,7 +777,7 @@ class PlotCanvas(FigureCanvas):
             self.paralist = self.sorted_paralist
                     
             if exit_paras:
-                print_para = '<br>以下参数已存在：'
+                print_para = '以下参数已存在：'
                 for pa in exit_paras:
                     print_para += ('<br>' + pa)
                 QMessageBox.information(self,
@@ -801,6 +808,7 @@ class PlotCanvas(FigureCanvas):
         
     def subplot_para_wxl(self, datalist, sorted_paras):
 
+        self.signal_send_status.emit('绘图中...', 0)
         is_plot = self.process_data(datalist, sorted_paras)
         
         if is_plot:
@@ -875,6 +883,7 @@ class PlotCanvas(FigureCanvas):
                 self.count_axes += 1
                 
             self.set_subplot_adjust()
+            self.signal_send_status.emit('绘图完成！', 1500)
 #        Easter Egg
 #        if count >= 12:
 #            QMessageBox.information(self,

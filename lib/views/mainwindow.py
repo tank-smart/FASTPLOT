@@ -298,7 +298,13 @@ class MainWindow(QMainWindow):
                 self.action_plot.trigger)
         self.data_process_page.signal_para_for_plot.connect(
                 self.plot_page.slot_plot)
+        self.data_process_page.signal_send_status.connect(
+                self.slot_display_status_info)
 #        数据字典窗口与主窗口和其他窗口的信号与槽连接
+        
+#        绘图窗口与主窗口和其他窗口的信号与槽连接
+        self.plot_page.plotcanvas.signal_send_status.connect(
+                self.slot_display_status_info)
 
         self.syn_function_window.visibilityChanged.connect(
                 self.slot_syn_window_close)
@@ -360,16 +366,23 @@ class MainWindow(QMainWindow):
                 else:
                     ex_files.append(file_dir)
             if nor_datafiles:
-                print_info = '<br>以下文件不是数据文件：'
+                print_info = '以下文件不是数据文件：'
                 for file in nor_datafiles:
                     print_info += ('<br>' + file)
                 QMessageBox.information(self,
                                         QCoreApplication.translate('MainWindow', '导入文件提示'),
                                         QCoreApplication.translate('MainWindow', print_info))
             if ex_files:
-                print_info = '<br>以下文件已存在：'
+                print_info = '以下文件已存在：'
                 for file in ex_files:
                     print_info += ('<br>' + file)
+#                ms_box = QMessageBox(QMessageBox.NoIcon,
+#                                     QCoreApplication.translate('MainWindow', '导入文件提示'),
+#                                     QCoreApplication.translate('MainWindow', print_info),
+#                                     QMessageBox.Ok,
+#                                     self)
+#                ms_box.setTextInteractionFlags(Qt.TextSelectableByMouse)
+#                ms_box.exec_()
                 QMessageBox.information(self,
                                         QCoreApplication.translate('MainWindow', '导入文件提示'),
                                         QCoreApplication.translate('MainWindow', print_info))
@@ -387,13 +400,29 @@ class MainWindow(QMainWindow):
 #    显示About信息
     def slot_about(self):
         
-        QMessageBox.about(self,
-            QCoreApplication.translate('MainWindow', '关于FastPlot'),
-            QCoreApplication.translate('MainWindow', '''<b>FastPlot</b>
-            <br>试飞数据绘图软件
-            <br>Copyright &copy; FTCC
-            <p>由试飞中心试飞工程部绘图软件开发团队开发维护
-            '''))
+#        QMessageBox.about(self,
+#            QCoreApplication.translate('MainWindow', '关于FastPlot'),
+#            QCoreApplication.translate('MainWindow',
+#                                       '''
+#                                       <img src='E:\\FASTPLOT\\lib\\icon\\ftcc.png' width='360' height='47'>
+#                                       <p><b>FastPlot</b></p>
+#                                       <br>试飞数据绘图软件
+#                                       <br>Copyright &copy; FTCC
+#                                       <p>由试飞中心试飞工程部绘图软件开发团队开发维护
+#                                       '''))
+        ms_box = QMessageBox(QMessageBox.NoIcon,
+                             QCoreApplication.translate('MainWindow', '关于FastPlot'),
+                             QCoreApplication.translate('MainWindow',
+                                                       '<img src=\'' + CONSTANT.SETUP_DIR + '\\lib\\icon\\ftcc.png\'' + 
+                                                       ''' width='360' height='46'>
+                                                       <p><b>FastPlot</b></p>
+                                                       <br>试飞数据绘图软件
+                                                       <br>由试飞中心试飞工程部绘图软件开发团队开发维护
+                                                       <p>Copyright &copy; COMAC Flight Test Center. All rights reserved.</p>
+                                                       '''),
+                             QMessageBox.Ok,
+                             self)
+        ms_box.exec_()
         
     def slot_delete_files(self, files : list):
         
@@ -478,6 +507,7 @@ class MainWindow(QMainWindow):
         
         if self.current_files:
             dialog = FileProcessDialog(self, self.current_files)
+            dialog.signal_send_status.connect(self.slot_display_status_info)
             return_signal = dialog.exec_()
             if return_signal == QDialog.Accepted:
                 QMessageBox.information(self,
@@ -497,6 +527,13 @@ class MainWindow(QMainWindow):
     def slot_data_dict_changed(self, data_dict : dict):
         
         self.plot_page.plotcanvas._data_dict = data_dict
+    
+#    用于将信息显示在状态栏，也可以用于清除状态栏信息
+    def slot_display_status_info(self, message : str, timeout : int):
+        
+        if message:
+            self.statusbar.clearMessage()
+            self.statusbar.showMessage(message, timeout)
 
 # =============================================================================
 # 功能函数模块
