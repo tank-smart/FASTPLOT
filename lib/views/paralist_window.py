@@ -84,11 +84,9 @@ class ParalistWindow(QDockWidget):
         self.setWindowTitle(QCoreApplication.translate('ParalistDock', '参数浏览器'))
 
         self.paralist_dock_contents = QWidget(self)
-        self.paralist_dock_contents.setObjectName('paralist_dock_contents')
         self.vlayout_paralist_dock = QVBoxLayout(self.paralist_dock_contents)
         self.vlayout_paralist_dock.setContentsMargins(2, 2, 2, 2)
         self.vlayout_paralist_dock.setSpacing(2)
-        self.vlayout_paralist_dock.setObjectName('vlayout_paralist_dock')
         
 #        行输入部件的定义
         self.line_edit_search_para = QLineEdit(self.paralist_dock_contents)
@@ -101,13 +99,10 @@ class ParalistWindow(QDockWidget):
         self.line_edit_search_para.setAlignment(
                 Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.line_edit_search_para.setReadOnly(False)
-        self.line_edit_search_para.setObjectName('line_edit_search_para')
         self.vlayout_paralist_dock.addWidget(self.line_edit_search_para)
         
 #        文件树显示部件的定义
         self.datafiles_tree = ParasTree(self.paralist_dock_contents)
-        self.datafiles_tree.setObjectName(
-                'datafiles_tree')
         self.datafiles_tree.header().setVisible(False)
 #        设置多选模式
         self.datafiles_tree.setSelectionMode(

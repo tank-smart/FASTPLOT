@@ -115,7 +115,7 @@ class PlotCanvas(FigureCanvas):
         self.curve_colors = prop_cycle.by_key()['color']
         self.color_index = 0
 #        默认字体大小
-        self.default_fontsize = 9
+#        self.default_fontsize = 8
 #        存储参数数据
         self.total_data = {}
         self.time_series_list = {}
@@ -149,6 +149,7 @@ class PlotCanvas(FigureCanvas):
         self.show_hgrid = True
         self.show_vgrid = True
         
+#        定义文字标注的默认属性
         self.current_text_color = 'black'
         self.current_text_size = 10.0
         self.current_text_style = 'normal'
@@ -449,13 +450,18 @@ class PlotCanvas(FigureCanvas):
         
     def slot_press_new_annotation(self, event):
         
+        font = matplotlib.font_manager.FontProperties(
+                fname = CONSTANT.SETUP_DIR + r'\data\fonts\msyh.ttf',
+                size = 8)
         if event.inaxes and event.button == 1:
+#            此处的字体大小size会覆盖fontproperties中size的属性
             self.current_axes.annotate(s = r'Text', 
                                       xy = (event.xdata, event.ydata),
                                       color = self.current_text_color,
                                       style = self.current_text_style,
                                       size = self.current_text_size,
-                                      picker = 1)
+                                      picker = 1,
+                                      fontproperties = font)
             self.draw()
         if event.button == 1:
             self.slot_disconnect(event)
@@ -858,15 +864,16 @@ class PlotCanvas(FigureCanvas):
                     plt.setp(ax.get_xticklabels(), visible = False)
                 else:
 #                    若已指定fontproperties属性，则fontsize不起作用
-                    plt.setp(ax.get_xticklabels(), fontsize = self.default_fontsize,
+                    plt.setp(ax.get_xticklabels(),
                              horizontalalignment = 'center',
                              rotation = 'horizontal',
                              fontproperties = CONSTANT.FONT_MSYH)
 #                    ax.set_xlabel('Time', fontproperties = self.font_times)
-                plt.setp(ax.get_yticklabels(), fontsize = self.default_fontsize,
-                         fontproperties = CONSTANT.FONT_MSYH)
-                ax.legend(fontsize = self.default_fontsize,
-                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
+                plt.setp(ax.get_yticklabels(), fontproperties = CONSTANT.FONT_MSYH)
+#                ax.legend(fontsize = self.default_fontsize,
+#                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
+#                          prop = CONSTANT.FONT_MSYH)
+                ax.legend(loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
                           prop = CONSTANT.FONT_MSYH)
                 ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
                 ax.xaxis.set_major_locator(MaxNLocator(nbins=6))

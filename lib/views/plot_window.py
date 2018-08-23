@@ -350,7 +350,6 @@ class PlotWindow(QWidget):
     def slot_resize_canvas(self, scroll_area_size):
         
         if not self.scrollarea.widgetResizable():
-            print('resize')
             if scroll_area_size.height() > self.plotcanvas.size().height():
                 self.plotcanvas.resize(scroll_area_size)
             else:
