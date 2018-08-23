@@ -467,7 +467,7 @@ class DataProcessWindow(QWidget):
         self.tool_btn_save_temp.setToolTip(_translate('DataAnalysisWindow', '保存为模板'))
         self.tool_btn_sel_temp.setToolTip(_translate('DataAnalysisWindow', '选择模板'))
         self.tool_btn_plot.setToolTip(_translate('DataAnalysisWindow', '绘图'))
-        self.tool_btn_data_abstract.setToolTip(_translate('DataAnalysisWindow', '数据提取'))
+        self.tool_btn_data_abstract.setToolTip(_translate('DataAnalysisWindow', '数据导出'))
         self.tool_btn_up.setToolTip(_translate('DataAnalysisWindow', '上移参数'))
         self.tool_btn_down.setToolTip(_translate('DataAnalysisWindow', '下移参数'))
         self.tool_btn_delete.setToolTip(_translate('DataAnalysisWindow', '删除参数'))

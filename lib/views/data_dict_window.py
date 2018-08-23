@@ -150,8 +150,14 @@ class DataDictWindow(QWidget):
             paraname = self.data_dict[symbol][0]
             unit = self.data_dict[symbol][1]
             self.label_symbol.setText(symbol)
-            self.line_edit_paraname.setText(paraname)
-            self.line_edit_unit.setText(unit)
+            if paraname != 'NaN':
+                self.line_edit_paraname.setText(paraname)
+            else:
+                self.line_edit_paraname.setText('')
+            if unit != 'NaN':
+                self.line_edit_unit.setText(unit)
+            else:
+                self.line_edit_unit.setText('')
     
     def slot_paraname_change(self):
         
@@ -165,7 +171,7 @@ class DataDictWindow(QWidget):
                                 QCoreApplication.translate('DataDictWindow', '不支持带逗号的参数名。'))
                 self.line_edit_paraname.setText(self.data_dict[symbol][0])
             if not self.line_edit_paraname.text():
-                self.line_edit_paraname.setText('NaN')
+                self.line_edit_paraname.setText('')
                 
     def slot_unit_change(self):
         
@@ -179,7 +185,7 @@ class DataDictWindow(QWidget):
                                         QCoreApplication.translate('DataDictWindow', '不支持带逗号的单位。'))
                 self.line_edit_unit.setText(self.data_dict[symbol][1])
             if not self.line_edit_unit.text():
-                self.line_edit_unit.setText('NaN')
+                self.line_edit_unit.setText('')
                 
     def slot_save(self):
         
@@ -188,11 +194,19 @@ class DataDictWindow(QWidget):
             symbol = self.label_symbol.text()
             paraname = self.line_edit_paraname.text()
             unit = self.line_edit_unit.text()
-            self.data_dict[symbol][0] = paraname
-            self.data_dict[symbol][1] = unit
+            if paraname != '':
+                self.data_dict[symbol][0] = paraname
+                item.setText(1, paraname)
+            else:
+                self.data_dict[symbol][0] = 'NaN'
+                item.setText(1, '')
+            if unit != '':
+                self.data_dict[symbol][1] = unit
+                item.setText(2, unit)
+            else:
+                self.data_dict[symbol][1] = 'NaN'
+                item.setText(2, '')
             self.signal_data_dict_changed.emit(self.data_dict)
-            item.setText(1, paraname)
-            item.setText(2, unit)
             QMessageBox.information(self,
                                     QCoreApplication.translate('DataDictWindow', '保存提示'),
                                     QCoreApplication.translate('DataDictWindow', '保存成功！'))
@@ -207,8 +221,8 @@ class DataDictWindow(QWidget):
         if not(symbol in self.data_dict):
             item = QTreeWidgetItem(self.tree_paras)
             item.setText(0, symbol)
-            item.setText(1, 'NaN')
-            item.setText(2, 'NaN')
+#            item.setText(1, '')
+#            item.setText(2, '')
             self.data_dict[symbol] = ['NaN', 'NaN']
 #            设置当前的模板为第一个模板并显示模板信息
             self.tree_paras.setCurrentItem(item)
@@ -270,8 +284,14 @@ class DataDictWindow(QWidget):
             for symbol in self.data_dict:
                 item = QTreeWidgetItem(self.tree_paras)
                 item.setText(0, symbol)
-                item.setText(1, self.data_dict[symbol][0])
-                item.setText(2, self.data_dict[symbol][1])
+                if self.data_dict[symbol][0] != 'NaN':
+                    item.setText(1, self.data_dict[symbol][0])
+                else:
+                    item.setText(1, '')
+                if self.data_dict[symbol][1] != 'NaN':
+                    item.setText(2, self.data_dict[symbol][1])
+                else:
+                    item.setText(2, '')
 #            设置当前的模板为第一个模板并显示模板信息
             self.tree_paras.setCurrentItem(self.tree_paras.topLevelItem(0))
             self.current_para_item = self.tree_paras.currentItem()

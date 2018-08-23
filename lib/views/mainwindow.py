@@ -221,11 +221,11 @@ class MainWindow(QMainWindow):
 #        添加工具栏
         self.toolbar.addAction(self.action_open_normal_datafile)
         self.toolbar.addSeparator()
-        self.toolbar.addActions([self.action_data_process,
-                                 self.action_data_sift])
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.action_plot)
-        self.toolbar.addAction(self.action_mathematics)
+        self.toolbar.addActions([self.action_plot,
+                                 self.action_data_process,
+                                 self.action_mathematics])
+#        self.toolbar.addActions([self.action_data_process,
+#                                 self.action_data_sift])
         self.toolbar.addSeparator()
         self.toolbar.addActions([self.action_para_templates,
                                           self.action_data_dict])
@@ -289,7 +289,7 @@ class MainWindow(QMainWindow):
                 self.data_dict_page.slot_add_dict)
         self.paralist_window.signal_into_data_dict.connect(
                 self.action_data_dict.trigger)
-#        数据处理窗口与主窗口和其他窗口的信号与槽连接
+#        数据分析窗口与主窗口和其他窗口的信号与槽连接
         self.data_process_page.signal_request_temps.connect(
                 self.slot_send_temps)
         self.data_process_page.signal_save_temp.connect(
@@ -415,10 +415,10 @@ class MainWindow(QMainWindow):
                              QCoreApplication.translate('MainWindow',
                                                        '<img src=\'' + CONSTANT.SETUP_DIR + '\\lib\\icon\\ftcc.png\'' + 
                                                        ''' width='360' height='46'>
-                                                       <p><b>FastPlot</b></p>
+                                                       <p><b>FastPlot(beta 0.1)</b></p>
                                                        <br>试飞数据绘图软件
-                                                       <br>由试飞中心试飞工程部绘图软件开发团队开发维护
-                                                       <p>Copyright &copy; COMAC Flight Test Center. All rights reserved.</p>
+                                                       <p>试飞中心 | 试飞工程部
+                                                       <br>Copyright &copy; COMAC Flight Test Center.</p>
                                                        '''),
                              QMessageBox.Ok,
                              self)
@@ -471,7 +471,7 @@ class MainWindow(QMainWindow):
         if (sender == self.action_data_process):
             pageindex = 0
             self.syn_function_window.setWindowTitle(QCoreApplication.
-                                                    translate('MainWindow', '数据处理'))
+                                                    translate('MainWindow', '数据分析'))
         if (sender == self.action_data_sift):
             pageindex = 1
             self.syn_function_window.setWindowTitle(QCoreApplication.
@@ -603,7 +603,7 @@ class MainWindow(QMainWindow):
         self.action_file_process.setText(_translate('MainWindow', '文件处理'))
         self.action_exit.setText(_translate('MainWindow', '退出'))
         self.action_mathematics.setText(_translate('MainWindow', '数学计算'))
-        self.action_data_process.setText(_translate('MainWindow', '数据处理'))
+        self.action_data_process.setText(_translate('MainWindow', '数据分析'))
         self.action_data_sift.setText(_translate('MainWindow', '数据筛选'))
         self.action_para_templates.setText(_translate('MainWindow', '参数模板'))
         self.action_data_dict.setText(_translate('MainWindow', '数据字典'))

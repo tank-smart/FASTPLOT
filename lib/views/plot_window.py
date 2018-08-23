@@ -350,6 +350,7 @@ class PlotWindow(QWidget):
     def slot_resize_canvas(self, scroll_area_size):
         
         if not self.scrollarea.widgetResizable():
+            print('resize')
             if scroll_area_size.height() > self.plotcanvas.size().height():
                 self.plotcanvas.resize(scroll_area_size)
             else:
@@ -594,6 +595,8 @@ class PlotWindow(QWidget):
         self.plotcanvas.resize(w, h)
         self.plotcanvas.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                             right=right_gap,top=top_gap,hspace=hs)
+#        变形的第二种办法是直接resize，都不用subplots_adjust，效果也还不错==！，因为缩放的尺寸都计算好了
+        
 #        保存变形后的画布
         self.plotcanvas.toolbar.save_figure()
         
