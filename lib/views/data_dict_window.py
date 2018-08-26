@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QPushButton, QSizePolicy, QLineEdit, 
                              QGroupBox, QSpacerItem, QTreeWidget, 
                              QTreeWidgetItem, QMessageBox)
+#from PyQt5.QtGui import QIcon
 
 import views.constant as CONSTANT
 
@@ -221,6 +222,7 @@ class DataDictWindow(QWidget):
         if not(symbol in self.data_dict):
             item = QTreeWidgetItem(self.tree_paras)
             item.setText(0, symbol)
+#            item.setIcon(0, QIcon(CONSTANT.ICON_PARA))
 #            item.setText(1, '')
 #            item.setText(2, '')
             self.data_dict[symbol] = ['NaN', 'NaN']
@@ -284,6 +286,7 @@ class DataDictWindow(QWidget):
             for symbol in self.data_dict:
                 item = QTreeWidgetItem(self.tree_paras)
                 item.setText(0, symbol)
+#                item.setIcon(0, QIcon(CONSTANT.ICON_PARA))
                 if self.data_dict[symbol][0] != 'NaN':
                     item.setText(1, self.data_dict[symbol][0])
                 else:
@@ -291,6 +294,7 @@ class DataDictWindow(QWidget):
                 if self.data_dict[symbol][1] != 'NaN':
                     item.setText(2, self.data_dict[symbol][1])
                 else:
+                    
                     item.setText(2, '')
 #            设置当前的模板为第一个模板并显示模板信息
             self.tree_paras.setCurrentItem(self.tree_paras.topLevelItem(0))

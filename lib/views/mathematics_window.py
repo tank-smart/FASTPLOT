@@ -74,9 +74,9 @@ class MathematicsWindow(QWidget):
         self.action_plot = QAction(self.tree_widget_result_paras)
         self.action_plot.setText(QCoreApplication.
                                  translate('MathematicsWindow', '绘图'))
-        self.action_export = QAction(self.tree_widget_result_paras)
-        self.action_export.setText(QCoreApplication.
-                                   translate('MathematicsWindow', '导出'))
+#        self.action_export = QAction(self.tree_widget_result_paras)
+#        self.action_export.setText(QCoreApplication.
+#                                   translate('MathematicsWindow', '导出'))
         self.action_analysis = QAction(self.tree_widget_result_paras)
         self.action_analysis.setText(QCoreApplication.
                                      translate('MathematicsWindow', '添加到分析参数'))
@@ -91,7 +91,7 @@ class MathematicsWindow(QWidget):
                 self.result_paras_context_menu)
         
         self.action_plot.triggered.connect(self.slot_plot_result)
-        self.action_export.triggered.connect(self.slot_export_result)
+#        self.action_export.triggered.connect(self.slot_export_result)
         self.action_analysis.triggered.connect(self.slot_sendto_analysis)
         self.action_delete.triggered.connect(self.slot_delete)
         
@@ -112,7 +112,7 @@ class MathematicsWindow(QWidget):
         if sel_item:
             menu = QMenu(self.tree_widget_result_paras)
             menu.addActions([self.action_plot,
-                             self.action_export,
+#                             self.action_export,
                              self.action_analysis,
                              self.action_delete])
             menu.exec_(self.tree_widget_result_paras.mapToGlobal(pos))

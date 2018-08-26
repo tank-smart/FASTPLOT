@@ -91,7 +91,6 @@ class PlotWindow(QWidget):
 
     signal_request_temps = pyqtSignal(str)
     signal_save_temp = pyqtSignal(dict)
-    signal_use_markline = pyqtSignal(bool)
     signal_is_display_menu = pyqtSignal(bool)
 # =============================================================================
 # 初始化    
@@ -100,7 +99,7 @@ class PlotWindow(QWidget):
         super().__init__(parent)
         self.pan_on = False
         self.zoom_on = False
-        self.use_markline = False
+        self.on_saving_fig = False
         
         self.count_axis = 0
 #        用户保存的时刻
@@ -349,13 +348,14 @@ class PlotWindow(QWidget):
 
     def slot_resize_canvas(self, scroll_area_size):
         
-        if not self.scrollarea.widgetResizable():
-            if scroll_area_size.height() > self.plotcanvas.size().height():
+        if (not self.scrollarea.widgetResizable()) and (not self.on_saving_fig):
+            height = self.count_axis * int(self.scrollarea.height() * 1.05) / 4
+            if scroll_area_size.height() > height:
                 self.plotcanvas.resize(scroll_area_size)
             else:
                 self.plotcanvas.resize(scroll_area_size.width(),
                                        self.plotcanvas.size().height())
-    #        设置图四边的空白宽度
+#            设置图四边的空白宽度
             self.plotcanvas.set_subplot_adjust()
         
     def slot_pan(self):
@@ -591,6 +591,7 @@ class PlotWindow(QWidget):
         right_gap = round((w - 10) / w, 2)
         top_gap = round((h - legend_h) / h, 2)
         hs = round(legend_h / (axis_h + legend_h), 2)
+        self.on_saving_fig = True
         self.plotcanvas.resize(w, h)
         self.plotcanvas.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                             right=right_gap,top=top_gap,hspace=hs)
@@ -598,6 +599,7 @@ class PlotWindow(QWidget):
         
 #        保存变形后的画布
         self.plotcanvas.toolbar.save_figure()
+        self.on_saving_fig = False
         
 #        将画布还原回查看状态下的尺寸
         if self.count_axis > 4:

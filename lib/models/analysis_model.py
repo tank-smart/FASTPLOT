@@ -70,6 +70,55 @@ class DataAnalysis(object):
 #            dict_result[filedir]=(list_result,list_forskip)
             dict_result[filedir]=(df_result,skip_list)
         return dict_result
+    
+    def condition_sift_wxl(self,file_list=[], condition="",search_para=[]):
+        dict_result={}
+#        cond_list=re.split(r"&|\|",condition)
+#        print(cond_list)
+#        for s in cond_list:
+#            para_parse=re.split(r">|<|=",s.strip())[0]
+#            if para_parse not in search_para:
+#                search_para.append(para_parse)
+        for filedir in file_list:
+            try:
+                para_list=search_para.copy()
+                file_search=Normal_DataFile(filedir)                
+                para_list.insert(0,file_search.paras_in_file[0])
+                df_sift=file_search.cols_input(filedir,para_list)
+#                index_all=df_sift.index.tolist() #all index list
+#                df_result=df_sift[eval("df_sift."+condition)]
+                index=condition.replace("(","(df_sift.")
+                df_result=df_sift[eval(index)]
+#                skip_list=(df_sift.index.drop(df_result.index)+1).tolist()#quick select skip index
+                re_list = df_result.index.tolist()
+
+#                print(df_result)
+#                list_result=df_result.index.tolist() #result index list
+            except:
+                 return None
+#            list_forskip=[item+1 for item in index_all if item not in list_result]
+#            dict_result[filedir]=(list_result,list_forskip)
+#            dict_result[filedir]=(df_result,skip_list)
+            inter_list = []
+            begin = forward_index = re_list[0]
+            for i, index in enumerate(re_list):
+                if (index - forward_index > 1): 
+                    inter_list.append((begin,forward_index))
+                    begin = index
+                if (i == len(re_list) - 1):
+                    inter_list.append((begin,index))
+                forward_index = index
+            time_intervals = []
+            for t_inter in inter_list:
+                stime_index, etime_index = t_inter
+                begin_datetime=pd.to_datetime(df_sift.iloc[stime_index, 0],format='%H:%M:%S:%f')
+                end_datetime=pd.to_datetime(df_sift.iloc[etime_index, 0],format='%H:%M:%S:%f')
+                period_time=end_datetime-begin_datetime
+                time_intervals.append((df_sift.iat[stime_index, 0],
+                                       df_sift.iat[etime_index, 0],
+                                       str(period_time)))
+            dict_result[filedir] = time_intervals
+        return dict_result
         
     def sift_output(self, filedir="", fileout="", mode='w', index_list=None, skip_list=None):
         
@@ -110,7 +159,6 @@ class DataAnalysis(object):
 #                search_para.append(para_parse)
         for filedir in file_list:
             try:
-                print(search_para)
                 para_list=search_para.copy()
                 file_search=Normal_DataFile(filedir)                
                 para_list.insert(0,file_search.paras_in_file[0])

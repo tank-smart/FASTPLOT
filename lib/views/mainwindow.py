@@ -413,8 +413,8 @@ class MainWindow(QMainWindow):
         ms_box = QMessageBox(QMessageBox.NoIcon,
                              QCoreApplication.translate('MainWindow', '关于FastPlot'),
                              QCoreApplication.translate('MainWindow',
-                                                       '<img src=\'' + CONSTANT.SETUP_DIR + '\\lib\\icon\\ftcc.png\'' + 
-                                                       ''' width='360' height='46'>
+                                                       '<img src=\'' + CONSTANT.FTCC_LOGO + 
+                                                       '''' width='360' height='46'>
                                                        <p><b>FastPlot(beta 0.1)</b></p>
                                                        <br>试飞数据绘图软件
                                                        <p>试飞中心 | 试飞工程部

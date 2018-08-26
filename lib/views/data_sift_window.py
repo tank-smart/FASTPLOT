@@ -195,53 +195,59 @@ class DataSiftWindow(QWidget):
         if list_files and str_condition:
             sift_object = DataAnalysis()
             result_tuple = sift_object.condition_sift_class(list_files,
-                                                                   str_condition,
-                                                                   self.sift_search_paras)
+                                                            str_condition,
+                                                            self.sift_search_paras)
+            
+#            result_tuple = sift_object.condition_sift_wxl(list_files,
+#                                                          str_condition,
+#                                                          self.sift_search_paras)
             if result_tuple:
                 sift_results=result_tuple[0]
-                skips=result_tuple[1]
+
+#                创建一个结果显示窗口
+                self.tab_result_count += 1
+                tab_sift_result = SiftResultViewWidget(self.tab_widget_datasift,  str_condition)
+                for file in list_files:
+                    item = None
+                    first_hit = True
+                    for result in sift_results:
+                        if result.filedir == file:
+                            if first_hit:
+                                item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
+                                tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
+                                filedir = result.filedir
+                                pos = filedir.rindex('\\')
+                                filename = filedir[pos+1:]
+                                item.setText(0, filename)
+                                item.setIcon(0, self.file_icon)
+                                item.setText(1, 'Hit')
+                                child = QTreeWidgetItem(item)
+                                child.setIcon(0, self.time_icon)
+                                child.setText(2, result.begin_time + ' - ' + result.end_time)
+                                child.setText(3, result.period_time)
+                                first_hit = False
+                            else:
+                                child = QTreeWidgetItem(item)
+                                child.setIcon(0, self.time_icon)
+                                child.setText(2, result.begin_time + ' - ' + result.end_time)
+                                child.setText(3, result.period_time)
+                    if first_hit:
+                            item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
+                            tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
+                            pos = file.rindex('\\')
+                            filename = file[pos+1:]
+                            item.setText(0, file)
+                            item.setText(1, 'No Fit')
+                self.tab_widget_datasift.addTab(
+                        tab_sift_result, 
+                        QCoreApplication.translate('DataAnalysisWindow',
+                                                   '筛选结果' + str(self.tab_result_count)))
+                self.tab_widget_datasift.setCurrentIndex(
+                        self.tab_widget_datasift.indexOf(tab_sift_result))
             else:
                 QMessageBox.information(self,
                         QCoreApplication.translate("DataAnalysisWindow", "提示"),
                         QCoreApplication.translate("DataAnalysisWindow", '语法错误'))
-#            创建一个结果显示窗口
-            self.tab_result_count += 1
-            tab_sift_result = SiftResultViewWidget(self.tab_widget_datasift,  str_condition)
-            for file in list_files:
-                item = None
-                first_hit = True
-                for result in sift_results:
-                    if result.filedir == file:
-                        if first_hit:
-                            item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
-                            tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
-                            filedir = result.filedir
-                            pos = filedir.rindex('\\')
-                            filename = filedir[pos+1:]
-                            item.setText(0, filename)
-                            item.setIcon(0, self.file_icon)
-                            item.setText(1, 'Hit')
-                            child = QTreeWidgetItem(item)
-                            child.setIcon(0, self.time_icon)
-                            child.setText(2, result.begin_time + ' - ' + result.end_time)
-                            child.setText(3, result.period_time)
-                            first_hit = False
-                        else:
-                            child = QTreeWidgetItem(item)
-                            child.setIcon(0, self.time_icon)
-                            child.setText(2, result.begin_time + ' - ' + result.end_time)
-                            child.setText(3, result.period_time)
-                if first_hit:
-                        item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
-                        tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
-                        item.setText(0, file)
-                        item.setText(1, 'No Fit')
-            self.tab_widget_datasift.addTab(
-                    tab_sift_result, 
-                    QCoreApplication.translate('DataAnalysisWindow',
-                                               '筛选结果' + str(self.tab_result_count)))
-            self.tab_widget_datasift.setCurrentIndex(
-                    self.tab_widget_datasift.indexOf(tab_sift_result))
         else:
             QMessageBox.information(self,
                     QCoreApplication.translate('DataAnalysisWindow', '提示'),
