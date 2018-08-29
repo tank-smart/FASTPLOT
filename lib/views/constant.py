@@ -40,7 +40,7 @@ ICON_FORWARD = SETUP_DIR + r'\lib\icon\forward.ico'
 ICON_HOME = SETUP_DIR + r'\lib\icon\home.ico'
 
 ICON_MATHEMATICS = SETUP_DIR + r'\lib\icon\caculator.ico'
-ICON_MATH_RESULT = SETUP_DIR + r'\lib\icon\math_result.png'
+ICON_MATH_RESULT = SETUP_DIR + r'\lib\icon\math_result.ico'
 
 ICON_OPEN_NORDATA = SETUP_DIR + r'\lib\icon\nor_data.ico'
 
