@@ -391,24 +391,27 @@ class Normal_DataFile(DataFile):
 #                                         range是左闭右开
                                          skiprows=list(range(1,start_rows+1)),
                                          nrows=stop_rows-start_rows+1,
+                                         index_col=False,
                                          engine='python')
                     else:
                         df=pd.read_table(f,sep=sep,usecols=cols,
                                          skiprows=list(range(1,start_rows+1)),
                                          nrows=stop_rows-start_rows+1,
+                                         index_col=False,
                                          engine='c')
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=cols,
                                      skiprows=list(range(1,start_rows+1)),
-                                     nrows=stop_rows-start_rows+1)
+                                     nrows=stop_rows-start_rows+1,
+                                     index_col=False)
             else:
                 if filedir.endswith(('.txt','.csv')):
                     if sep=='all':
-                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,engine='python')
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,index_col=False,engine='python')
                     else:
-                        df=pd.read_table(f,sep=sep,usecols=cols,engine='c')
+                        df=pd.read_table(f,sep=sep,usecols=cols,index_col=False,engine='c')
                 if filedir.endswith(('.xls','.xlsx')):
-                    df=pd.read_excel(f,usecols=cols)
+                    df=pd.read_excel(f,usecols=cols,index_col=False)
 #            定义参数顺序
             df = df[cols]
             return df
