@@ -98,7 +98,7 @@ class MathematicsWindow(QWidget):
         self.plain_text_edit_conmandline.signal_compute_result.connect(
                 self.slot_add_result_para)
 #----------yanhua加：
-        self.plain_text_edit_conmandline.signal_clear.connect(
+        self.plain_text_edit_conmandline.signal_clc.connect(
                 self.slot_clear)
 #----------yanhua加
 
@@ -166,7 +166,8 @@ class MathematicsWindow(QWidget):
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:
-                    self.dict_result_paras.pop(item.data(0, Qt.UserRole))
+                    if item.data(0, Qt.UserRole) in self.dict_result_paras:
+                        self.dict_result_paras.pop(item.data(0, Qt.UserRole))
                     self.tree_widget_result_paras.takeTopLevelItem(
                             self.tree_widget_result_paras.indexOfTopLevelItem(item))
 
@@ -216,6 +217,8 @@ class MathematicsWindow(QWidget):
             item.setText(3, str(min_value))
             self.dict_result_paras[paraname] = DataFactory(result)
         else:
+#            self.dict_result_paras[paraname] = result
+#!!!!            单值不加入self.dict_result_paras，也不进行绘图和分析
             item.setText(1, str(result[col_list[1]].values[0]))        
 #            yanhua修改结束
 

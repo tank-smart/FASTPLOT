@@ -61,7 +61,7 @@ class MathematicsEditor(QPlainTextEdit):
 
     signal_compute_result = pyqtSignal(pd.DataFrame)
 #---------yanhua加    
-    signal_clear = pyqtSignal(bool)
+    signal_clc = pyqtSignal(bool)
 #---------yanhua
     
     def __init__(self, parent = None):
@@ -271,7 +271,7 @@ class MathematicsEditor(QPlainTextEdit):
                             
                             df_result = pd.DataFrame({'Label' : [1],
                                                       result_name: result}, columns = ['Label', result_name])
-                            print(df_result)
+#                            print(df_result)
                         self.signal_compute_result.emit(df_result)
                     else:
                         pass
@@ -285,14 +285,14 @@ class MathematicsEditor(QPlainTextEdit):
                         QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
 
     def scope_setup(self):
-        self.scope['clear']=self.clear
+        self.scope['clear']=self.clc
 
-    def clear(self):
+    def clc(self):
         self.scope={}
         self.scope_setup()
         self.time_df=None
         self.count=0
-        self.signal_clear.emit(True)
+        self.signal_clc.emit(True)
 #------------yanhua
                 
     def conmandline_context_menu(self, pos):
