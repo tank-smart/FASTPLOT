@@ -195,12 +195,6 @@ class PlotWindow(QWidget):
 #        self.button_save_temp.setObjectName('button_save_temp')
 #        self.button_save_temp.setIcon(QIcon(CONSTANT.ICON_SAVE_TEMP))
 #        self.verticalLayout.addWidget(self.button_save_temp)
-        self.button_clear_canvas = QToolButton(self.widget_plot_tools)
-        self.button_clear_canvas.setMinimumSize(QSize(30, 30))
-        self.button_clear_canvas.setMaximumSize(QSize(30, 30))
-        self.button_clear_canvas.setIconSize(QSize(22, 22))
-        self.button_clear_canvas.setIcon(QIcon(CONSTANT.ICON_CLEAR))
-        self.verticalLayout.addWidget(self.button_clear_canvas)
         self.button_get_paravalue = QToolButton(self.widget_plot_tools)
         self.button_get_paravalue.setCheckable(True)
         self.button_get_paravalue.setMinimumSize(QSize(30, 30))
@@ -208,6 +202,12 @@ class PlotWindow(QWidget):
         self.button_get_paravalue.setIconSize(QSize(22, 22))
         self.button_get_paravalue.setIcon(QIcon(CONSTANT.ICON_PARA_VALUE))
         self.verticalLayout.addWidget(self.button_get_paravalue)
+        self.button_clear_canvas = QToolButton(self.widget_plot_tools)
+        self.button_clear_canvas.setMinimumSize(QSize(30, 30))
+        self.button_clear_canvas.setMaximumSize(QSize(30, 30))
+        self.button_clear_canvas.setIconSize(QSize(22, 22))
+        self.button_clear_canvas.setIcon(QIcon(CONSTANT.ICON_CLEAR))
+        self.verticalLayout.addWidget(self.button_clear_canvas)
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         
@@ -339,9 +339,6 @@ class PlotWindow(QWidget):
                 height = int(self.scrollarea.height() * 1.05) / 4
                 self.plotcanvas.resize(self.scrollarea.width() - 19,
                                        self.count_axis * height)
-#                height = self.count_axis * 180
-#                self.plotcanvas.resize(self.scrollarea.width() - 19,
-#                                       height)
             else:
                 self.scrollarea.setWidgetResizable(True)
             
@@ -577,42 +574,40 @@ class PlotWindow(QWidget):
         
     def slot_save_figure(self):
         
-#        将画布变形成合适的尺寸
-        self.scrollarea.setWidgetResizable(False)
-#        图注高度
-        legend_h = 18
-#        坐标高度
-        axis_h = 100
-#        画布尺寸
-        h = self.count_axis * (axis_h + legend_h) + legend_h
-        w = 650
-        left_gap = round(50 / w, 2)
-        bottom_gap = round(legend_h * 1.2 / h, 2)
-        right_gap = round((w - 10) / w, 2)
-        top_gap = round((h - legend_h) / h, 2)
-        hs = round(legend_h / (axis_h + legend_h), 2)
-        self.on_saving_fig = True
-        self.plotcanvas.resize(w, h)
-        self.plotcanvas.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
-                                            right=right_gap,top=top_gap,hspace=hs)
-#        变形的第二种办法是直接resize，都不用subplots_adjust，效果也还不错==！，因为缩放的尺寸都计算好了
-        
-#        保存变形后的画布
-        self.plotcanvas.toolbar.save_figure()
-        self.on_saving_fig = False
-        
-#        将画布还原回查看状态下的尺寸
-        if self.count_axis > 4:
+        if self.count_axis > 0:
+#            将画布变形成合适的尺寸
             self.scrollarea.setWidgetResizable(False)
-            height = int(self.scrollarea.height() * 1.05) / 4
-            self.plotcanvas.resize(self.scrollarea.width() - 19,
-                                   self.count_axis * height)
-#            height = self.count_axis * 180
-#            self.plotcanvas.resize(self.scrollarea.width() - 19,
-#                                   height)
-        else:
-            self.scrollarea.setWidgetResizable(True)
-        self.plotcanvas.set_subplot_adjust()
+#            图注高度
+            legend_h = 18
+#            坐标高度
+            axis_h = 100
+#            画布尺寸
+            h = self.count_axis * (axis_h + legend_h) + legend_h
+            w = 650
+            left_gap = round(50 / w, 2)
+            bottom_gap = round(legend_h * 1.2 / h, 2)
+            right_gap = round((w - 10) / w, 2)
+            top_gap = round((h - legend_h) / h, 2)
+            hs = round(legend_h / (axis_h + legend_h), 2)
+            self.on_saving_fig = True
+            self.plotcanvas.resize(w, h)
+            self.plotcanvas.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
+                                                right=right_gap,top=top_gap,hspace=hs)
+#            变形的第二种办法是直接resize，都不用subplots_adjust，效果也还不错==！，因为缩放的尺寸都计算好了
+            
+#            保存变形后的画布
+            self.plotcanvas.toolbar.save_figure()
+            self.on_saving_fig = False
+            
+#            将画布还原回查看状态下的尺寸
+            if self.count_axis > 4:
+                self.scrollarea.setWidgetResizable(False)
+                height = int(self.scrollarea.height() * 1.05) / 4
+                self.plotcanvas.resize(self.scrollarea.width() - 19,
+                                       self.count_axis * height)
+            else:
+                self.scrollarea.setWidgetResizable(True)
+            self.plotcanvas.set_subplot_adjust()
 # =============================================================================
 # 功能函数模块
 # =============================================================================

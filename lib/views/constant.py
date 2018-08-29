@@ -9,9 +9,13 @@ SETUP_DIR = osp.abspath(osp.join(osp.dirname(sys.argv[0]), osp.pardir))
 FONT_MSYH = matplotlib.font_manager.FontProperties(
                 fname = SETUP_DIR + r'\data\fonts\msyh.ttf',
                 size = 8)
+
+DIR_HELP_DOC = SETUP_DIR + r'\data\docs'
+DIR_HELP_VIDEO = SETUP_DIR + r'\data\videos'
+
 FTCC_LOGO = SETUP_DIR + r'\lib\icon\ftcc.png'
 
-ICON_WINDOW = SETUP_DIR + r'\lib\icon\window.png'
+ICON_WINDOW = SETUP_DIR + r'\lib\icon\fastplot.ico'
 
 ICON_ABOUT = SETUP_DIR + r'\lib\icon\information.ico'
 ICON_DATA_ABSTRACT = SETUP_DIR + r'\lib\icon\data_abstract.ico'
@@ -21,16 +25,15 @@ ICON_BACK = SETUP_DIR + r'\lib\icon\back.ico'
 
 ICON_CLEAR = SETUP_DIR + r'\lib\icon\clear.ico'
 
-ICON_DATA_ANA = SETUP_DIR + r'\lib\icon\dataanalysis.ico'
 ICON_DATA_MAN = SETUP_DIR + r'\lib\icon\datamanage.ico'
-ICON_DATA_PROC = SETUP_DIR + r'\lib\icon\dataanalysis.ico'
+ICON_DATA_PROC = SETUP_DIR + r'\lib\icon\data_process.ico'
 ICON_DATA_SIFT = SETUP_DIR + r'\lib\icon\data_sift.ico'
 ICON_DEL = SETUP_DIR + r'\lib\icon\delete.ico'
 ICON_DOWN = SETUP_DIR + r'\lib\icon\down.ico'
 
 ICON_EIXT = SETUP_DIR + r'\lib\icon\exit.png'
 
-ICON_FILE = SETUP_DIR + r'\lib\icon\datafile.png'
+ICON_FILE = SETUP_DIR + r'\lib\icon\datafile.ico'
 ICON_FILE_EXPORT = SETUP_DIR + r'\lib\icon\file_export.ico'
 ICON_FORWARD = SETUP_DIR + r'\lib\icon\forward.ico'
 
@@ -39,17 +42,16 @@ ICON_HOME = SETUP_DIR + r'\lib\icon\home.ico'
 ICON_MATHEMATICS = SETUP_DIR + r'\lib\icon\caculator.ico'
 ICON_MATH_RESULT = SETUP_DIR + r'\lib\icon\math_result.png'
 
-ICON_OPEN = SETUP_DIR + r'\lib\icon\open_datafile.ico'
 ICON_OPEN_NORDATA = SETUP_DIR + r'\lib\icon\nor_data.ico'
 
-ICON_PAN = SETUP_DIR + r'\lib\icon\pan.png'
+ICON_PAN = SETUP_DIR + r'\lib\icon\pan.ico'
 ICON_PANELS = SETUP_DIR + r'\lib\icon\panels.ico'
-ICON_PARA = SETUP_DIR + r'\lib\icon\parameter.png'
+ICON_PARA = SETUP_DIR + r'\lib\icon\parameter.ico'
 ICON_PARA_DICT = SETUP_DIR + r'\lib\icon\para_dict.ico'
 ICON_PARA_TEMP = SETUP_DIR + r'\lib\icon\para_temp.ico'
 ICON_PARA_VALUE = SETUP_DIR + r'\lib\icon\para_value.ico'
 ICON_PLOT = SETUP_DIR + r'\lib\icon\quick_plot.ico'
-ICON_PLOT_SETTING = SETUP_DIR + r'\lib\icon\plot_setting.ico'
+#ICON_PLOT_SETTING = SETUP_DIR + r'\lib\icon\plot_setting.ico'
 
 ICON_SAVE = SETUP_DIR + r'\lib\icon\save.ico'
 ICON_SAVE_TEMP = SETUP_DIR + r'\lib\icon\save_template.ico'

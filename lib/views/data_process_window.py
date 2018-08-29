@@ -329,12 +329,12 @@ class DataProcessWindow(QWidget):
                 self.signal_para_for_plot.emit(self.get_sel_paras_in_tuple())
             else:
                 count = self.tree_widget_paralist.topLevelItemCount()
-#                设置限制，超过15个参数则认为参数太多，不宜绘图
-                if count > 20:
+#                设置限制，超过40个参数则认为参数太多，不宜绘图
+                if count > 40:
                     QMessageBox.information(self,
                             QCoreApplication.translate('DataAnalysisWindow', '绘图提示'),
-                            QCoreApplication.translate('DataAnalysisWindow', '''<p>绘制当前所有参数，
-                                                                                <p>但参数过多，不予绘制！'''))
+                            QCoreApplication.translate('DataAnalysisWindow', '''<p>要绘制的参数已大于40个，
+                                                                                <p>参数过多，不予绘制！若真要绘制，请全选中后绘制！'''))
                 else:
                     self.signal_para_for_plot.emit(self.get_paras_in_tuple())
         

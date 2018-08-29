@@ -63,7 +63,7 @@ class ParalistWindow(QDockWidget):
 #    要计算的参数
     signal_into_mathematics = pyqtSignal(str)
 #    要增加的数据字典
-    signal_into_data_dict = pyqtSignal(str)
+#    signal_into_data_dict = pyqtSignal(str)
     
 # =============================================================================
 # 初始化
@@ -113,13 +113,13 @@ class ParalistWindow(QDockWidget):
 #        添加右键动作
         self.action_into_analysis = QAction(self.datafiles_tree)
         self.action_into_analysis.setText(QCoreApplication.
-                                   translate('ParalistDock', '处理参数'))
+                                   translate('ParalistDock', '添加至分析'))
         self.action_into_mathematics = QAction(self.datafiles_tree)
         self.action_into_mathematics.setText(QCoreApplication.
-                                             translate('ParalistDock', '计算参数'))
-        self.action_into_data_dict = QAction(self.datafiles_tree)
-        self.action_into_data_dict.setText(QCoreApplication.
-                                           translate('ParalistDock', '添加字典'))
+                                             translate('ParalistDock', '添加至计算'))
+#        self.action_into_data_dict = QAction(self.datafiles_tree)
+#        self.action_into_data_dict.setText(QCoreApplication.
+#                                           translate('ParalistDock', '添加字典'))
         self.action_quick_plot = QAction(self.datafiles_tree)
         self.action_quick_plot.setText(QCoreApplication.
                                        translate('ParalistDock', '快速绘图'))
@@ -143,7 +143,7 @@ class ParalistWindow(QDockWidget):
         
         self.action_into_analysis.triggered.connect(self.slot_into_analysis)
         self.action_into_mathematics.triggered.connect(self.slot_into_mathematics)
-        self.action_into_data_dict.triggered.connect(self.slot_into_data_dict)
+#        self.action_into_data_dict.triggered.connect(self.slot_into_data_dict)
         self.action_quick_plot.triggered.connect(self.slot_quick_plot)
         self.action_delete_files.triggered.connect(self.slot_delete_files)
         self.action_collapse_all.triggered.connect(self.slot_collapse_all)
@@ -168,20 +168,20 @@ class ParalistWindow(QDockWidget):
             menu.addActions([self.action_quick_plot,
                              self.action_into_analysis,
                              self.action_into_mathematics,
-                             self.action_into_data_dict,
+#                             self.action_into_data_dict,
                              self.action_delete_files,
                              self.action_expand_all,
                              self.action_collapse_all])
             if sel_item.parent():
                 self.action_into_analysis.setDisabled(False)
                 self.action_into_mathematics.setDisabled(False)
-                self.action_into_data_dict.setDisabled(False)
+#                self.action_into_data_dict.setDisabled(False)
                 self.action_quick_plot.setDisabled(False)
                 self.action_delete_files.setDisabled(True)
             else:
                 self.action_into_analysis.setDisabled(True)
                 self.action_into_mathematics.setDisabled(True)
-                self.action_into_data_dict.setDisabled(False)
+#                self.action_into_data_dict.setDisabled(True)
                 self.action_quick_plot.setDisabled(True)
                 self.action_delete_files.setDisabled(False)
             menu.exec_(self.datafiles_tree.mapToGlobal(pos))
@@ -268,11 +268,11 @@ class ParalistWindow(QDockWidget):
 #            传递出去
             self.signal_into_mathematics.emit(self.sel_paraname)
             
-    def slot_into_data_dict(self):
-        
-        if self.sel_paraname:
-#            传递出去
-            self.signal_into_data_dict.emit(self.sel_paraname)
+#    def slot_into_data_dict(self):
+#        
+#        if self.sel_paraname:
+##            传递出去
+#            self.signal_into_data_dict.emit(self.sel_paraname)
     
     def slot_quick_plot(self):
 

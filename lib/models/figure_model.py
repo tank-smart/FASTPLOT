@@ -178,15 +178,19 @@ class PlotCanvas(FigureCanvas):
         self.action_show_vgrid.setChecked(True)
         self.action_show_vgrid.setText(QCoreApplication.
                                        translate('PlotCanvas', '显示垂直网格线'))
-        self.action_save_time = QAction(self)
-        self.action_save_time.setText(QCoreApplication.
-                                         translate('PlotCanvas', '保存时刻'))
         self.action_save_tinterval = QAction(self)
         self.action_save_tinterval.setText(QCoreApplication.
-                                        translate('PlotCanvas', '保存时间段'))
+                                           translate('PlotCanvas', '保存时间段'))
+        self.action_save_time = QAction(self)
+        self.action_save_time.setText(QCoreApplication.
+                                      translate('PlotCanvas', '保存时刻'))
         self.action_axis_setting = QAction(self)
         self.action_axis_setting.setText(QCoreApplication.
                                          translate('PlotCanvas', '坐标轴设置'))
+        self.action_add_text = QAction(self)
+        self.action_add_text.setIcon(QIcon(CONSTANT.ICON_TEXT))
+        self.action_add_text.setText(QCoreApplication.
+                                     translate('PlotCanvas', '添加文字'))
         self.action_add_mark_hline = QAction(self)
         self.action_add_mark_hline.setText(QCoreApplication.
                                            translate('PlotCanvas', '水平标记线'))
@@ -198,12 +202,11 @@ class PlotCanvas(FigureCanvas):
                                              translate('PlotCanvas', '任意标记线'))
         self.action_del_artist = QAction(self)
         self.action_del_artist.setText(QCoreApplication.
-                                           translate('PlotCanvas', '删除'))
+                                       translate('PlotCanvas', '删除标记'))
         self.action_del_artist.setIcon(QIcon(CONSTANT.ICON_DEL))
-        self.action_add_text = QAction(self)
-        self.action_add_text.setIcon(QIcon(CONSTANT.ICON_TEXT))
-        self.action_add_text.setText(QCoreApplication.
-                                     translate('PlotCanvas', '添加文字'))
+        self.action_del_axis = QAction(self)
+        self.action_del_axis.setText(QCoreApplication.
+                                     translate('PlotCanvas', '删除曲线'))
         self.mpl_connect('button_press_event', 
                                          self.slot_on_tree_context_menu)
 #        网格显示相关的动作连接
@@ -222,6 +225,8 @@ class PlotCanvas(FigureCanvas):
         
         self.action_save_time.triggered.connect(self.slot_save_time)
         self.action_save_tinterval.triggered.connect(self.slot_save_tinterval)
+        
+        self.action_del_axis.triggered.connect(self.slot_del_axis)
 
         self.mpl_connect('motion_notify_event', self.slot_set_cursor)
         
@@ -241,8 +246,8 @@ class PlotCanvas(FigureCanvas):
             menu = QMenu(self)
             menu.addActions([self.action_show_hgrid, 
                              self.action_show_vgrid,
-                             self.action_save_time,
                              self.action_save_tinterval,
+                             self.action_save_time,
                              self.action_axis_setting,
                              self.action_add_text])
             menu_markline = QMenu(menu)
@@ -254,6 +259,7 @@ class PlotCanvas(FigureCanvas):
                                     self.action_add_arb_markline])
             menu.addAction(menu_markline.menuAction())
             menu.addAction(self.action_del_artist)
+#            menu.addAction(self.action_del_axis)
             if event.inaxes:
                 self.axis_menu_on = event.inaxes
                 self.action_axis_setting.setEnabled(True)
@@ -439,6 +445,11 @@ class PlotCanvas(FigureCanvas):
         if (message == QMessageBox.Yes):
             self.picked_del_artist.remove()
             self.draw()
+            
+    def slot_del_axis(self):
+        
+        self.current_axes.remove()
+        self.draw()
 
 #    文字标注函数     
     def slot_add_annotation(self):
@@ -876,8 +887,8 @@ class PlotCanvas(FigureCanvas):
                 ax.legend(loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
                           prop = CONSTANT.FONT_MSYH)
                 ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-                ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
-                ax.xaxis.set_minor_locator(AutoMinorLocator(n=3))
+                ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+                ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
                 ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
                 ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
                 ax.grid(which='major',linestyle='--',color = '0.45')

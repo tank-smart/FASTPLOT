@@ -1355,7 +1355,7 @@ class ParameterExportDialog(QDialog):
         
         super().__init__(parent)
         
-        self.outfile_icon = QIcon(CONSTANT.ICON_FILE_EXPORT)
+        self.outfile_icon = QIcon(CONSTANT.ICON_FILE)
         self.para_icon = QIcon(CONSTANT.ICON_PARA)
         self.file_info = {}
         self.current_file_dir = ''
@@ -2348,7 +2348,7 @@ class FileProcessDialog(QDialog):
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate('FileProcessDialog', '文件处理'))
+        self.setWindowTitle(_translate('FileProcessDialog', '文件导出'))
         self.group_box_preview.setTitle(_translate('FileProcessDialog', '预览'))
         self.tree_widget_files.headerItem().setText(0, _translate('FileProcessDialog', '文件名'))
         self.tree_widget_files.headerItem().setText(1, _translate('FileProcessDialog', '起始时间'))
