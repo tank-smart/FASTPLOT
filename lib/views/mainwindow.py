@@ -139,13 +139,13 @@ class MainWindow(QMainWindow):
 #        self.menu_open = QMenu(self.menu_file)
 #        self.menu_edit = QMenu(self.menubar)
         self.menu_view = QMenu(self.menubar)
-        self.menu_panels = QMenu(self.menu_view)
-        self.menu_panels.setIcon(QIcon(CONSTANT.ICON_PANELS))
+#        self.menu_panels = QMenu(self.menu_view)
+#        self.menu_panels.setIcon(QIcon(CONSTANT.ICON_PANELS))
         self.menu_tools = QMenu(self.menubar)
 #        self.menu_data_analysis = QMenu(self.menu_tools)
 #        self.menu_data_analysis.setIcon(QIcon(CONSTANT.ICON_DATA_ANA))
-        self.menu_data_manage = QMenu(self.menu_tools)
-        self.menu_data_manage.setIcon(QIcon(CONSTANT.ICON_DATA_MAN))
+#        self.menu_data_manage = QMenu(self.menu_tools)
+#        self.menu_data_manage.setIcon(QIcon(CONSTANT.ICON_DATA_MAN))
 #        self.menu_window = QMenu(self.menubar)
         self.menu_help = QMenu(self.menubar)
         self.setMenuBar(self.menubar)
@@ -202,15 +202,17 @@ class MainWindow(QMainWindow):
                                     self.action_data_sift,
                                     self.action_plot,
                                     self.action_mathematics,
-                                    self.menu_data_manage.menuAction()])
+                                    self.action_para_templates,
+                                    self.action_data_dict])
 #        self.menu_tools.addAction(self.action_options)
-        self.menu_panels.addActions([self.action_show_paralist_window,
+#        self.menu_panels.addActions([self.action_show_paralist_window,
+#                                    self.action_show_syn_window])
+        self.menu_view.addActions([self.action_show_paralist_window,
                                     self.action_show_syn_window])
-        self.menu_view.addAction(self.menu_panels.menuAction())
 #        self.menu_data_analysis.addActions([self.action_data_process,
 #                                            self.action_data_sift])
-        self.menu_data_manage.addActions([self.action_para_templates,
-                                          self.action_data_dict])
+#        self.menu_data_manage.addActions([self.action_para_templates,
+#                                          self.action_data_dict])
         self.menu_help.addActions([self.action_help_doc,
                                    self.action_help_video,
                                    self.action_about])
@@ -312,7 +314,7 @@ class MainWindow(QMainWindow):
 #        数据字典窗口与主窗口和其他窗口的信号与槽连接
         
 #        绘图窗口与主窗口和其他窗口的信号与槽连接
-        self.plot_page.plotcanvas.signal_send_status.connect(
+        self.plot_page.signal_send_status.connect(
                 self.slot_display_status_info)
 
         self.syn_function_window.visibilityChanged.connect(
@@ -544,11 +546,11 @@ class MainWindow(QMainWindow):
         
         self.data_sift_page.slot_update_current_files(self.current_files)
         self.mathematics_page.plain_text_edit_conmandline.slot_update_current_files(self.current_files)
-        self.plot_page.plotcanvas._current_files = self.current_files
+        self.plot_page._current_files = self.current_files
         
     def slot_data_dict_changed(self, data_dict : dict):
         
-        self.plot_page.plotcanvas._data_dict = data_dict
+        self.plot_page._data_dict = data_dict
     
 #    用于将信息显示在状态栏，也可以用于清除状态栏信息
     def slot_display_status_info(self, message : str, timeout : int):
@@ -633,10 +635,10 @@ class MainWindow(QMainWindow):
 #        self.menu_open.setTitle(_translate('MainWindow', '打开'))
 #        self.menu_edit.setTitle(_translate('MainWindow', '编辑'))
         self.menu_view.setTitle(_translate('MainWindow', '视图'))
-        self.menu_panels.setTitle(_translate('MainWindow', '面板'))
+#        self.menu_panels.setTitle(_translate('MainWindow', '面板'))
         self.menu_tools.setTitle(_translate('MainWindow', '工具'))
 #        self.menu_data_analysis.setTitle(_translate('MainWindow', '数据分析'))
-        self.menu_data_manage.setTitle(_translate('MainWindow', '数据管理'))
+#        self.menu_data_manage.setTitle(_translate('MainWindow', '数据管理'))
 #        self.menu_window.setTitle(_translate('MainWindow', '窗口'))
         self.menu_help.setTitle(_translate('MainWindow', '帮助'))
         self.toolbar.setWindowTitle(_translate('MainWindow', '工具栏'))

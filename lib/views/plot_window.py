@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
                              QMessageBox, QScrollArea, QTableWidget,
                              QFileDialog, QTableWidgetItem, 
-                             QComboBox, QGroupBox, QLabel)
+                             QComboBox, QGroupBox, QLabel, QTabWidget)
 from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
                           QIODevice, Qt)
 from PyQt5.QtGui import QIcon
@@ -33,15 +33,21 @@ from models.figure_model import PlotCanvas
 #from views.custom_dialog import SelectTemplateDialog, SaveTemplateDialog
 import views.constant as CONSTANT
 # =============================================================================
-# CustomScrollArea
+# FigureWindow
 # =============================================================================
-class CustomScrollArea(QScrollArea):
+class FigureWindow(QScrollArea):
 
     signal_resize = pyqtSignal(QSize)
     signal_drop_paras = pyqtSignal(tuple)
     
-    def __init__(self, parent = None):
+    def __init__(self, parent = None, fig_style = None):
+        
         super().__init__(parent)
+        
+        self.canva = PlotCanvas(self)
+        self.canva.fig_style = fig_style
+        self.setWidget(self.canva)
+        self.setWidgetResizable(True)
         self.setAcceptDrops(True)
         
     def resizeEvent(self, event):
@@ -92,6 +98,7 @@ class PlotWindow(QWidget):
     signal_request_temps = pyqtSignal(str)
     signal_save_temp = pyqtSignal(dict)
     signal_is_display_menu = pyqtSignal(bool)
+    signal_send_status = pyqtSignal(str, int)
 # =============================================================================
 # 初始化    
 # =============================================================================
@@ -104,6 +111,12 @@ class PlotWindow(QWidget):
         self.count_axis = 0
 #        用户保存的时刻
         self.timestamps = []
+#        当前绘图窗口
+        self.current_fig_win = None
+        self.current_fig_style = 'mult_axis'
+        
+        self._current_files = None
+        self._data_dict = None
 
 # =============================================================================
 # UI模块        
@@ -114,10 +127,15 @@ class PlotWindow(QWidget):
         self.horizontalLayout_2 = QHBoxLayout(self)
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout_2.setSpacing(0)
+        
+        self.tab_widget_figure = QTabWidget(self)
+        self.tab_widget_figure.setTabsClosable(True)
 #        创建画布部件
-        self.scrollarea = CustomScrollArea(self)
-        self.plotcanvas = PlotCanvas(self.scrollarea)
-        self.scrollarea.setWidget(self.plotcanvas)
+        self.current_fig_win = FigureWindow(self.tab_widget_figure, 'mult_axis')
+        self.current_canva = self.current_fig_win.canva
+        self.tab_widget_figure.addTab(self.current_fig_win,
+                                      QCoreApplication.translate('PlotWindow',
+                                                                 '多坐标图'))
 #        创建右侧的工具栏
         self.widget_plot_tools = QWidget(self)
         self.widget_plot_tools.setMinimumSize(QSize(32, 0))
@@ -208,6 +226,18 @@ class PlotWindow(QWidget):
         self.button_clear_canvas.setIconSize(QSize(22, 22))
         self.button_clear_canvas.setIcon(QIcon(CONSTANT.ICON_CLEAR))
         self.verticalLayout.addWidget(self.button_clear_canvas)
+        self.button_add_sa_fig = QToolButton(self.widget_plot_tools)
+        self.button_add_sa_fig.setMinimumSize(QSize(30, 30))
+        self.button_add_sa_fig.setMaximumSize(QSize(30, 30))
+        self.button_add_sa_fig.setIconSize(QSize(22, 22))
+        self.button_add_sa_fig.setIcon(QIcon(CONSTANT.ICON_SINGLE_AXIS))
+        self.verticalLayout.addWidget(self.button_add_sa_fig)
+        self.button_add_ma_fig = QToolButton(self.widget_plot_tools)
+        self.button_add_ma_fig.setMinimumSize(QSize(30, 30))
+        self.button_add_ma_fig.setMaximumSize(QSize(30, 30))
+        self.button_add_ma_fig.setIconSize(QSize(22, 22))
+        self.button_add_ma_fig.setIcon(QIcon(CONSTANT.ICON_MULT_AXIS))
+        self.verticalLayout.addWidget(self.button_add_ma_fig)
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         
@@ -267,42 +297,69 @@ class PlotWindow(QWidget):
         
 #        先添加工具栏在添加包括画布/滑块的水平子布局器
         self.horizontalLayout_2.addWidget(self.widget_plot_tools)
-        self.horizontalLayout_2.addWidget(self.scrollarea)
+        self.horizontalLayout_2.addWidget(self.tab_widget_figure)
         self.horizontalLayout_2.addWidget(self.para_value_window)
         self.para_value_window.setHidden(True)
 
         self.retranslateUi()
 # =======连接信号与槽
 # =============================================================================
-        self.button_home.clicked.connect(self.plotcanvas.toolbar.home)
         self.button_pan.clicked.connect(self.slot_pan)
         self.button_zoom.clicked.connect(self.slot_zoom)
-#        self.button_plot_setting.clicked.connect(self.plotcanvas.slot_plot_setting)
-#        self.button_edit.clicked.connect(self.plotcanvas.toolbar.edit_parameters)
-#        self.button_config.clicked.connect(self.plotcanvas.toolbar.configure_subplots)
         self.button_save.clicked.connect(self.slot_save_figure)
-        self.button_back.clicked.connect(self.plotcanvas.toolbar.back)
-        self.button_forward.clicked.connect(self.plotcanvas.toolbar.forward)
 #        self.button_sel_temp.clicked.connect(self.slot_emit_request_plot_temps)
 #        self.button_save_temp.clicked.connect(self.slot_save_temp)
         self.button_clear_canvas.clicked.connect(self.slot_clear_canvas)
         self.button_get_paravalue.clicked.connect(self.slot_paravalue_btn_clicked)
-        
-        self.scrollarea.signal_resize.connect(self.slot_resize_canvas)
-        self.scrollarea.signal_drop_paras.connect(self.slot_plot)
-        
+        self.button_add_sa_fig.clicked.connect(self.slot_add_sa_fig)
+        self.button_add_ma_fig.clicked.connect(self.slot_add_ma_fig)
+
         self.combo_box_time.activated.connect(self.slot_display_paravalue_ontime)
         self.tool_btn_time.clicked.connect(self.slot_import_paravalue)
         
         self.combo_box_time_intervals.activated.connect(self.slot_display_tinterval)
-        self.tool_btn_time_interval.clicked.connect(self.plotcanvas.slot_sel_function)
+        self.tool_btn_time_interval.clicked.connect(self.slot_save_interval_data)
         
+        self.tab_widget_figure.tabCloseRequested.connect(self.slot_close_tab)
+        self.tab_widget_figure.currentChanged.connect(self.slot_fig_win_change)
+        
+        self.connect_cfw_sink_signal()
+
+#    连接与绘图窗口有关的信号槽
+    def connect_cfw_sink_signal(self):
+
+#        self.button_plot_setting.clicked.connect(self.current_canva.slot_plot_setting)
+#        self.button_edit.clicked.connect(self.current_canva.toolbar.edit_parameters)
+#        self.button_config.clicked.connect(self.current_canva.toolbar.configure_subplots)
+        self.button_home.clicked.connect(self.current_canva.toolbar.home)
+        self.button_back.clicked.connect(self.current_canva.toolbar.back)
+        self.button_forward.clicked.connect(self.current_canva.toolbar.forward)
+        self.current_fig_win.signal_resize.connect(self.slot_resize_canvas)
+        self.current_fig_win.signal_drop_paras.connect(self.slot_plot)
 #        画布的右键菜单
-        self.signal_is_display_menu.connect(self.plotcanvas.slot_set_display_menu)
+        self.signal_is_display_menu.connect(self.current_canva.slot_set_display_menu)
         
-        self.plotcanvas.signal_cursor_xdata.connect(self.slot_display_paravalue)
-        self.plotcanvas.signal_send_time.connect(self.slot_save_time)
-        self.plotcanvas.signal_send_tinterval.connect(self.slot_save_tinterval)
+        self.current_canva.signal_cursor_xdata.connect(self.slot_display_paravalue)
+        self.current_canva.signal_send_time.connect(self.slot_save_time)
+        self.current_canva.signal_send_tinterval.connect(self.slot_save_tinterval)
+ 
+#    断开与绘图窗口有关的信号槽       
+    def diconnect_cfw_sink_signal(self):
+        
+#        self.button_plot_setting.clicked.connect(self.current_canva.slot_plot_setting)
+#        self.button_edit.clicked.connect(self.current_canva.toolbar.edit_parameters)
+#        self.button_config.clicked.connect(self.current_canva.toolbar.configure_subplots)
+        self.button_home.clicked.disconnect(self.current_canva.toolbar.home)
+        self.button_back.clicked.disconnect(self.current_canva.toolbar.back)
+        self.button_forward.clicked.disconnect(self.current_canva.toolbar.forward)
+        self.current_fig_win.signal_resize.disconnect(self.slot_resize_canvas)
+        self.current_fig_win.signal_drop_paras.disconnect(self.slot_plot)
+#        画布的右键菜单
+        self.signal_is_display_menu.disconnect(self.current_canva.slot_set_display_menu)
+        
+        self.current_canva.signal_cursor_xdata.disconnect(self.slot_display_paravalue)
+        self.current_canva.signal_send_time.disconnect(self.slot_save_time)
+        self.current_canva.signal_send_tinterval.disconnect(self.slot_save_tinterval)
 
 # =============================================================================
 # slots模块
@@ -313,15 +370,15 @@ class PlotWindow(QWidget):
 #            for filedir in filegroup:
 #                cols = len(filegroup[filedir])
 #                if cols > 4:
-#                    self.scrollarea.setWidgetResizable(False)
+#                    self.current_fig_win.setWidgetResizable(False)
 ##                    乘以1.05是估计的，刚好能放下四张图，
 ##                    减去的19是滚动条的宽度
-#                    height = int(self.scrollarea.height() * 1.05) / 4
-#                    self.plotcanvas.resize(self.scrollarea.width() - 19,
+#                    height = int(self.current_fig_win.height() * 1.05) / 4
+#                    self.current_canva.resize(self.current_fig_win.width() - 19,
 #                                           cols * height)
 #                else:
-#                    self.scrollarea.setWidgetResizable(True)
-#                self.plotcanvas.subplot_para_wxl(filedir, filegroup[filedir])
+#                    self.current_fig_win.setWidgetResizable(True)
+#                self.current_canva.subplot_para_wxl(filedir, filegroup[filedir])
         
 #    输入参数为一个包含两个参数的元组，元组第一个参数是字典型，存储文件名及与之对应的变量列表
 #    元组第二个参数是列表，存储已排序的参数
@@ -330,43 +387,47 @@ class PlotWindow(QWidget):
         
         datadict, sorted_paras = datadict_and_paralist
         if datadict and sorted_paras:
-            self.plotcanvas.subplot_para_wxl(datadict, sorted_paras)
-            self.count_axis = self.plotcanvas.count_axes
+            self.current_canva._data_dict = self._data_dict
+            
+            self.signal_send_status.emit('绘图中...', 0)
+            self.current_canva.plot_paras(datadict, sorted_paras)
+            self.signal_send_status.emit('绘图完成！', 1500)
+            
+            self.count_axis = self.current_canva.count_axes
             if self.count_axis > 4:
-                self.scrollarea.setWidgetResizable(False)
-#                    乘以1.05是估计的，刚好能放下四张图，
-#                    减去的19是滚动条的宽度
-                height = int(self.scrollarea.height() * 1.05) / 4
-                self.plotcanvas.resize(self.scrollarea.width() - 19,
+                self.current_fig_win.setWidgetResizable(False)
+#                        乘以1.05是估计的，刚好能放下四张图，
+#                        减去的19是滚动条的宽度
+                height = int(self.current_fig_win.height() * 1.05) / 4
+                self.current_canva.resize(self.current_fig_win.width() - 19,
                                        self.count_axis * height)
             else:
-                self.scrollarea.setWidgetResizable(True)
+                self.current_fig_win.setWidgetResizable(True)
             
-
     def slot_resize_canvas(self, scroll_area_size):
         
-        if (not self.scrollarea.widgetResizable()) and (not self.on_saving_fig):
-            height = self.count_axis * int(self.scrollarea.height() * 1.05) / 4
+        if (not self.current_fig_win.widgetResizable()) and (not self.on_saving_fig):
+            height = self.count_axis * int(self.current_fig_win.height() * 1.05) / 4
             if scroll_area_size.height() > height:
-                self.plotcanvas.resize(scroll_area_size)
+                self.current_canva.resize(scroll_area_size)
             else:
-                self.plotcanvas.resize(scroll_area_size.width(),
-                                       self.plotcanvas.size().height())
+                self.current_canva.resize(scroll_area_size.width(),
+                                       self.current_canva.size().height())
 #            设置图四边的空白宽度
-            self.plotcanvas.set_subplot_adjust()
+            self.current_canva.set_subplot_adjust()
         
     def slot_pan(self):
-        self.plotcanvas.toolbar.pan()
+        self.current_canva.toolbar.pan()
         
 #        完成按钮按下和弹起的效果
         if self.pan_on:
-            self.plotcanvas.current_cursor_inaxes = Qt.ArrowCursor
+            self.current_canva.current_cursor_inaxes = Qt.ArrowCursor
             self.button_pan.setChecked(False)
             self.pan_on = False
 #            因为缩放时占用了右键，所以需要禁止右键菜单弹出
             self.signal_is_display_menu.emit(True)
         else:
-            self.plotcanvas.current_cursor_inaxes = Qt.SizeAllCursor
+            self.current_canva.current_cursor_inaxes = Qt.SizeAllCursor
             self.button_pan.setChecked(True)
             self.pan_on = True
             self.signal_is_display_menu.emit(False)
@@ -376,16 +437,16 @@ class PlotWindow(QWidget):
                 self.zoom_on = False
         
     def slot_zoom(self):
-        self.plotcanvas.toolbar.zoom()
+        self.current_canva.toolbar.zoom()
         
 #        完成按钮按下和弹起的效果
         if self.zoom_on:
-            self.plotcanvas.current_cursor_inaxes = Qt.ArrowCursor
+            self.current_canva.current_cursor_inaxes = Qt.ArrowCursor
             self.button_zoom.setChecked(False)
             self.zoom_on = False
             self.signal_is_display_menu.emit(True)
         else:
-            self.plotcanvas.current_cursor_inaxes = Qt.CrossCursor
+            self.current_canva.current_cursor_inaxes = Qt.CrossCursor
             self.button_zoom.setChecked(True)
             self.zoom_on = True
             self.signal_is_display_menu.emit(False)
@@ -433,14 +494,14 @@ class PlotWindow(QWidget):
     
 #    def slot_save_temp(self):
 #        
-#        if self.plotcanvas.paralist:
+#        if self.current_canva.paralist:
 #            temp = {}
 #            dialog = SaveTemplateDialog(self)
 #            return_signal = dialog.exec_()
 #            if (return_signal == QDialog.Accepted):
 #                temp_name = dialog.temp_name
 #                if temp_name:
-#                    temp[temp_name] = self.plotcanvas.paralist[1:]
+#                    temp[temp_name] = self.current_canva.paralist[1:]
 #                    self.signal_save_temp.emit(temp)
 #                else:
 #                    QMessageBox.information(self,
@@ -455,10 +516,11 @@ class PlotWindow(QWidget):
         
         if self.para_value_window.isHidden():
             self.para_value_window.setHidden(False)
-            self.plotcanvas.slot_connect_display_paravalue()
+            self.current_canva._data_dict = self._data_dict
+            self.current_canva.slot_connect_display_paravalue()
         else:
             self.para_value_window.setHidden(True)
-            self.plotcanvas.slot_diaconnect_display_paravalue()
+            self.current_canva.slot_diaconnect_display_paravalue()
             
     def slot_save_time(self):
 
@@ -479,7 +541,7 @@ class PlotWindow(QWidget):
         paralist = ['TIME']
         for time in self.timestamps:
             dt = datetime.strptime(time, '%H:%M:%S.%f')
-            paravalue = self.plotcanvas.get_paravalue(dt)
+            paravalue = self.current_canva.get_paravalue(dt)
             for para_tuple in paravalue:
                 paraname, value = para_tuple
                 if paraname in dict_paravalue:
@@ -520,7 +582,7 @@ class PlotWindow(QWidget):
         if str_time:
             self.label_time.setText(str_time)
             dt = datetime.strptime(str_time, '%H:%M:%S.%f')
-            paravalue = self.plotcanvas.get_paravalue(dt)
+            paravalue = self.current_canva.get_paravalue(dt)
             count = len(paravalue)
             self.table_widget_value.clearContents()
             self.table_widget_value.setRowCount(count)
@@ -534,7 +596,7 @@ class PlotWindow(QWidget):
     def slot_display_tinterval(self, index):
         
         name = self.combo_box_time_intervals.itemData(index)
-        self.plotcanvas.slot_set_tlim(name)
+        self.current_canva.slot_set_tlim(name)
             
 #    实时显示参数值
     def slot_display_paravalue(self, time : str, paravalue : list):
@@ -560,12 +622,12 @@ class PlotWindow(QWidget):
                   QCoreApplication.translate('PlotWindow', '确定要清除画布吗'),
                   QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
-                self.plotcanvas.slot_clear_canvas()
+                self.current_canva.slot_clear_canvas()
 #                如果画的图多会出现滚动条，此时清除画布，滚动条不会消失，因此采用此行解决
-                self.scrollarea.setWidgetResizable(True)
+                self.current_fig_win.setWidgetResizable(True)
                 self.count_axis = 0
                 self.timestamps = []
-                self.plotcanvas.time_intervals = {}
+                self.current_canva.time_intervals = {}
                 self.combo_box_time.clear()
                 self.combo_box_time_intervals.clear()
                 self.label_time.setText('00:00:00.000')
@@ -576,11 +638,14 @@ class PlotWindow(QWidget):
         
         if self.count_axis > 0:
 #            将画布变形成合适的尺寸
-            self.scrollarea.setWidgetResizable(False)
+            self.current_fig_win.setWidgetResizable(False)
 #            图注高度
             legend_h = 18
 #            坐标高度
-            axis_h = 100
+            if self.count_axis == 1:
+                axis_h = 300
+            else:
+                axis_h = 100
 #            画布尺寸
             h = self.count_axis * (axis_h + legend_h) + legend_h
             w = 650
@@ -590,24 +655,74 @@ class PlotWindow(QWidget):
             top_gap = round((h - legend_h) / h, 2)
             hs = round(legend_h / (axis_h + legend_h), 2)
             self.on_saving_fig = True
-            self.plotcanvas.resize(w, h)
-            self.plotcanvas.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
+            self.current_canva.resize(w, h)
+            self.current_canva.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                                 right=right_gap,top=top_gap,hspace=hs)
 #            变形的第二种办法是直接resize，都不用subplots_adjust，效果也还不错==！，因为缩放的尺寸都计算好了
             
 #            保存变形后的画布
-            self.plotcanvas.toolbar.save_figure()
+            self.current_canva.toolbar.save_figure()
             self.on_saving_fig = False
             
 #            将画布还原回查看状态下的尺寸
             if self.count_axis > 4:
-                self.scrollarea.setWidgetResizable(False)
-                height = int(self.scrollarea.height() * 1.05) / 4
-                self.plotcanvas.resize(self.scrollarea.width() - 19,
+                self.current_fig_win.setWidgetResizable(False)
+                height = int(self.current_fig_win.height() * 1.05) / 4
+                self.current_canva.resize(self.current_fig_win.width() - 19,
                                        self.count_axis * height)
             else:
-                self.scrollarea.setWidgetResizable(True)
-            self.plotcanvas.set_subplot_adjust()
+                self.current_fig_win.setWidgetResizable(True)
+            self.current_canva.set_subplot_adjust()
+            
+    def slot_close_tab(self, index : int):
+        
+        message = QMessageBox.warning(self,
+                      QCoreApplication.translate('PlotWindow', '关闭'),
+                      QCoreApplication.translate('PlotWindow',
+                                        '''<p>确定要关闭吗？'''),
+                      QMessageBox.Yes | QMessageBox.No)
+        if (message == QMessageBox.Yes):
+            self.tab_widget_figure.removeTab(index)
+            if self.tab_widget_figure.count() == 0:
+                self.slot_add_ma_fig()
+                
+            
+    def slot_send_status(self, message : str, timeout : int):
+        
+        self.signal_send_status.emit(message, timeout)
+        
+    def slot_save_interval_data(self):
+        
+        self.current_canva.slot_sel_function(self._current_files)
+        
+    def slot_fig_win_change(self, index):
+        
+        if index >= 0:
+            if self.pan_on:
+                self.slot_pan()
+            if self.zoom_on:
+                self.slot_zoom()
+            self.diconnect_cfw_sink_signal()
+            self.tab_widget_figure.setCurrentIndex(index)
+            self.current_fig_win = self.tab_widget_figure.currentWidget()
+            self.current_canva = self.current_fig_win.canva
+            self.connect_cfw_sink_signal()
+            
+            self.count_axis = self.current_canva.count_axes
+        
+    def slot_add_sa_fig(self):
+        
+        sa_fig_win = FigureWindow(self.tab_widget_figure, 'sin_axis')
+        self.tab_widget_figure.addTab(sa_fig_win,
+                                      QCoreApplication.translate('PlotWindow',
+                                                                 '单坐标图'))
+    
+    def slot_add_ma_fig(self):
+        
+        ma_fig_win = FigureWindow(self.tab_widget_figure, 'mult_axis')
+        self.tab_widget_figure.addTab(ma_fig_win,
+                                      QCoreApplication.translate('PlotWindow',
+                                                                 '多坐标图'))
 # =============================================================================
 # 功能函数模块
 # =============================================================================
@@ -633,6 +748,8 @@ class PlotWindow(QWidget):
 #        self.button_sel_temp.setToolTip(_translate('PlotWindow', '选择模板'))
         self.button_clear_canvas.setToolTip(_translate('PlotWindow', '清空画布'))
         self.button_get_paravalue.setToolTip(_translate('PlotWindow', '取参数值'))
+        self.button_add_sa_fig.setToolTip(_translate('PlotWindow', '单坐标图'))
+        self.button_add_ma_fig.setToolTip(_translate('PlotWindow', '多坐标图'))
         
         self.group_box_time_interval.setTitle(_translate('PlotWindow', '时间查看器'))
         self.tool_btn_time_interval.setText(_translate('PlotWindow', '...'))

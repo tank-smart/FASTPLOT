@@ -41,6 +41,7 @@ ICON_HOME = SETUP_DIR + r'\lib\icon\home.ico'
 
 ICON_MATHEMATICS = SETUP_DIR + r'\lib\icon\caculator.ico'
 ICON_MATH_RESULT = SETUP_DIR + r'\lib\icon\math_result.ico'
+ICON_MULT_AXIS = SETUP_DIR + r'\lib\icon\mult_axis.ico'
 
 ICON_OPEN_NORDATA = SETUP_DIR + r'\lib\icon\nor_data.ico'
 
@@ -57,6 +58,7 @@ ICON_SAVE = SETUP_DIR + r'\lib\icon\save.ico'
 ICON_SAVE_TEMP = SETUP_DIR + r'\lib\icon\save_template.ico'
 ICON_SEL_TEMP = SETUP_DIR + r'\lib\icon\use_template.ico'
 ICON_SETTING = SETUP_DIR + r'\lib\icon\setting.ico'
+ICON_SINGLE_AXIS = SETUP_DIR + r'\lib\icon\sin_axis.ico'
 
 ICON_TEMPLATE = SETUP_DIR + r'\lib\icon\template.ico'
 ICON_TEXT = SETUP_DIR + r'\lib\icon\text.ico'

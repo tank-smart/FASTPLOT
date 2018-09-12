@@ -72,25 +72,24 @@ class PlotCanvas(FigureCanvas):
     signal_send_time = pyqtSignal()
     signal_send_tinterval = pyqtSignal(tuple)
     signal_get_data_dict = pyqtSignal()
-    signal_send_status = pyqtSignal(str, int)
 
 #------王--改动结束
     
     def __init__(self,parent=None,width=10,height=4,dpi=100):
         self.fig=Figure(figsize=(width,height),dpi=dpi)
         #self.fig=plt.figure()
-        self.poslist=[[0.1, 0.77, 0.8, 0.18],[0.1, 0.53, 0.8, 0.18],[0.1, 0.29, 0.8, 0.18],[0.1, 0.05, 0.8, 0.18]]
+#        self.poslist=[[0.1, 0.77, 0.8, 0.18],[0.1, 0.53, 0.8, 0.18],[0.1, 0.29, 0.8, 0.18],[0.1, 0.05, 0.8, 0.18]]
         #self.poslist=[[0.1,0.75,0.8,0.23],[0.1,0.5,0.8,0.23],[0.1,0.25,0.8,0.23],[0.1,0,0.8,0.23]]
-        self.pos=0
+#        self.pos=0
         #self.axes = fig.add_subplot(111)# 调用figure下面的add_subplot方法，类似于matplotlib.pyplot下面的subplot方法
         #self.axes = fig.add_axes([0,0,1,1])
         FigureCanvas.__init__(self, self.fig)# 初始化父类
         self.setParent(parent)
  
-        FigureCanvas.setSizePolicy(self,
-                QSizePolicy.Expanding,
-                QSizePolicy.Expanding)
-        FigureCanvas.updateGeometry(self)
+#        FigureCanvas.setSizePolicy(self,
+#                QSizePolicy.Expanding,
+#                QSizePolicy.Expanding)
+#        FigureCanvas.updateGeometry(self)
 #        self.toolbar=self.add_toolbar()
         self.toolbar=CustomToolbar(self,parent=None)
         self.toolbar.hide()
@@ -105,10 +104,11 @@ class PlotCanvas(FigureCanvas):
 #        微软雅黑
 #        self.font_msyh = matplotlib.font_manager.FontProperties(
 #                fname = CONSTANT.SETUP_DIR + r'\data\fonts\msyh.ttf')
-#        当前软件已导入的文件
-        self._current_files = []
 #        当前的数据字典
         self._data_dict = {}
+        
+#        画图风格是单坐标还是多坐标
+        self.fig_style = None
 #        存储曲线颜色
         prop_cycle = plt.rcParams['axes.prop_cycle']
 #        默认的是十种颜色
@@ -610,7 +610,7 @@ class PlotCanvas(FigureCanvas):
                 ax.autoscale(axis = 'y')
             self.draw()    
                     
-    def slot_sel_function(self):
+    def slot_sel_function(self, cur_files):
         
         if self.time_intervals:
             dialog = SelFunctionDialog(self)
@@ -621,7 +621,7 @@ class PlotCanvas(FigureCanvas):
                     if index == 0:
                         self.slot_export_tinterval_data_fig()
                     elif index == 1:
-                        self.slot_export_tinterval_data_file()
+                        self.slot_export_tinterval_data_file(cur_files)
                     elif index == 2:
                         self.slot_export_tinterval_data_aggregate('mean')
                     elif index == 3:
@@ -649,29 +649,22 @@ class PlotCanvas(FigureCanvas):
                         data_container[name] = data
             if data_container:
                 dialog = ParameterExportDialog(self, data_container)
-                dialog.signal_send_status.connect(self.slot_send_status)
                 return_signal = dialog.exec_()
                 if return_signal == QDialog.Accepted:
                     QMessageBox.information(self,
                             QCoreApplication.translate('PlotCanvas', '保存提示'),
                             QCoreApplication.translate('PlotCanvas', '保存成功！'))
     
-    def slot_export_tinterval_data_file(self):
+    def slot_export_tinterval_data_file(self, files):
         
-        files = self._current_files
         if self.time_intervals:
             dialog = FileProcessDialog(self, files, self.time_intervals)
-            dialog.signal_send_status.connect(self.slot_send_status)
             return_signal = dialog.exec_()
             if return_signal == QDialog.Accepted:
                 QMessageBox.information(self,
                         QCoreApplication.translate('PlotCanvas', '保存提示'),
                         QCoreApplication.translate('PlotCanvas', '保存成功！'))
                 
-    def slot_send_status(self, message : str, timeout : int):
-        
-        self.signal_send_status.emit(message, timeout)
-        
     def slot_export_tinterval_data_aggregate(self, flag):
         
         if self.time_intervals:
@@ -823,9 +816,15 @@ class PlotCanvas(FigureCanvas):
                 paravalue.append((paraname, 'NaN'))
         return paravalue
         
+    def plot_paras(self, datalist, sorted_paras):
+        
+        if self.fig_style == 'mult_axis':
+            self.subplot_para_wxl(datalist, sorted_paras)
+        if self.fig_style == 'sin_axis':
+            self.an_plot_paras(datalist, sorted_paras)
+    
     def subplot_para_wxl(self, datalist, sorted_paras):
 
-        self.signal_send_status.emit('绘图中...', 0)
         is_plot = self.process_data(datalist, sorted_paras)
         
         if is_plot:
@@ -901,13 +900,75 @@ class PlotCanvas(FigureCanvas):
                 self.count_axes += 1
                 
             self.set_subplot_adjust()
-            self.signal_send_status.emit('绘图完成！', 1500)
 #        Easter Egg
 #        if count >= 12:
 #            QMessageBox.information(self,
 #                                    QCoreApplication.translate('PlotCanvas', 'Easter Egg'),
 #                                    QCoreApplication.translate('PlotCanvas', '别再画了，图快画到脚上了！'))
+
+    def an_plot_paras(self, datalist, sorted_paras):
+
+        is_plot = self.process_data(datalist, sorted_paras)
+        
+        if is_plot:
+            self.fig.clf()
+            self.count_axes = 1
+            matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+            matplotlib.rcParams['ytick.direction'] = 'in'
+#            支持中文显示
+#            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+            matplotlib.rcParams['axes.unicode_minus'] = False
             
+            ax = self.fig.add_subplot(1, 1, 1)
+    
+            self.color_index = 0
+            for i, para_tuple in enumerate(self.sorted_paralist):
+                paraname, index = para_tuple
+                if paraname in self._data_dict:
+                    pn = self._data_dict[paraname][0]
+                    unit = self._data_dict[paraname][1]
+                    if pn != 'NaN':
+                        if unit != 'NaN' and unit != '1':
+                            pn = pn + '(' + unit + ')'
+                        ax.plot(self.time_series_list[index], 
+                                self.total_data[index].data[paraname],
+                                label = pn,
+                                color = self.curve_colors[self.color_index],
+                                lw = 1)
+                    else:
+                        ax.plot(self.time_series_list[index], 
+                                self.total_data[index].data[paraname],
+                                color = self.curve_colors[self.color_index],
+                                lw = 1)
+                else:
+                    ax.plot(self.time_series_list[index], 
+                            self.total_data[index].data[paraname],
+                            color = self.curve_colors[self.color_index],
+                            lw = 1)
+#                一共有十种颜色可用
+                if self.color_index == 9:
+                    self.color_index = 0
+                else:
+                    self.color_index += 1
+                
+#            若已指定fontproperties属性，则fontsize不起作用
+            plt.setp(ax.get_xticklabels(),
+                     horizontalalignment = 'center',
+                     rotation = 'horizontal',
+                     fontproperties = CONSTANT.FONT_MSYH)
+            plt.setp(ax.get_yticklabels(), fontproperties = CONSTANT.FONT_MSYH)
+            ax.legend(loc=(0,1), ncol=4, frameon=False, borderpad = 0.15,
+                      prop = CONSTANT.FONT_MSYH)
+            ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+            ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+            ax.grid(which='major',linestyle='--',color = '0.45')
+            ax.grid(which='minor',linestyle='--',color = '0.75')
+                
+            self.set_subplot_adjust()
+
     def set_subplot_adjust(self):
 #        设置图四边的空白宽度
         h = self.height()

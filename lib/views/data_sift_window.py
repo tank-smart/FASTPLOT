@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
 from views.custom_dialog import SelParasDialog
 from models.analysis_model import DataAnalysis
 import views.constant as CONSTANT
+import models.time_model as Time_Model
 
 class SiftResultViewWidget(QWidget):
 
@@ -209,6 +210,7 @@ class DataSiftWindow(QWidget):
                 tab_sift_result = SiftResultViewWidget(self.tab_widget_datasift,  str_condition)
                 for file in list_files:
                     item = None
+                    total_time = None
                     first_hit = True
                     for result in sift_results:
                         if result.filedir == file:
@@ -226,18 +228,22 @@ class DataSiftWindow(QWidget):
                                 child.setText(2, result.begin_time + ' - ' + result.end_time)
                                 child.setText(3, result.period_time)
                                 first_hit = False
+                                total_time = Time_Model.str_to_datetime(result.end_time) - Time_Model.str_to_datetime(result.begin_time)
                             else:
                                 child = QTreeWidgetItem(item)
                                 child.setIcon(0, self.time_icon)
                                 child.setText(2, result.begin_time + ' - ' + result.end_time)
                                 child.setText(3, result.period_time)
+                                total_time = total_time + Time_Model.str_to_datetime(result.end_time) - Time_Model.str_to_datetime(result.begin_time)
                     if first_hit:
-                            item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
-                            tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
-                            pos = file.rindex('\\')
-                            filename = file[pos+1:]
-                            item.setText(0, file)
-                            item.setText(1, 'No Fit')
+                        item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
+                        tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
+                        pos = file.rindex('\\')
+                        filename = file[pos+1:]
+                        item.setText(0, file)
+                        item.setText(1, 'No Fit')
+                    if item and total_time:
+                        item.setText(3, str(total_time))
                 self.tab_widget_datasift.addTab(
                         tab_sift_result, 
                         QCoreApplication.translate('DataAnalysisWindow',

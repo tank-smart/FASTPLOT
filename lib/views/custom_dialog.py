@@ -845,9 +845,9 @@ class AxisSettingDialog(QDialog):
         
 #        曲线设置成了不能pick所以可以这样判断，注意它只接受一条曲线
         self.curves = []
-        line_info = {}
         lines = axes.get_lines()
         for line in lines:
+            line_info = {}
             if line.pickable():
                 pass
             else:
@@ -1104,7 +1104,7 @@ class AxisSettingDialog(QDialog):
             curve['line'].set_marker(curve['line_marker'])
 #        似乎获得图注labels时是返回曲线的label而不是当前状态，所以需要用下面这个设置下
         self.axes.legend(hs, ls, loc=(0,1), fontsize = self.axes.get_legend()._fontsize,
-                         ncol=1, frameon=False, borderpad = 0.15,
+                         ncol=4, frameon=False, borderpad = 0.15,
                          prop = CONSTANT.FONT_MSYH)
         
         QDialog.accept(self)
