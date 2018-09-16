@@ -16,7 +16,7 @@
 # =============================================================================
 import sys
 import os
-
+import json
 # =============================================================================
 # Qt imports
 # =============================================================================
@@ -38,8 +38,8 @@ from views.data_process_window import DataProcessWindow
 from views.mathematics_window import MathematicsWindow
 from views.para_temp_window import ParaTempWindow
 from views.data_dict_window import DataDictWindow
-from views.custom_dialog import FileProcessDialog
-import views.constant as CONSTANT
+from views.custom_dialog import FileProcessDialog, OptionDialog
+import views.config_info as CONFIG
 # =============================================================================
 # Main Window
 # =============================================================================
@@ -54,14 +54,12 @@ class MainWindow(QMainWindow):
         
         super().__init__(parent)
 #        设置窗口图标
-        self.setWindowIcon(QIcon(CONSTANT.ICON_WINDOW))
+        self.setWindowIcon(QIcon(CONFIG.ICON_WINDOW))
 
 #        已导入的文件
         self.current_files = []
 #        所涉及的结果文件，列表类型
         self.resultfile_group = {}
-#        软件的配置信息
-        self.config_info = {'INIT DIR OF IMPORTING FILES' : ''}
 #        功能窗口之前显示的页面
         self.last_page = None
 
@@ -140,12 +138,12 @@ class MainWindow(QMainWindow):
 #        self.menu_edit = QMenu(self.menubar)
         self.menu_view = QMenu(self.menubar)
 #        self.menu_panels = QMenu(self.menu_view)
-#        self.menu_panels.setIcon(QIcon(CONSTANT.ICON_PANELS))
+#        self.menu_panels.setIcon(QIcon(CONFIG.ICON_PANELS))
         self.menu_tools = QMenu(self.menubar)
 #        self.menu_data_analysis = QMenu(self.menu_tools)
-#        self.menu_data_analysis.setIcon(QIcon(CONSTANT.ICON_DATA_ANA))
+#        self.menu_data_analysis.setIcon(QIcon(CONFIG.ICON_DATA_ANA))
 #        self.menu_data_manage = QMenu(self.menu_tools)
-#        self.menu_data_manage.setIcon(QIcon(CONSTANT.ICON_DATA_MAN))
+#        self.menu_data_manage.setIcon(QIcon(CONFIG.ICON_DATA_MAN))
 #        self.menu_window = QMenu(self.menubar)
         self.menu_help = QMenu(self.menubar)
         self.setMenuBar(self.menubar)
@@ -163,26 +161,26 @@ class MainWindow(QMainWindow):
         
 #        创建动作
         self.action_open_normal_datafile = QAction(self)
-        self.action_open_normal_datafile.setIcon(QIcon(CONSTANT.ICON_OPEN_NORDATA))
+        self.action_open_normal_datafile.setIcon(QIcon(CONFIG.ICON_OPEN_NORDATA))
         self.action_file_process = QAction(self)
         self.action_exit = QAction(self)
-        self.action_exit.setIcon(QIcon(CONSTANT.ICON_EIXT))
+        self.action_exit.setIcon(QIcon(CONFIG.ICON_EIXT))
         self.action_mathematics = QAction(self)
-        self.action_mathematics.setIcon(QIcon(CONSTANT.ICON_MATHEMATICS))
+        self.action_mathematics.setIcon(QIcon(CONFIG.ICON_MATHEMATICS))
         self.action_data_process = QAction(self)
-        self.action_data_process.setIcon(QIcon(CONSTANT.ICON_DATA_PROC))
+        self.action_data_process.setIcon(QIcon(CONFIG.ICON_DATA_PROC))
         self.action_data_sift = QAction(self)
-        self.action_data_sift.setIcon(QIcon(CONSTANT.ICON_DATA_SIFT))        
+        self.action_data_sift.setIcon(QIcon(CONFIG.ICON_DATA_SIFT))        
         self.action_para_templates = QAction(self)
-        self.action_para_templates.setIcon(QIcon(CONSTANT.ICON_PARA_TEMP))
+        self.action_para_templates.setIcon(QIcon(CONFIG.ICON_PARA_TEMP))
         self.action_data_dict = QAction(self)
-        self.action_data_dict.setIcon(QIcon(CONSTANT.ICON_PARA_DICT))
-#        self.action_options = QAction(self)
-#        self.action_options.setIcon(QIcon(CONSTANT.ICON_SETTING))
+        self.action_data_dict.setIcon(QIcon(CONFIG.ICON_PARA_DICT))
+        self.action_options = QAction(self)
+        self.action_options.setIcon(QIcon(CONFIG.ICON_SETTING))
         self.action_about = QAction(self)
-        self.action_about.setIcon(QIcon(CONSTANT.ICON_ABOUT))
+        self.action_about.setIcon(QIcon(CONFIG.ICON_ABOUT))
         self.action_plot = QAction(self)
-        self.action_plot.setIcon(QIcon(CONSTANT.ICON_PLOT))
+        self.action_plot.setIcon(QIcon(CONFIG.ICON_PLOT))
         self.action_show_paralist_window = QAction(self)
         self.action_show_paralist_window.setCheckable(True)
         self.action_show_paralist_window.setChecked(True)
@@ -203,7 +201,8 @@ class MainWindow(QMainWindow):
                                     self.action_plot,
                                     self.action_mathematics,
                                     self.action_para_templates,
-                                    self.action_data_dict])
+                                    self.action_data_dict,
+                                    self.action_options])
 #        self.menu_tools.addAction(self.action_options)
 #        self.menu_panels.addActions([self.action_show_paralist_window,
 #                                    self.action_show_syn_window])
@@ -273,7 +272,8 @@ class MainWindow(QMainWindow):
         self.action_help_video.triggered.connect(self.slot_help_video)
 #        程序退出
         self.action_exit.triggered.connect(self.slot_exit)
-        
+#        设置
+        self.action_options.triggered.connect(self.slot_options)
         
         self.signal_import_datafiles.connect(
                 self.paralist_window.slot_import_datafiles)
@@ -296,10 +296,10 @@ class MainWindow(QMainWindow):
                 self.mathematics_page.plain_text_edit_conmandline.insertPlainText)
         self.paralist_window.signal_into_mathematics.connect(
                 self.action_mathematics.trigger)
-#        self.paralist_window.signal_into_data_dict.connect(
-#                self.data_dict_page.slot_add_dict)
-#        self.paralist_window.signal_into_data_dict.connect(
-#                self.action_data_dict.trigger)
+        self.paralist_window.signal_into_data_dict.connect(
+                self.data_dict_page.slot_add_dict)
+        self.paralist_window.signal_into_data_dict.connect(
+                self.action_data_dict.trigger)
 #        数据分析窗口与主窗口和其他窗口的信号与槽连接
         self.data_process_page.signal_request_temps.connect(
                 self.slot_send_temps)
@@ -341,7 +341,8 @@ class MainWindow(QMainWindow):
                       QMessageBox.Yes | QMessageBox.No)
         if (message == QMessageBox.Yes):
             self.para_temp_page.output_temps()
-            self.data_dict_page.output_data_dict()
+#            self.data_dict_page.output_data_dict()
+            self.data_dict_page.save_data_dict()
             self.output_config_info()
             event.accept()
         else:
@@ -354,17 +355,17 @@ class MainWindow(QMainWindow):
         ex_files = []
         nor_datafiles = []
         file_dir_l = []
-        init_dir = self.config_info['INIT DIR OF IMPORTING FILES']
-        if init_dir:
+        init_dir = CONFIG.OPTION['dir of importing']
+        if os.path.exists(init_dir):
             file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
                     self, 'Open', init_dir, 'Datafiles (*.txt *.csv *.dat)')
         else:
             file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
-                    self, 'Open', CONSTANT.SETUP_DIR, 'Datafiles (*.txt *.csv *.dat)')
+                    self, 'Open', CONFIG.SETUP_DIR, 'Datafiles (*.txt *.csv *.dat)')
         if file_dir_list:
             file_dir_list = [file.replace('/','\\') for file in file_dir_list]
             if os.path.exists(file_dir_list[0]):
-                self.config_info['INIT DIR OF IMPORTING FILES'] = os.path.dirname(file_dir_list[0])
+                CONFIG.OPTION['dir of importing'] = os.path.dirname(file_dir_list[0])
             for file_dir in file_dir_list:
                 if not(file_dir in self.current_files):
                     try:
@@ -433,7 +434,7 @@ class MainWindow(QMainWindow):
         ms_box = QMessageBox(QMessageBox.NoIcon,
                              QCoreApplication.translate('MainWindow', '关于FastPlot(beta 0.1)'),
                              QCoreApplication.translate('MainWindow',
-                                                       '<img src=\'' + CONSTANT.FTCC_LOGO + 
+                                                       '<img src=\'' + CONFIG.FTCC_LOGO + 
                                                        '''' width='360' height='46'>
                                                        <p><b>FastPlot(beta 0.1)</b></p>
                                                        <br>试飞数据分析软件
@@ -551,6 +552,9 @@ class MainWindow(QMainWindow):
     def slot_data_dict_changed(self, data_dict : dict):
         
         self.plot_page._data_dict = data_dict
+        self.paralist_window._data_dict = data_dict
+        self.data_process_page._data_dict = data_dict
+        self.para_temp_page._data_dict = data_dict
     
 #    用于将信息显示在状态栏，也可以用于清除状态栏信息
     def slot_display_status_info(self, message : str, timeout : int):
@@ -561,8 +565,8 @@ class MainWindow(QMainWindow):
             
     def slot_help_doc(self):
         
-        if os.path.exists(CONSTANT.DIR_HELP_DOC):
-            os.startfile(CONSTANT.DIR_HELP_DOC)
+        if os.path.exists(CONFIG.DIR_HELP_DOC):
+            os.startfile(CONFIG.DIR_HELP_DOC)
         else:
             QMessageBox.warning(self,
                       QCoreApplication.translate('MainWindow', '帮助文档错误'),
@@ -571,13 +575,18 @@ class MainWindow(QMainWindow):
     
     def slot_help_video(self):
         
-        if os.path.exists(CONSTANT.DIR_HELP_VIDEO):
-            os.startfile(CONSTANT.DIR_HELP_VIDEO)
+        if os.path.exists(CONFIG.DIR_HELP_VIDEO):
+            os.startfile(CONFIG.DIR_HELP_VIDEO)
         else:
             QMessageBox.warning(self,
                       QCoreApplication.translate('MainWindow', '视频教程错误'),
                       QCoreApplication.translate('MainWindow', '未发现视频教程，请联系开发人员！'),
                       QMessageBox.Yes)
+            
+    def slot_options(self):
+        
+        dialog = OptionDialog(self)
+        dialog.exec_()
 
 # =============================================================================
 # 功能函数模块
@@ -586,37 +595,44 @@ class MainWindow(QMainWindow):
         
 #        导入配置信息
         try:
-            with open(CONSTANT.SETUP_DIR + r'\data\config_info.txt', 'r') as file:
-                while file.readline():
-    #                readline函数会把'\n'也读进来
-                     name = file.readline()
-    #                 去除'\n'
-                     name = name.strip('\n')
-                     config = file.readline()
-                     config = config.strip('\n')
-                     if name == 'INIT DIR OF IMPORTING FILES':
-                         if os.path.exists(config):
-                             self.config_info[name] = config
-                         else:
-                             self.config_info[name] = ''
-                     else:
-                         self.config_info[name] = config
+            with open(CONFIG.SETUP_DIR + r'\data\configuration.json', 'r') as file:
+                CONFIG.OPTION = json.load(file)
+#                while file.readline():
+#    #                readline函数会把'\n'也读进来
+#                     name = file.readline()
+#    #                 去除'\n'
+#                     name = name.strip('\n')
+#                     config = file.readline()
+#                     config = config.strip('\n')
+#                     if name == 'dir of importing':
+#                         if os.path.exists(config):
+#                             CONFIG.OPTION[name] = config
+#                         else:
+#                             CONFIG.OPTION[name] = ''
+#                     else:
+#                         CONFIG.OPTION[name] = config
         except IOError:
-            pass
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('MainWindow', '软件配置提示'),
+                                    QCoreApplication.translate('MainWindow', '配置文件错误！将还原默认设置'))
         
     def output_config_info(self):
         
-#        判断是否有模板存在
-        if self.config_info:
-#                打开保存模板的文件（将从头写入，覆盖之前的内容）
-            with open(CONSTANT.SETUP_DIR + r'\data\config_info.txt', 'w') as file:
-#                将内存中的模板一一写入文件
-                for name in self.config_info:
-                    file.write('========\n')
-                    file.write(name)
-                    file.write('\n')
-                    file.write(self.config_info[name])
-                    file.write('\n')
+        try:
+    #        打开保存模板的文件（将从头写入，覆盖之前的内容）
+            with open(CONFIG.SETUP_DIR + r'\data\configuration.json', 'w') as file:
+    #            将内存中的模板一一写入文件
+    #            for name in CONFIG.OPTION:
+    #                file.write('========\n')
+    #                file.write(name)
+    #                file.write('\n')
+    #                file.write(CONFIG.OPTION[name])
+    #                file.write('\n')
+                json.dump(CONFIG.OPTION, file)
+        except IOError:
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('MainWindow', '软件配置提示'),
+                                    QCoreApplication.translate('MainWindow', '无法保存软件配置！'))
     
 #    def show_page(self, pageindex):
 #        
@@ -651,7 +667,7 @@ class MainWindow(QMainWindow):
         self.action_data_sift.setText(_translate('MainWindow', '数据筛选'))
         self.action_para_templates.setText(_translate('MainWindow', '参数模板'))
         self.action_data_dict.setText(_translate('MainWindow', '数据字典'))
-#        self.action_options.setText(_translate('MainWindow', '选项'))
+        self.action_options.setText(_translate('MainWindow', '软件设置'))
         self.action_about.setText(_translate('MainWindow', '关于FastPlot'))
         self.action_plot.setText(_translate('MainWindow', '绘图'))
         self.action_show_paralist_window.setText(_translate('MainWindow', '参数浏览器'))

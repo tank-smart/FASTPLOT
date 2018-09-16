@@ -31,7 +31,7 @@ from PyQt5.QtGui import QIcon
 # =============================================================================
 from models.figure_model import PlotCanvas
 #from views.custom_dialog import SelectTemplateDialog, SaveTemplateDialog
-import views.constant as CONSTANT
+import views.config_info as CONFIG
 # =============================================================================
 # FigureWindow
 # =============================================================================
@@ -149,95 +149,101 @@ class PlotWindow(QWidget):
         self.button_home.setMinimumSize(QSize(30, 30))
         self.button_home.setMaximumSize(QSize(30, 30))
         self.button_home.setIconSize(QSize(22, 22))
-        self.button_home.setIcon(QIcon(CONSTANT.ICON_HOME))
+        self.button_home.setIcon(QIcon(CONFIG.ICON_HOME))
         self.verticalLayout.addWidget(self.button_home)
         self.button_pan = QToolButton(self.widget_plot_tools)
         self.button_pan.setMinimumSize(QSize(30, 30))
         self.button_pan.setMaximumSize(QSize(30, 30))
         self.button_pan.setIconSize(QSize(22, 22))
         self.button_pan.setCheckable(True)
-        self.button_pan.setIcon(QIcon(CONSTANT.ICON_PAN))
+        self.button_pan.setIcon(QIcon(CONFIG.ICON_PAN))
         self.verticalLayout.addWidget(self.button_pan)
         self.button_zoom = QToolButton(self.widget_plot_tools)
         self.button_zoom.setMinimumSize(QSize(30, 30))
         self.button_zoom.setMaximumSize(QSize(30, 30))
         self.button_pan.setIconSize(QSize(22, 22))
         self.button_zoom.setCheckable(True)
-        self.button_zoom.setIcon(QIcon(CONSTANT.ICON_ZOOM))
+        self.button_zoom.setIcon(QIcon(CONFIG.ICON_ZOOM))
         self.verticalLayout.addWidget(self.button_zoom)
 #        self.button_plot_setting = QToolButton(self.widget_plot_tools)
 #        self.button_plot_setting.setMinimumSize(QSize(30, 30))
 #        self.button_plot_setting.setMaximumSize(QSize(30, 30))
 #        self.button_plot_setting.setIconSize(QSize(22, 22))
-#        self.button_plot_setting.setIcon(QIcon(CONSTANT.ICON_PLOT_SETTING))
+#        self.button_plot_setting.setIcon(QIcon(CONFIG.ICON_PLOT_SETTING))
 #        self.verticalLayout.addWidget(self.button_plot_setting)
 #        self.button_edit = QToolButton(self.widget_plot_tools)
 #        self.button_edit.setMinimumSize(QSize(30, 30))
 #        self.button_edit.setMaximumSize(QSize(30, 30))
 #        self.button_edit.setObjectName('button_edit')
-#        self.button_edit.setIcon(QIcon(CONSTANT.ICON_EDIT))
+#        self.button_edit.setIcon(QIcon(CONFIG.ICON_EDIT))
 #        self.verticalLayout.addWidget(self.button_edit)
 #        self.button_config = QToolButton(self.widget_plot_tools)
 #        self.button_config.setMinimumSize(QSize(30, 30))
 #        self.button_config.setMaximumSize(QSize(30, 30))
 #        self.button_config.setObjectName('button_config')
-#        self.button_config.setIcon(QIcon(CONSTANT.ICON_CONFIG))
+#        self.button_config.setIcon(QIcon(CONFIG.ICON_CONFIG))
 #        self.verticalLayout.addWidget(self.button_config)
         self.button_back = QToolButton(self.widget_plot_tools)
         self.button_back.setMinimumSize(QSize(30, 30))
         self.button_back.setMaximumSize(QSize(30, 30))
         self.button_back.setIconSize(QSize(22, 22))
-        self.button_back.setIcon(QIcon(CONSTANT.ICON_BACK))
+        self.button_back.setIcon(QIcon(CONFIG.ICON_BACK))
         self.verticalLayout.addWidget(self.button_back)
         self.button_forward = QToolButton(self.widget_plot_tools)
         self.button_forward.setMinimumSize(QSize(30, 30))
         self.button_forward.setMaximumSize(QSize(30, 30))
         self.button_forward.setIconSize(QSize(22, 22))
-        self.button_forward.setIcon(QIcon(CONSTANT.ICON_FORWARD))
+        self.button_forward.setIcon(QIcon(CONFIG.ICON_FORWARD))
         self.verticalLayout.addWidget(self.button_forward)    
         self.button_save = QToolButton(self.widget_plot_tools)
         self.button_save.setMinimumSize(QSize(30, 30))
         self.button_save.setMaximumSize(QSize(30, 30))
         self.button_save.setIconSize(QSize(22, 22))
-        self.button_save.setIcon(QIcon(CONSTANT.ICON_SAVE))
+        self.button_save.setIcon(QIcon(CONFIG.ICON_SAVE))
         self.verticalLayout.addWidget(self.button_save)
 #        self.button_sel_temp = QToolButton(self.widget_plot_tools)
 #        self.button_sel_temp.setMinimumSize(QSize(30, 30))
 #        self.button_sel_temp.setMaximumSize(QSize(30, 30))
 #        self.button_sel_temp.setObjectName('button_sel_temp')
-#        self.button_sel_temp.setIcon(QIcon(CONSTANT.ICON_SEL_TEMP))
+#        self.button_sel_temp.setIcon(QIcon(CONFIG.ICON_SEL_TEMP))
 #        self.verticalLayout.addWidget(self.button_sel_temp)
 #        self.button_save_temp = QToolButton(self.widget_plot_tools)
 #        self.button_save_temp.setMinimumSize(QSize(30, 30))
 #        self.button_save_temp.setMaximumSize(QSize(30, 30))
 #        self.button_save_temp.setObjectName('button_save_temp')
-#        self.button_save_temp.setIcon(QIcon(CONSTANT.ICON_SAVE_TEMP))
+#        self.button_save_temp.setIcon(QIcon(CONFIG.ICON_SAVE_TEMP))
 #        self.verticalLayout.addWidget(self.button_save_temp)
         self.button_get_paravalue = QToolButton(self.widget_plot_tools)
         self.button_get_paravalue.setCheckable(True)
         self.button_get_paravalue.setMinimumSize(QSize(30, 30))
         self.button_get_paravalue.setMaximumSize(QSize(30, 30))
         self.button_get_paravalue.setIconSize(QSize(22, 22))
-        self.button_get_paravalue.setIcon(QIcon(CONSTANT.ICON_PARA_VALUE))
+        self.button_get_paravalue.setIcon(QIcon(CONFIG.ICON_PARA_VALUE))
         self.verticalLayout.addWidget(self.button_get_paravalue)
         self.button_clear_canvas = QToolButton(self.widget_plot_tools)
         self.button_clear_canvas.setMinimumSize(QSize(30, 30))
         self.button_clear_canvas.setMaximumSize(QSize(30, 30))
         self.button_clear_canvas.setIconSize(QSize(22, 22))
-        self.button_clear_canvas.setIcon(QIcon(CONSTANT.ICON_CLEAR))
+        self.button_clear_canvas.setIcon(QIcon(CONFIG.ICON_CLEAR))
         self.verticalLayout.addWidget(self.button_clear_canvas)
         self.button_add_sa_fig = QToolButton(self.widget_plot_tools)
         self.button_add_sa_fig.setMinimumSize(QSize(30, 30))
         self.button_add_sa_fig.setMaximumSize(QSize(30, 30))
         self.button_add_sa_fig.setIconSize(QSize(22, 22))
-        self.button_add_sa_fig.setIcon(QIcon(CONSTANT.ICON_SINGLE_AXIS))
+        self.button_add_sa_fig.setIcon(QIcon(CONFIG.ICON_SINGLE_AXIS))
         self.verticalLayout.addWidget(self.button_add_sa_fig)
         self.button_add_ma_fig = QToolButton(self.widget_plot_tools)
         self.button_add_ma_fig.setMinimumSize(QSize(30, 30))
         self.button_add_ma_fig.setMaximumSize(QSize(30, 30))
         self.button_add_ma_fig.setIconSize(QSize(22, 22))
-        self.button_add_ma_fig.setIcon(QIcon(CONSTANT.ICON_MULT_AXIS))
+        self.button_add_ma_fig.setIcon(QIcon(CONFIG.ICON_MULT_AXIS))
         self.verticalLayout.addWidget(self.button_add_ma_fig)
+        self.button_add_sta_fig = QToolButton(self.widget_plot_tools)
+        self.button_add_sta_fig.setMinimumSize(QSize(30, 30))
+        self.button_add_sta_fig.setMaximumSize(QSize(30, 30))
+        self.button_add_sta_fig.setIconSize(QSize(22, 22))
+        self.button_add_sta_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
+        self.verticalLayout.addWidget(self.button_add_sta_fig)
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         
@@ -313,6 +319,7 @@ class PlotWindow(QWidget):
         self.button_get_paravalue.clicked.connect(self.slot_paravalue_btn_clicked)
         self.button_add_sa_fig.clicked.connect(self.slot_add_sa_fig)
         self.button_add_ma_fig.clicked.connect(self.slot_add_ma_fig)
+        self.button_add_sta_fig.clicked.connect(self.slot_add_stack_fig)
 
         self.combo_box_time.activated.connect(self.slot_display_paravalue_ontime)
         self.tool_btn_time.clicked.connect(self.slot_import_paravalue)
@@ -562,7 +569,7 @@ class PlotWindow(QWidget):
             df = df[paralist]
             file_dir, flag = QFileDialog.getSaveFileName(self, 
                                                          QCoreApplication.translate('PlotWindow', '保存参数值'),
-                                                         CONSTANT.SETUP_DIR,
+                                                         CONFIG.SETUP_DIR,
                                                          QCoreApplication.translate('PlotWindow', 'Text Files (*.txt);;CSV Files (*.csv);;Matlab Files (*.mat)'))
             if file_dir:
                 if flag == 'Text Files (*.txt)':
@@ -650,7 +657,7 @@ class PlotWindow(QWidget):
             h = self.count_axis * (axis_h + legend_h) + legend_h
             w = 650
             left_gap = round(50 / w, 2)
-            bottom_gap = round(legend_h * 1.2 / h, 2)
+            bottom_gap = round(legend_h * 2 / h, 2)
             right_gap = round((w - 10) / w, 2)
             top_gap = round((h - legend_h) / h, 2)
             hs = round(legend_h / (axis_h + legend_h), 2)
@@ -723,6 +730,13 @@ class PlotWindow(QWidget):
         self.tab_widget_figure.addTab(ma_fig_win,
                                       QCoreApplication.translate('PlotWindow',
                                                                  '多坐标图'))
+        
+    def slot_add_stack_fig(self):
+        
+        ma_fig_win = FigureWindow(self.tab_widget_figure, 'stack_axis')
+        self.tab_widget_figure.addTab(ma_fig_win,
+                                      QCoreApplication.translate('PlotWindow',
+                                                                 '重叠图'))
 # =============================================================================
 # 功能函数模块
 # =============================================================================
@@ -750,6 +764,7 @@ class PlotWindow(QWidget):
         self.button_get_paravalue.setToolTip(_translate('PlotWindow', '取参数值'))
         self.button_add_sa_fig.setToolTip(_translate('PlotWindow', '单坐标图'))
         self.button_add_ma_fig.setToolTip(_translate('PlotWindow', '多坐标图'))
+        self.button_add_sta_fig.setToolTip(_translate('PlotWindow', '重叠图'))
         
         self.group_box_time_interval.setTitle(_translate('PlotWindow', '时间查看器'))
         self.tool_btn_time_interval.setText(_translate('PlotWindow', '...'))

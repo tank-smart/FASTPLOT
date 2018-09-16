@@ -30,7 +30,7 @@ from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.text import Annotation
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QPoint, Qt
-import views.constant as CONSTANT
+import views.config_info as CONFIG
 from views.custom_dialog import (LineSettingDialog, AnnotationSettingDialog,
                                  AxisSettingDialog, FigureCanvasSetiingDialog,
                                  ParameterExportDialog, SelFunctionDialog,
@@ -39,6 +39,7 @@ import models.time_model as Time_Model
 from models.data_model import DataFactory
 from PyQt5.QtGui import QIcon
 import scipy.io as sio
+from mpl_toolkits.axisartist.parasite_axes import HostAxes, ParasiteAxes
 #------王--改动结束
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -97,13 +98,13 @@ class PlotCanvas(FigureCanvas):
 
 #        Times New Roman字体的斜体
 #        self.font_timesi = matplotlib.font_manager.FontProperties(
-#                fname = CONSTANT.SETUP_DIR + r'\data\fonts\timesi.ttf')
+#                fname = CONFIG.SETUP_DIR + r'\data\fonts\timesi.ttf')
 #        Times New Roman字体
 #        self.font_times = matplotlib.font_manager.FontProperties(
-#                fname = CONSTANT.SETUP_DIR + r'\data\fonts\times.ttf')
+#                fname = CONFIG.SETUP_DIR + r'\data\fonts\times.ttf')
 #        微软雅黑
 #        self.font_msyh = matplotlib.font_manager.FontProperties(
-#                fname = CONSTANT.SETUP_DIR + r'\data\fonts\msyh.ttf')
+#                fname = CONFIG.SETUP_DIR + r'\data\fonts\msyh.ttf')
 #        当前的数据字典
         self._data_dict = {}
         
@@ -188,7 +189,7 @@ class PlotCanvas(FigureCanvas):
         self.action_axis_setting.setText(QCoreApplication.
                                          translate('PlotCanvas', '坐标轴设置'))
         self.action_add_text = QAction(self)
-        self.action_add_text.setIcon(QIcon(CONSTANT.ICON_TEXT))
+        self.action_add_text.setIcon(QIcon(CONFIG.ICON_TEXT))
         self.action_add_text.setText(QCoreApplication.
                                      translate('PlotCanvas', '添加文字'))
         self.action_add_mark_hline = QAction(self)
@@ -203,7 +204,7 @@ class PlotCanvas(FigureCanvas):
         self.action_del_artist = QAction(self)
         self.action_del_artist.setText(QCoreApplication.
                                        translate('PlotCanvas', '删除标记'))
-        self.action_del_artist.setIcon(QIcon(CONSTANT.ICON_DEL))
+        self.action_del_artist.setIcon(QIcon(CONFIG.ICON_DEL))
         self.action_del_axis = QAction(self)
         self.action_del_axis.setText(QCoreApplication.
                                      translate('PlotCanvas', '删除曲线'))
@@ -251,7 +252,7 @@ class PlotCanvas(FigureCanvas):
                              self.action_axis_setting,
                              self.action_add_text])
             menu_markline = QMenu(menu)
-            menu_markline.setIcon(QIcon(CONSTANT.ICON_ADD_LINE_MARK))
+            menu_markline.setIcon(QIcon(CONFIG.ICON_ADD_LINE_MARK))
             menu_markline.setTitle(QCoreApplication.
                                   translate('PlotCanvas', '添加标记线'))
             menu_markline.addActions([self.action_add_mark_hline,
@@ -462,7 +463,7 @@ class PlotCanvas(FigureCanvas):
     def slot_press_new_annotation(self, event):
         
         font = matplotlib.font_manager.FontProperties(
-                fname = CONSTANT.SETUP_DIR + r'\data\fonts\msyh.ttf',
+                fname = CONFIG.SETUP_DIR + r'\data\fonts\msyh.ttf',
                 size = 8)
         if event.inaxes and event.button == 1:
 #            此处的字体大小size会覆盖fontproperties中size的属性
@@ -714,7 +715,7 @@ class PlotCanvas(FigureCanvas):
             df = df[paralist]
             file_dir, flag = QFileDialog.getSaveFileName(self, 
                                                          QCoreApplication.translate('PlotCanvas', '保存参数值'),
-                                                         CONSTANT.SETUP_DIR,
+                                                         CONFIG.SETUP_DIR,
                                                          QCoreApplication.translate('PlotCanvas', 'Text Files (*.txt);;CSV Files (*.csv);;Matlab Files (*.mat)'))
             if file_dir:
                 if flag == 'Text Files (*.txt)':
@@ -806,7 +807,9 @@ class PlotCanvas(FigureCanvas):
             paraname, index= para_tuple
             pv = self.total_data[index].get_time_paravalue(dt, paraname)
 #            这样做会在数据字典很大时暴露出卡顿的问题
-            if paraname in self._data_dict:
+            if (self._data_dict and 
+                CONFIG.OPTION['data dict scope plot'] and
+                paraname in self._data_dict):
                 pn = self._data_dict[paraname][0]
                 if pn != 'NaN':
                     paraname = pn
@@ -822,6 +825,8 @@ class PlotCanvas(FigureCanvas):
             self.subplot_para_wxl(datalist, sorted_paras)
         if self.fig_style == 'sin_axis':
             self.an_plot_paras(datalist, sorted_paras)
+        if self.fig_style == 'stack_axis':
+            self.plot_stack_paras(datalist, sorted_paras)
     
     def subplot_para_wxl(self, datalist, sorted_paras):
 
@@ -848,7 +853,9 @@ class PlotCanvas(FigureCanvas):
                 else:
                     ax = self.fig.add_subplot(count, 1, i+1, sharex = axeslist[0])
                 axeslist.append(ax)
-                if paraname in self._data_dict:
+                if (self._data_dict and 
+                    CONFIG.OPTION['data dict scope plot'] and
+                    paraname in self._data_dict):
                     pn = self._data_dict[paraname][0]
                     unit = self._data_dict[paraname][1]
                     if pn != 'NaN':
@@ -873,18 +880,19 @@ class PlotCanvas(FigureCanvas):
                 if i != (count - 1):
                     plt.setp(ax.get_xticklabels(), visible = False)
                 else:
+                    ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
 #                    若已指定fontproperties属性，则fontsize不起作用
                     plt.setp(ax.get_xticklabels(),
                              horizontalalignment = 'center',
                              rotation = 'horizontal',
-                             fontproperties = CONSTANT.FONT_MSYH)
+                             fontproperties = CONFIG.FONT_MSYH)
 #                    ax.set_xlabel('Time', fontproperties = self.font_times)
-                plt.setp(ax.get_yticklabels(), fontproperties = CONSTANT.FONT_MSYH)
+                plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
 #                ax.legend(fontsize = self.default_fontsize,
 #                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
-#                          prop = CONSTANT.FONT_MSYH)
+#                          prop = CONFIG.FONT_MSYH)
                 ax.legend(loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
-                          prop = CONSTANT.FONT_MSYH)
+                          prop = CONFIG.FONT_MSYH)
                 ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
                 ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
                 ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
@@ -906,6 +914,124 @@ class PlotCanvas(FigureCanvas):
 #                                    QCoreApplication.translate('PlotCanvas', 'Easter Egg'),
 #                                    QCoreApplication.translate('PlotCanvas', '别再画了，图快画到脚上了！'))
 
+    def plot_stack_paras(self, datalist, sorted_paras):
+
+        is_plot = self.process_data(datalist, sorted_paras)
+        
+        if is_plot:
+            self.fig.clf()
+            self.count_axes = 0
+            matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+            matplotlib.rcParams['ytick.direction'] = 'in'
+#            支持中文显示
+#            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+            matplotlib.rcParams['axes.unicode_minus'] = False
+            
+#            count = len(self.sorted_paralist)
+    
+            host = self.fig.add_subplot(1, 1, 1)
+            axeslist = []
+            self.color_index = 0
+            for i, para_tuple in enumerate(self.sorted_paralist):
+                paraname, index = para_tuple
+                if axeslist:
+                    ax = host.twinx()
+                else:
+                    ax = host
+                axeslist.append(ax)
+                if (self._data_dict and 
+                    CONFIG.OPTION['data dict scope plot'] and
+                    paraname in self._data_dict):
+                    pn = self._data_dict[paraname][0]
+                    unit = self._data_dict[paraname][1]
+                    if pn != 'NaN':
+                        if unit != 'NaN' and unit != '1':
+                            pn = pn + '(' + unit + ')'
+                        ax.plot(self.time_series_list[index], 
+                                self.total_data[index].data[paraname],
+                                label = pn,
+                                color = self.curve_colors[self.color_index],
+                                lw = 1)
+                        ax.set_ylabel(pn, fontproperties = CONFIG.FONT_MSYH,
+                                      color = self.curve_colors[self.color_index])
+                    else:
+                        ax.plot(self.time_series_list[index], 
+                                self.total_data[index].data[paraname],
+                                color = self.curve_colors[self.color_index],
+                                lw = 1)
+                        ax.set_ylabel(pn, fontproperties = CONFIG.FONT_MSYH, 
+                                      color = self.curve_colors[self.color_index])
+                else:
+                    ax.plot(self.time_series_list[index], 
+                            self.total_data[index].data[paraname],
+                            color = self.curve_colors[self.color_index],
+                            lw = 1)
+                    ax.set_ylabel(paraname, fontproperties = CONFIG.FONT_MSYH, 
+                                  color = self.curve_colors[self.color_index])
+                
+#                ax.legend(fontsize = self.default_fontsize,
+#                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
+#                          prop = CONFIG.FONT_MSYH)
+                if ax == host:
+#                    ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+                    ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+                    ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+                    plt.setp(ax.get_xticklabels(),
+                             horizontalalignment = 'center',
+                             rotation = 'horizontal',
+                             fontproperties = CONFIG.FONT_MSYH)
+                    ax.yaxis.set_major_locator(LinearLocator(numticks=5))
+                    ax.grid(which='major',linestyle='--',color = '0.45')
+                    ax.grid(which='minor',linestyle='--',color = '0.75')
+                else:
+                    plt.setp(ax.get_xticklabels(), visible = False)
+                    ax.yaxis.tick_left()
+                    ax.yaxis.set_label_position('left')
+                    ax.spines['left'].set_color(self.curve_colors[self.color_index])
+                    ax.spines['left'].set_position(('axes', -0.09 * i))
+                    ax.yaxis.set_major_locator(LinearLocator(numticks=5))
+                ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+                ax.tick_params(axis='y', colors=self.curve_colors[self.color_index])
+                plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+                
+#                if i != (count - 1):
+#                    plt.setp(ax.get_xticklabels(), visible = False)
+#                    xaxis = ax.get_xaxis()
+#                    xmatl = xaxis.get_majorticklines()
+#                    for li in xmatl:
+#                        li.set_visible(False)
+#                    xmitl = xaxis.get_minorticklines()
+#                    for li in xmitl:
+#                        li.set_visible(False)
+#                else:
+#                    ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
+##                    若已指定fontproperties属性，则fontsize不起作用
+#                    plt.setp(ax.get_xticklabels(),
+#                             horizontalalignment = 'center',
+#                             rotation = 'horizontal',
+#                             fontproperties = CONFIG.FONT_MSYH)
+##                    ax.set_xlabel('Time', fontproperties = self.font_times)
+#                if i % 2 == 0:
+#                    ax.spines['left'].set_position(('axes', -0.05))
+#                if i !=0:
+#                    ax.spines['top'].set_visible(False)
+#                    ax.tick_params()
+#                plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+#                ax.tick_params(axis='y', colors=self.curve_colors[self.color_index])
+#                ax.spines['left'].set_color(self.curve_colors[self.color_index])
+#                ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+#                ax.grid(which='major',linestyle='--',color = '0.45')
+#                ax.grid(which='minor',linestyle='--',color = '0.75')
+    #                一共有十种颜色可用
+                if self.color_index == 9:
+                    self.color_index = 0
+                else:
+                    self.color_index += 1
+                self.count_axes += 1
+                
+            self.fig.subplots_adjust(left = 0.21, right = 0.95)
+            self.draw()
+    
     def an_plot_paras(self, datalist, sorted_paras):
 
         is_plot = self.process_data(datalist, sorted_paras)
@@ -950,15 +1076,16 @@ class PlotCanvas(FigureCanvas):
                     self.color_index = 0
                 else:
                     self.color_index += 1
-                
+            
+            ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
 #            若已指定fontproperties属性，则fontsize不起作用
             plt.setp(ax.get_xticklabels(),
                      horizontalalignment = 'center',
                      rotation = 'horizontal',
-                     fontproperties = CONSTANT.FONT_MSYH)
-            plt.setp(ax.get_yticklabels(), fontproperties = CONSTANT.FONT_MSYH)
+                     fontproperties = CONFIG.FONT_MSYH)
+            plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
             ax.legend(loc=(0,1), ncol=4, frameon=False, borderpad = 0.15,
-                      prop = CONSTANT.FONT_MSYH)
+                      prop = CONFIG.FONT_MSYH)
             ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
             ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
             ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
@@ -968,6 +1095,63 @@ class PlotCanvas(FigureCanvas):
             ax.grid(which='minor',linestyle='--',color = '0.75')
                 
             self.set_subplot_adjust()
+            
+#    def research(self):
+#        
+#        def make_patch_spines_invisible(ax):
+#            ax.set_frame_on(True)
+#            ax.patch.set_visible(False)
+#            for sp in ax.spines.values():
+#                sp.set_visible(False)
+#        
+#        
+#        host = self.fig.add_subplot(1, 1, 1)
+#        self.fig.subplots_adjust(right=0.75)
+#        
+#        par1 = host.twinx()
+#        par2 = host.twinx()
+#        
+#        par2.yaxis.tick_left()
+#        # Offset the right spine of par2.  The ticks and label have already been
+#        # placed on the right by twinx above.
+#        par2.spines["left"].set_position(("axes", -0.1))
+#        par2.spines["left"].set_bounds(10,60)
+#        # Having been created by twinx, par2 has its frame off, so the line of its
+#        # detached spine is invisible.  First, activate the frame but make the patch
+#        # and spines invisible.
+#        make_patch_spines_invisible(par2)
+#        # Second, show the right spine.
+#        par2.spines["left"].set_visible(True)
+#        
+#        p1, = host.plot([0, 1, 2], [0, 1, 2], "b-", label="Density")
+#        p2, = par1.plot([0, 1, 2], [0, 3, 2], "r-", label="Temperature")
+#        p3, = par2.plot([0, 1, 2], [50, 30, 15], "g-", label="Velocity")
+#        
+#        host.set_xlim(0, 2)
+#        host.set_ylim(0, 2)
+#        par1.set_ylim(0, 4)
+#        par2.set_ylim(1, 65)
+#        
+#        host.set_xlabel("Distance")
+#        host.set_ylabel("Density")
+#        par1.set_ylabel("Temperature")
+#        par2.set_ylabel("Velocity")
+#        
+#        host.yaxis.label.set_color(p1.get_color())
+#        par1.yaxis.label.set_color(p2.get_color())
+#        par2.yaxis.label.set_color(p3.get_color())
+#        
+#        tkw = dict(size=4, width=1.5)
+#        host.tick_params(axis='y', colors=p1.get_color(), **tkw)
+#        par1.tick_params(axis='y', colors=p2.get_color(), **tkw)
+#        par2.tick_params(axis='y', colors=p3.get_color(), **tkw)
+#        host.tick_params(axis='x', **tkw)
+#        
+#        lines = [p1, p2, p3]
+#        
+#        host.legend(lines, [l.get_label() for l in lines])
+#        
+#        plt.show()
 
     def set_subplot_adjust(self):
 #        设置图四边的空白宽度

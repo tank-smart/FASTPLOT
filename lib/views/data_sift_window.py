@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
 # =============================================================================
 from views.custom_dialog import SelParasDialog
 from models.analysis_model import DataAnalysis
-import views.constant as CONSTANT
+import views.config_info as CONFIG
 import models.time_model as Time_Model
 
 class SiftResultViewWidget(QWidget):
@@ -99,8 +99,8 @@ class DataSiftWindow(QWidget):
         
         self.tab_result_count = 0
         
-        self.file_icon = QIcon(CONSTANT.ICON_FILE)
-        self.time_icon = QIcon(CONSTANT.ICON_TIME)
+        self.file_icon = QIcon(CONFIG.ICON_FILE)
+        self.time_icon = QIcon(CONFIG.ICON_TIME)
 
 # =============================================================================
 # UI模块

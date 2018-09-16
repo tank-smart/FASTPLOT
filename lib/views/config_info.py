@@ -4,15 +4,29 @@
 import sys
 import os.path as osp
 import matplotlib
-
+# =============================================================================
+# 路径
+# =============================================================================
 SETUP_DIR = osp.abspath(osp.join(osp.dirname(sys.argv[0]), osp.pardir))
+DIR_HELP_DOC = SETUP_DIR + r'\data\docs'
+DIR_HELP_VIDEO = SETUP_DIR + r'\data\videos'
+# =============================================================================
+# 软件设置
+# =============================================================================
+#默认设置
+OPTION = {'dir of importing' : '',
+          'data dict scope paralist' : True,
+          'data dict scope plot' : True,
+          'data dict scope style' : 1}#0-参数名，1-软件标识符(参数名)，2-参数名(软件标识符)
+# =============================================================================
+# 字体
+# =============================================================================
 FONT_MSYH = matplotlib.font_manager.FontProperties(
                 fname = SETUP_DIR + r'\data\fonts\msyh.ttf',
                 size = 8)
-
-DIR_HELP_DOC = SETUP_DIR + r'\data\docs'
-DIR_HELP_VIDEO = SETUP_DIR + r'\data\videos'
-
+# =============================================================================
+# 图标
+# =============================================================================
 FTCC_LOGO = SETUP_DIR + r'\lib\icon\ftcc.png'
 
 ICON_WINDOW = SETUP_DIR + r'\lib\icon\fastplot.ico'
@@ -59,6 +73,7 @@ ICON_SAVE_TEMP = SETUP_DIR + r'\lib\icon\save_template.ico'
 ICON_SEL_TEMP = SETUP_DIR + r'\lib\icon\use_template.ico'
 ICON_SETTING = SETUP_DIR + r'\lib\icon\setting.ico'
 ICON_SINGLE_AXIS = SETUP_DIR + r'\lib\icon\sin_axis.ico'
+ICON_STACK_AXIS = SETUP_DIR + r'\lib\icon\stack_axis.ico'
 
 ICON_TEMPLATE = SETUP_DIR + r'\lib\icon\template.ico'
 ICON_TEXT = SETUP_DIR + r'\lib\icon\text.ico'

@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTreeWidget, QMenu, QAction,
 # Package views imports
 # =============================================================================
 from models.mathematics_model import MathematicsEditor
-import views.constant as CONSTANT
+import views.config_info as CONFIG
 from models.data_model import DataFactory
 
 class MathematicsWindow(QWidget):
@@ -40,7 +40,7 @@ class MathematicsWindow(QWidget):
         self._current_files = []
         self.dict_result_paras = {}
         self.count_created_result = 0
-        self.math_result_icon = QIcon(CONSTANT.ICON_MATH_RESULT)
+        self.math_result_icon = QIcon(CONFIG.ICON_MATH_RESULT)
         
     def setup(self):
 

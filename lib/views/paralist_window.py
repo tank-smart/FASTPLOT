@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import (QWidget, QDockWidget,QLineEdit, QMenu,
 # =============================================================================
 # Package views imports
 # =============================================================================
-import views.constant as CONSTANT
+import views.config_info as CONFIG
 
 # =============================================================================
 # ParasTree
@@ -42,7 +42,7 @@ class ParasTree(QTreeWidget):
         for item in items:
             if item:
                 if item.parent():
-                    stream.writeQString(item.text(0))
+                    stream.writeQString(item.data(0, Qt.UserRole))
                     stream.writeQString(item.parent().data(0, Qt.UserRole))
         mime_data.setData('application/x-parasname', byte_array)
         return mime_data
@@ -63,7 +63,7 @@ class ParalistWindow(QDockWidget):
 #    要计算的参数
     signal_into_mathematics = pyqtSignal(str)
 #    要增加的数据字典
-#    signal_into_data_dict = pyqtSignal(str)
+    signal_into_data_dict = pyqtSignal(str)
     
 # =============================================================================
 # 初始化
@@ -71,10 +71,13 @@ class ParalistWindow(QDockWidget):
     def __init__(self, parent = None):
         
         super().__init__(parent)
+        
 #        设置文件与参数的图标
-        self.fileicon = QIcon(CONSTANT.ICON_FILE)
-        self.paraicon = QIcon(CONSTANT.ICON_PARA)
+        self.fileicon = QIcon(CONFIG.ICON_FILE)
+        self.paraicon = QIcon(CONFIG.ICON_PARA)
+        
         self.sel_paraname = ''
+        self._data_dict = None
     
 # =============================================================================
 # UI模块
@@ -117,9 +120,9 @@ class ParalistWindow(QDockWidget):
         self.action_into_mathematics = QAction(self.datafiles_tree)
         self.action_into_mathematics.setText(QCoreApplication.
                                              translate('ParalistDock', '添加至计算'))
-#        self.action_into_data_dict = QAction(self.datafiles_tree)
-#        self.action_into_data_dict.setText(QCoreApplication.
-#                                           translate('ParalistDock', '添加字典'))
+        self.action_into_data_dict = QAction(self.datafiles_tree)
+        self.action_into_data_dict.setText(QCoreApplication.
+                                           translate('ParalistDock', '添加字典'))
         self.action_quick_plot = QAction(self.datafiles_tree)
         self.action_quick_plot.setText(QCoreApplication.
                                        translate('ParalistDock', '快速绘图'))
@@ -143,7 +146,7 @@ class ParalistWindow(QDockWidget):
         
         self.action_into_analysis.triggered.connect(self.slot_into_analysis)
         self.action_into_mathematics.triggered.connect(self.slot_into_mathematics)
-#        self.action_into_data_dict.triggered.connect(self.slot_into_data_dict)
+        self.action_into_data_dict.triggered.connect(self.slot_into_data_dict)
         self.action_quick_plot.triggered.connect(self.slot_quick_plot)
         self.action_delete_files.triggered.connect(self.slot_delete_files)
         self.action_collapse_all.triggered.connect(self.slot_collapse_all)
@@ -163,25 +166,25 @@ class ParalistWindow(QDockWidget):
 #        如果鼠标不在item上，不显示右键菜单
         if sel_item:
 #            创建菜单，添加动作，显示菜单
-            self.sel_paraname = sel_item.text(0)
+            self.sel_paraname = sel_item.data(0, Qt.UserRole)
             menu = QMenu(self.datafiles_tree)
             menu.addActions([self.action_quick_plot,
                              self.action_into_analysis,
                              self.action_into_mathematics,
-#                             self.action_into_data_dict,
+                             self.action_into_data_dict,
                              self.action_delete_files,
                              self.action_expand_all,
                              self.action_collapse_all])
             if sel_item.parent():
                 self.action_into_analysis.setDisabled(False)
                 self.action_into_mathematics.setDisabled(False)
-#                self.action_into_data_dict.setDisabled(False)
+                self.action_into_data_dict.setDisabled(False)
                 self.action_quick_plot.setDisabled(False)
                 self.action_delete_files.setDisabled(True)
             else:
                 self.action_into_analysis.setDisabled(True)
                 self.action_into_mathematics.setDisabled(True)
-#                self.action_into_data_dict.setDisabled(True)
+                self.action_into_data_dict.setDisabled(True)
                 self.action_quick_plot.setDisabled(True)
                 self.action_delete_files.setDisabled(False)
             menu.exec_(self.datafiles_tree.mapToGlobal(pos))
@@ -207,8 +210,20 @@ class ParalistWindow(QDockWidget):
                         flag = False
                     else:
                         child = QTreeWidgetItem(root)
-                        child.setIcon(0,self.paraicon)
-                        child.setText(0,para)
+                        child.setIcon(0, self.paraicon)
+                        child.setData(0, Qt.UserRole, para)
+                        if (self._data_dict and 
+                            CONFIG.OPTION['data dict scope paralist'] and
+                            para in self._data_dict):
+                            if CONFIG.OPTION['data dict scope style'] == 0:
+                                temp_str = self._data_dict[para][0]
+                            if CONFIG.OPTION['data dict scope style'] == 1:
+                                temp_str = para + '(' + self._data_dict[para][0] + ')'
+                            if CONFIG.OPTION['data dict scope style'] == 2:
+                                temp_str = self._data_dict[para][0] + '(' + para + ')'
+                            child.setText(0, temp_str)
+                        else:
+                            child.setText(0, para)
 
     def slot_delete_files(self):
 
@@ -244,8 +259,9 @@ class ParalistWindow(QDockWidget):
                 item = self.datafiles_tree.topLevelItem(i)
                 child_count = item.childCount()
                 for child_index in range(child_count):
-                    paraname = item.child(child_index).text(0)
-                    if re.match(pattern, paraname):
+                    para_alias = item.child(child_index).text(0)
+                    paraname = item.child(child_index).data(0, Qt.UserRole)
+                    if re.match(pattern, para_alias) or re.match(pattern, paraname):
                         item.child(child_index).setHidden(False)
                         num_para_in_show += 1
                     else:
@@ -268,11 +284,11 @@ class ParalistWindow(QDockWidget):
 #            传递出去
             self.signal_into_mathematics.emit(self.sel_paraname)
             
-#    def slot_into_data_dict(self):
-#        
-#        if self.sel_paraname:
-##            传递出去
-#            self.signal_into_data_dict.emit(self.sel_paraname)
+    def slot_into_data_dict(self):
+        
+        if self.sel_paraname:
+#            传递出去
+            self.signal_into_data_dict.emit(self.sel_paraname)
     
     def slot_quick_plot(self):
 
@@ -304,11 +320,11 @@ class ParalistWindow(QDockWidget):
                     file_dir = fileitem.data(0, Qt.UserRole)
 #                    判断文件是否已经存在
                     if (file_dir in dict_result):
-                        dict_result[file_dir].append(item.text(0))
+                        dict_result[file_dir].append(item.data(0, Qt.UserRole))
                     else:
                         dict_result[file_dir] = []
-                        dict_result[file_dir].append(item.text(0))
-                    list_result.append((item.text(0), file_dir))
+                        dict_result[file_dir].append(item.data(0, Qt.UserRole))
+                    list_result.append((item.data(0, Qt.UserRole), file_dir))
         return (dict_result, list_result)
 
     def get_dict_files_tree(self):
@@ -322,6 +338,6 @@ class ParalistWindow(QDockWidget):
                 result[file_dir] = []
                 child_count = item.childCount()
                 for child_index in range(child_count):
-                    paraname = item.child(child_index).text(0)
+                    paraname = item.child(child_index).data(0, Qt.UserRole)
                     result[file_dir].append(paraname)
         return result
