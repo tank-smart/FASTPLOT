@@ -920,7 +920,7 @@ class PlotCanvas(FigureCanvas):
         
         if is_plot:
             self.fig.clf()
-            self.count_axes = 0
+            self.count_axes = 1
             matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
             matplotlib.rcParams['ytick.direction'] = 'in'
 #            支持中文显示
@@ -930,15 +930,34 @@ class PlotCanvas(FigureCanvas):
 #            count = len(self.sorted_paralist)
     
             host = self.fig.add_subplot(1, 1, 1)
+            plt.setp(host.get_xticklabels(),
+                     horizontalalignment = 'center',
+                     rotation = 'horizontal',
+                     fontproperties = CONFIG.FONT_MSYH)
+            plt.setp(host.get_yticklabels(), visible = False)
+#            yaxis = host.get_yaxis()
+#            ymatl = yaxis.get_majorticklines()
+#            for li in ymatl:
+#                li.set_visible(False)
+#            ymitl = yaxis.get_minorticklines()
+#            for li in ymitl:
+#                li.set_visible(False)
+            host.grid(which='major',linestyle='--',color = '0.45')
+            host.grid(which='minor',linestyle='--',color = '0.75')
+            host.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+            host.xaxis.set_major_locator(MaxNLocator(nbins=6))
+            host.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+            host.yaxis.set_major_locator(LinearLocator(numticks=21))
+            host.tick_params(axis='y', colors=self.curve_colors[self.color_index])
+            plt.setp(host.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+            
             axeslist = []
+            axeslist.append(host)
             self.color_index = 0
-            for i, para_tuple in enumerate(self.sorted_paralist):
+            for i, para_tuple in enumerate(reversed(self.sorted_paralist)):
                 paraname, index = para_tuple
-                if axeslist:
-                    ax = host.twinx()
-                else:
-                    ax = host
-                axeslist.append(ax)
+#                if axeslist:
+                ax = host.twinx()
                 if (self._data_dict and 
                     CONFIG.OPTION['data dict scope plot'] and
                     paraname in self._data_dict):
@@ -969,30 +988,45 @@ class PlotCanvas(FigureCanvas):
                     ax.set_ylabel(paraname, fontproperties = CONFIG.FONT_MSYH, 
                                   color = self.curve_colors[self.color_index])
                 
-#                ax.legend(fontsize = self.default_fontsize,
-#                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
-#                          prop = CONFIG.FONT_MSYH)
-                if ax == host:
-#                    ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-                    ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
-                    ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
-                    plt.setp(ax.get_xticklabels(),
-                             horizontalalignment = 'center',
-                             rotation = 'horizontal',
-                             fontproperties = CONFIG.FONT_MSYH)
-                    ax.yaxis.set_major_locator(LinearLocator(numticks=5))
-                    ax.grid(which='major',linestyle='--',color = '0.45')
-                    ax.grid(which='minor',linestyle='--',color = '0.75')
-                else:
-                    plt.setp(ax.get_xticklabels(), visible = False)
-                    ax.yaxis.tick_left()
-                    ax.yaxis.set_label_position('left')
-                    ax.spines['left'].set_color(self.curve_colors[self.color_index])
-                    ax.spines['left'].set_position(('axes', -0.09 * i))
-                    ax.yaxis.set_major_locator(LinearLocator(numticks=5))
+                axeslist.append(ax)
+                    
                 ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+                ax.xaxis.set_major_locator(MaxNLocator(nbins=6))
+                ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+#                ax.yaxis.set_major_locator(LinearLocator(numticks=21))
                 ax.tick_params(axis='y', colors=self.curve_colors[self.color_index])
+                plt.setp(ax.get_xticklabels(), visible = False)
+                ax.yaxis.tick_left()
+                ax.yaxis.set_label_position('left')
+                ax.spines['left'].set_color(self.curve_colors[self.color_index])
+                llimit, ulimit = ax.get_ylim()
+#                delta = (ulimit - llimit) / 4
+                new_delta = self.num_adjust((ulimit - llimit) / 2)
+                mid = int((llimit + ulimit) / 2 / new_delta) * new_delta
+                lb = mid - new_delta
+                ub = mid + new_delta
+#                lb = llimit +  3 * i * delta
+#                ub = lb + 4 * delta
+                if i % 2 == 1:
+                    ax.spines['left'].set_position(('axes', -0.12))
+                else:
+                    ax.spines['left'].set_position(('axes', -0.03))
+                ax.set_yticks([lb,(lb + ub) / 2, ub])
+                ax.spines['left'].set_bounds(lb, ub)
+                ax.set_ylabel(ax.get_ylabel(), y = (3 * i + 2) / 20)
+                ax.set_ylim(lb - 3 * i * new_delta / 2, ub + (16 - 3 * i) * new_delta / 2)
                 plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+#                else:
+#                    ax = host
+##                    ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+##                    ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+##                    ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+#                    plt.setp(ax.get_xticklabels(),
+#                             horizontalalignment = 'center',
+#                             rotation = 'horizontal',
+#                             fontproperties = CONFIG.FONT_MSYH)
+#                    ax.grid(which='major',linestyle='--',color = '0.45')
+#                    ax.grid(which='minor',linestyle='--',color = '0.75')
                 
 #                if i != (count - 1):
 #                    plt.setp(ax.get_xticklabels(), visible = False)
@@ -1027,9 +1061,8 @@ class PlotCanvas(FigureCanvas):
                     self.color_index = 0
                 else:
                     self.color_index += 1
-                self.count_axes += 1
                 
-            self.fig.subplots_adjust(left = 0.21, right = 0.95)
+            self.fig.subplots_adjust(left = 0.21, right = 0.95, top = 0.95, bottom = 0.05)
             self.draw()
     
     def an_plot_paras(self, datalist, sorted_paras):
@@ -1164,6 +1197,48 @@ class PlotCanvas(FigureCanvas):
         self.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                  right=right_gap,top=top_gap,hspace=0.16)
         self.draw()
+        
+    def num_adjust(self, num):
+        
+        base_values = [1, 2, 5]
+        digits = 0
+        init_value = num
+        result = 0
+        abs_num = num = abs(num)
+        if num >= 1:
+            while num != 0:
+                num = int(num / 10)
+                digits += 1
+            t_delta = -1
+            for base in base_values:
+                delta = abs(base * pow(10, digits - 1) - abs_num) 
+                if t_delta == -1:
+                    t_delta = delta
+                    result =  base * pow(10, digits - 1)
+                else:
+                    if delta < t_delta:
+                        t_delta = delta
+                        result =  base * pow(10, digits - 1)
+        elif num != 0:
+            while num < 1:
+                num = num * 10
+                digits += 1
+            t_delta = -1
+            for base in base_values:
+                delta = abs(base * pow(10, -digits) - abs_num) 
+                if t_delta == -1:
+                    t_delta = delta
+                    result =  base * pow(10, -digits)
+                else:
+                    if delta < t_delta:
+                        t_delta = delta
+                        result =  base * pow(10, -digits)
+        else:
+            result = 0
+        if init_value < 0:
+            result = -1 * result
+            
+        return result
 
 #------王--改动结束        
 #        

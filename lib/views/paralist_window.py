@@ -234,7 +234,7 @@ class ParalistWindow(QDockWidget):
             message = QMessageBox.warning(self,
                           QCoreApplication.translate('ParalistWindow', '删除文件'),
                           QCoreApplication.translate('ParalistWindow',
-                                            '''<p>确定要删除文件吗？'''),
+                                            '''<p>确定要删除所选文件吗？'''),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:

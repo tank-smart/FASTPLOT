@@ -749,7 +749,7 @@ class PlotWindow(QWidget):
     def retranslateUi(self):
         _translate = QCoreApplication.translate
         self.setWindowTitle(_translate('PlotWindow', 'Plot'))
-        self.button_home.setToolTip(_translate('PlotWindow', '初始状态'))
+        self.button_home.setToolTip(_translate('PlotWindow', '原始大小'))
         self.button_pan.setToolTip(_translate('PlotWindow', '移动与缩放'))
         self.button_zoom.setToolTip(_translate('PlotWindow', '框选缩放'))
 #        self.button_plot_setting.setToolTip(_translate('PlotWindow', '绘图设置'))

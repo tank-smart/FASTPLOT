@@ -414,7 +414,7 @@ class DataProcessWindow(QWidget):
         if len(sel_items):
             message = QMessageBox.warning(self,
                           QCoreApplication.translate('DataAnalysisWindow', '删除参数'),
-                          QCoreApplication.translate('DataAnalysisWindow', '确定要删除这些参数吗'),
+                          QCoreApplication.translate('DataAnalysisWindow', '确定要删除所选参数吗'),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:

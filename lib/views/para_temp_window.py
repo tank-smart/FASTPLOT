@@ -70,7 +70,7 @@ class ParasListWithDropEvent(QListWidget):
         if items:
             message = QMessageBox.warning(self,
                           QCoreApplication.translate('ParasListWithDropEvent', '删除参数'),
-                          QCoreApplication.translate('ParasListWithDropEvent', '确定要删除这些参数吗'),
+                          QCoreApplication.translate('ParasListWithDropEvent', '确定要删除所选参数吗'),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in items:
@@ -290,7 +290,7 @@ class ParaTempWindow(QWidget):
         if len(sel_items):
             message = QMessageBox.warning(self,
                           QCoreApplication.translate('ParaTempWindow', '删除模板'),
-                          QCoreApplication.translate('ParaTempWindow', '确定要删除这些模板吗'),
+                          QCoreApplication.translate('ParaTempWindow', '确定要删除所选模板吗'),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:

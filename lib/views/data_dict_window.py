@@ -276,7 +276,7 @@ class DataDictWindow(QWidget):
         if items:
             message = QMessageBox.warning(self,
                           QCoreApplication.translate('DataDictWindow', '删除字典'),
-                          QCoreApplication.translate('DataDictWindow', '确定要删除这些数据字典吗'),
+                          QCoreApplication.translate('DataDictWindow', '确定要删除所选数据字典吗'),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in items:
