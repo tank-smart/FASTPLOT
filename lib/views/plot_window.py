@@ -130,10 +130,12 @@ class PlotWindow(QWidget):
         
         self.tab_widget_figure = QTabWidget(self)
         self.tab_widget_figure.setTabsClosable(True)
+        self.tab_widget_figure.setMovable(True)
 #        创建画布部件
         self.current_fig_win = FigureWindow(self.tab_widget_figure, 'mult_axis')
         self.current_canva = self.current_fig_win.canva
         self.tab_widget_figure.addTab(self.current_fig_win,
+                                      QIcon(CONFIG.ICON_MULT_AXIS),
                                       QCoreApplication.translate('PlotWindow',
                                                                  '多坐标图'))
 #        创建右侧的工具栏
@@ -244,6 +246,30 @@ class PlotWindow(QWidget):
         self.button_add_sta_fig.setIconSize(QSize(22, 22))
         self.button_add_sta_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
         self.verticalLayout.addWidget(self.button_add_sta_fig)
+        self.button_add_text = QToolButton(self.widget_plot_tools)
+        self.button_add_text.setMinimumSize(QSize(30, 30))
+        self.button_add_text.setMaximumSize(QSize(30, 30))
+        self.button_add_text.setIconSize(QSize(22, 22))
+        self.button_add_text.setIcon(QIcon(CONFIG.ICON_TEXT))
+        self.verticalLayout.addWidget(self.button_add_text)
+        self.button_add_hl = QToolButton(self.widget_plot_tools)
+        self.button_add_hl.setMinimumSize(QSize(30, 30))
+        self.button_add_hl.setMaximumSize(QSize(30, 30))
+        self.button_add_hl.setIconSize(QSize(22, 22))
+        self.button_add_hl.setIcon(QIcon(CONFIG.ICON_HLINE))
+        self.verticalLayout.addWidget(self.button_add_hl)
+        self.button_add_vl = QToolButton(self.widget_plot_tools)
+        self.button_add_vl.setMinimumSize(QSize(30, 30))
+        self.button_add_vl.setMaximumSize(QSize(30, 30))
+        self.button_add_vl.setIconSize(QSize(22, 22))
+        self.button_add_vl.setIcon(QIcon(CONFIG.ICON_VLINE))
+        self.verticalLayout.addWidget(self.button_add_vl)
+        self.button_add_line = QToolButton(self.widget_plot_tools)
+        self.button_add_line.setMinimumSize(QSize(30, 30))
+        self.button_add_line.setMaximumSize(QSize(30, 30))
+        self.button_add_line.setIconSize(QSize(22, 22))
+        self.button_add_line.setIcon(QIcon(CONFIG.ICON_LINE))
+        self.verticalLayout.addWidget(self.button_add_line)
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         
@@ -320,6 +346,10 @@ class PlotWindow(QWidget):
         self.button_add_sa_fig.clicked.connect(self.slot_add_sa_fig)
         self.button_add_ma_fig.clicked.connect(self.slot_add_ma_fig)
         self.button_add_sta_fig.clicked.connect(self.slot_add_stack_fig)
+        self.button_add_text.clicked.connect(self.slot_add_text)
+        self.button_add_hl.clicked.connect(self.slot_add_hline)
+        self.button_add_vl.clicked.connect(self.slot_add_vline)
+        self.button_add_line.clicked.connect(self.slot_add_line)
 
         self.combo_box_time.activated.connect(self.slot_display_paravalue_ontime)
         self.tool_btn_time.clicked.connect(self.slot_import_paravalue)
@@ -710,33 +740,72 @@ class PlotWindow(QWidget):
             if self.zoom_on:
                 self.slot_zoom()
             self.diconnect_cfw_sink_signal()
-            self.tab_widget_figure.setCurrentIndex(index)
+            self.current_canva.slot_disconnect()
             self.current_fig_win = self.tab_widget_figure.currentWidget()
             self.current_canva = self.current_fig_win.canva
             self.connect_cfw_sink_signal()
+            self.tab_widget_figure.setCurrentIndex(index)
             
             self.count_axis = self.current_canva.count_axes
-        
+    
     def slot_add_sa_fig(self):
         
         sa_fig_win = FigureWindow(self.tab_widget_figure, 'sin_axis')
         self.tab_widget_figure.addTab(sa_fig_win,
+                                      QIcon(CONFIG.ICON_SINGLE_AXIS),
                                       QCoreApplication.translate('PlotWindow',
                                                                  '单坐标图'))
+        self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
     
     def slot_add_ma_fig(self):
         
         ma_fig_win = FigureWindow(self.tab_widget_figure, 'mult_axis')
         self.tab_widget_figure.addTab(ma_fig_win,
+                                      QIcon(CONFIG.ICON_MULT_AXIS),
                                       QCoreApplication.translate('PlotWindow',
                                                                  '多坐标图'))
+        self.slot_fig_win_change(self.tab_widget_figure.indexOf(ma_fig_win))
         
     def slot_add_stack_fig(self):
         
-        ma_fig_win = FigureWindow(self.tab_widget_figure, 'stack_axis')
-        self.tab_widget_figure.addTab(ma_fig_win,
+        stack_fig_win = FigureWindow(self.tab_widget_figure, 'stack_axis')
+        self.tab_widget_figure.addTab(stack_fig_win,
+                                      QIcon(CONFIG.ICON_STACK_AXIS),
                                       QCoreApplication.translate('PlotWindow',
                                                                  '重叠图'))
+        self.slot_fig_win_change(self.tab_widget_figure.indexOf(stack_fig_win))
+        
+    def slot_add_text(self):
+        
+        if self.pan_on:
+            self.slot_pan()
+        if self.zoom_on:
+            self.slot_zoom()
+        self.current_canva.slot_add_annotation()
+    
+    def slot_add_hline(self):
+        
+        if self.pan_on:
+            self.slot_pan()
+        if self.zoom_on:
+            self.slot_zoom()
+        self.current_canva.slot_add_mark_hline()
+    
+    def slot_add_vline(self):
+        
+        if self.pan_on:
+            self.slot_pan()
+        if self.zoom_on:
+            self.slot_zoom()
+        self.current_canva.slot_add_mark_vline()
+    
+    def slot_add_line(self):
+        
+        if self.pan_on:
+            self.slot_pan()
+        if self.zoom_on:
+            self.slot_zoom()
+        self.current_canva.slot_add_arb_markline()
 # =============================================================================
 # 功能函数模块
 # =============================================================================
@@ -765,6 +834,10 @@ class PlotWindow(QWidget):
         self.button_add_sa_fig.setToolTip(_translate('PlotWindow', '单坐标图'))
         self.button_add_ma_fig.setToolTip(_translate('PlotWindow', '多坐标图'))
         self.button_add_sta_fig.setToolTip(_translate('PlotWindow', '重叠图'))
+        self.button_add_text.setToolTip(_translate('PlotWindow', '添加文字标注'))
+        self.button_add_hl.setToolTip(_translate('PlotWindow', '添加水平标记线'))
+        self.button_add_vl.setToolTip(_translate('PlotWindow', '添加垂直标记线'))
+        self.button_add_line.setToolTip(_translate('PlotWindow', '添加任意标记线'))
         
         self.group_box_time_interval.setTitle(_translate('PlotWindow', '时间查看器'))
         self.tool_btn_time_interval.setText(_translate('PlotWindow', '...'))

@@ -243,7 +243,7 @@ class PlotCanvas(FigureCanvas):
 #        禁止缩放过程中弹出右键菜单
         if self.fig.axes and event.button == 3 and self.is_display_menu:
 #            只要弹出了右键菜单，就把所有连接都断开
-            self.slot_disconnect(event)
+            self.slot_disconnect()
             menu = QMenu(self)
             menu.addActions([self.action_show_hgrid, 
                              self.action_show_vgrid,
@@ -398,7 +398,7 @@ class PlotCanvas(FigureCanvas):
     def slot_release_newline(self, event):
         
         if event.button == 1:
-            self.slot_disconnect(event)
+            self.slot_disconnect()
     
     def slot_add_mark_hline(self):
 
@@ -418,7 +418,7 @@ class PlotCanvas(FigureCanvas):
             self.draw()
 #            动作已完成，断开信号与槽的连接，后边相同
         if event.button == 1:
-            self.slot_disconnect(event)
+            self.slot_disconnect()
         
     def slot_add_mark_vline(self):
 
@@ -434,7 +434,7 @@ class PlotCanvas(FigureCanvas):
                                      ls = self.current_markline_style, picker = 5)
             self.draw()
         if event.button == 1:
-            self.slot_disconnect(event)
+            self.slot_disconnect()
         
     def slot_del_artist(self):
 
@@ -476,7 +476,7 @@ class PlotCanvas(FigureCanvas):
                                       fontproperties = font)
             self.draw()
         if event.button == 1:
-            self.slot_disconnect(event)
+            self.slot_disconnect()
         
     def slot_move_annotation(self, event):
         
@@ -490,7 +490,7 @@ class PlotCanvas(FigureCanvas):
     def slot_release_annotation(self, event):
          
         if event.button == 1:
-            self.slot_disconnect(event)
+            self.slot_disconnect()
 
     def slot_set_cursor(self, event):
         
@@ -504,7 +504,7 @@ class PlotCanvas(FigureCanvas):
             self.current_axes = event.inaxes
             
 #    右键菜单时调用；相应动作完成也调用
-    def slot_disconnect(self, event):
+    def slot_disconnect(self):
 
 #        这个鼠标设置会在缩放时改变鼠标样式，因为绑定了鼠标释放事件
         self.setCursor(Qt.ArrowCursor)
@@ -948,7 +948,6 @@ class PlotCanvas(FigureCanvas):
             host.xaxis.set_major_locator(MaxNLocator(nbins=6))
             host.xaxis.set_minor_locator(AutoMinorLocator(n=2))
             host.yaxis.set_major_locator(LinearLocator(numticks=21))
-            host.tick_params(axis='y', colors=self.curve_colors[self.color_index])
             plt.setp(host.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
             
             axeslist = []

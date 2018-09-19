@@ -51,8 +51,10 @@ ICON_FILE = SETUP_DIR + r'\lib\icon\datafile.ico'
 ICON_FILE_EXPORT = SETUP_DIR + r'\lib\icon\file_export.ico'
 ICON_FORWARD = SETUP_DIR + r'\lib\icon\forward.ico'
 
+ICON_HLINE = SETUP_DIR + r'\lib\icon\h_line.ico'
 ICON_HOME = SETUP_DIR + r'\lib\icon\home.ico'
 
+ICON_LINE = SETUP_DIR + r'\lib\icon\line.ico'
 ICON_MATHEMATICS = SETUP_DIR + r'\lib\icon\caculator.ico'
 ICON_MATH_RESULT = SETUP_DIR + r'\lib\icon\math_result.ico'
 ICON_MULT_AXIS = SETUP_DIR + r'\lib\icon\mult_axis.ico'
@@ -80,5 +82,7 @@ ICON_TEXT = SETUP_DIR + r'\lib\icon\text.ico'
 ICON_TIME = SETUP_DIR + r'\lib\icon\time.ico'
 
 ICON_UP = SETUP_DIR + r'\lib\icon\up.ico'
+
+ICON_VLINE = SETUP_DIR + r'\lib\icon\v_line.ico'
 
 ICON_ZOOM = SETUP_DIR + r'\lib\icon\zoom.ico'
