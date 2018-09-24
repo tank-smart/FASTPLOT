@@ -1,4 +1,3 @@
-DataDict
 FCM1_Voted_Calibrated_Airspeed,指示空速,kn
 FCM1_Voted_Ground_Speed_provisional,地速,kn
 FCM1_Voted_True_Airspeed,真空速,kn
@@ -89,7 +88,7 @@ FCM2_Voted_Altitude_Rate,垂直速度 FCM2,ft/min
 FCM3_Voted_Altitude_Rate,垂直速度 FCM3,ft/min
 THET,俯仰角（加装）,°
 BETA,侧滑角,°
-FCM2_Voted_Ground_Speed_provisional,地速,kn
+FCM2_Voted_Ground_Speed_provisional,地速(FCM2),kn
 FCM3_Voted_Ground_Speed_provisional,地速,kn
 FCM2_Voted_Mach,马赫数,NaN
 FCM3_Voted_Mach,马赫数,NaN

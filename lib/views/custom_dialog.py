@@ -1,5 +1,23 @@
 # -*- coding: utf-8 -*-
-
+# =============================================================================
+# Dialog Content
+#
+# SaveTemplateDialog
+# SelParasDialog
+# LineSettingDialog
+# AnnotationSettingDialog
+# AxisSettingDialog
+# FigureCanvasSetiingDialog
+# ParameterExportDialog
+# FileProcessDialog
+# SelFunctionDialog
+# OptionDialog
+# =============================================================================
+# =============================================================================
+# Imports
+# =============================================================================
+import os, sys, re, json
+import pandas as pd
 from matplotlib.lines import Line2D
 from matplotlib.text import Annotation
 from matplotlib.axes import Axes
@@ -17,19 +35,17 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                              QAbstractItemView, QApplication, QComboBox,
                              QColorDialog, QGroupBox, QTreeWidget,
                              QTreeWidgetItem, QHeaderView, QFileDialog,
-                             QAction, QMenu)
+                             QAction, QMenu, QStackedWidget, QWidget,
+                             QCheckBox)
 
 # =============================================================================
 # Package models imports
 # =============================================================================
 from models.datafile_model import DataFile, Normal_DataFile
-import views.constant as CONSTANT
+import views.config_info as CONFIG
 import models.time_model as Time_Model
 from models.data_model import DataFactory
 from models.analysis_model import DataAnalysis
-
-import os, sys, re
-import pandas as pd
 
 #这个类可以用QInputDialog类代替，所以没必要创建，后续改进
 class SaveTemplateDialog(QDialog):
@@ -96,10 +112,11 @@ class SelectTemplateDialog(QDialog):
     def __init__(self, parent = None, templates = {}):
         
         super().__init__(parent)
+        self._data_dict = None
         self.templates = templates
         self.sel_temp = ''
-        self.tempicon = QIcon(CONSTANT.ICON_TEMPLATE)
-        self.paraicon = QIcon(CONSTANT.ICON_PARA)
+        self.tempicon = QIcon(CONFIG.ICON_TEMPLATE)
+        self.paraicon = QIcon(CONFIG.ICON_PARA)
         self.setup()
     
     def setup(self):
@@ -145,6 +162,7 @@ class SelectTemplateDialog(QDialog):
         self.button_confirm.clicked.connect(self.accept)
         self.list_temps.itemClicked.connect(self.slot_display_paras)
         
+        self.load_data_dict()
         self.retranslateUi()
         self.display_templates(self.templates)
 
@@ -159,8 +177,22 @@ class SelectTemplateDialog(QDialog):
         name = item.text()
         self.list_paras.clear()
         for paraname in self.templates[name]:
-            QListWidgetItem(paraname, self.list_paras).setIcon(self.paraicon)
-        
+            para_item = QListWidgetItem(paraname, self.list_paras)
+            para_item.setIcon(self.paraicon)
+            if (self._data_dict and 
+                CONFIG.OPTION['data dict scope paralist'] and
+                paraname in self._data_dict):
+                if CONFIG.OPTION['data dict scope style'] == 0:
+#                    如果是0，那不安只有参数名的风格显示，这是模板，应尽量有软件标识符信息
+                    temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                if CONFIG.OPTION['data dict scope style'] == 1:
+                    temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                if CONFIG.OPTION['data dict scope style'] == 2:
+                    temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                para_item.setText(temp_str)
+            else:
+                para_item.setText(paraname)
+            para_item.setData(Qt.UserRole, paraname)
     
     def display_templates(self, templates):
         
@@ -170,11 +202,32 @@ class SelectTemplateDialog(QDialog):
                 QListWidgetItem(name, self.list_temps).setIcon(self.tempicon)
                 if flag:
                     for paraname in templates[name]:
-                        QListWidgetItem(paraname, self.list_paras).setIcon(self.paraicon)
+                        para_item = QListWidgetItem(paraname, self.list_paras)
+                        para_item.setIcon(self.paraicon)
+                        if (self._data_dict and 
+                            CONFIG.OPTION['data dict scope paralist'] and
+                            paraname in self._data_dict):
+                            if CONFIG.OPTION['data dict scope style'] == 0:
+                                temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                            if CONFIG.OPTION['data dict scope style'] == 1:
+                                temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                            if CONFIG.OPTION['data dict scope style'] == 2:
+                                temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                            para_item.setText(temp_str)
+                        else:
+                            para_item.setText(paraname)
+                        para_item.setData(Qt.UserRole, paraname)
                     flag = False
                     
             self.list_temps.setCurrentRow(0)
-
+            
+    def load_data_dict(self):
+        
+        try:
+            with open(CONFIG.SETUP_DIR + r'\data\data_dict.json') as f_obj:
+                self._data_dict = json.load(f_obj)
+        except:
+            pass
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
@@ -191,11 +244,14 @@ class SelParasDialog(QDialog):
     def __init__(self, parent = None, files = [], sel_mode = 0):
         
         super().__init__(parent)
-        self.paraicon = QIcon(CONSTANT.ICON_PARA)
+        
+        self._data_dict = None
+        self.paraicon = QIcon(CONFIG.ICON_PARA)
         if sel_mode == 0:
             self.sel_mode = QAbstractItemView.SingleSelection
         if sel_mode == 1:
             self.sel_mode = QAbstractItemView.ExtendedSelection
+        
         self.setup()
         self.display_paras(files)
 
@@ -232,8 +288,6 @@ class SelParasDialog(QDialog):
         self.horizontalLayout.addWidget(self.btn_cancel)
         self.verticalLayout.addLayout(self.horizontalLayout)
 
-        self.retranslateUi()
-        
         self.btn_confirm.clicked.connect(self.accept)
         self.btn_cancel.clicked.connect(self.reject)
         if self.sel_mode == QAbstractItemView.ExtendedSelection:
@@ -241,6 +295,9 @@ class SelParasDialog(QDialog):
         if self.sel_mode == QAbstractItemView.SingleSelection:
             self.list_paras.itemDoubleClicked.connect(self.accept)
         self.line_edit_search.textChanged.connect(self.slot_search_para)
+        
+        self.load_data_dict()
+        self.retranslateUi()
     
     def slot_search_para(self, para_name):
         
@@ -249,8 +306,9 @@ class SelParasDialog(QDialog):
             count = self.list_paras.count()
             for i in range(count):
                 item = self.list_paras.item(i)
-                paraname = item.text()
-                if re.match(pattern, paraname):
+                paraname = item.data(Qt.UserRole)
+                para_alias = item.text()
+                if re.match(pattern, paraname) or re.match(pattern, para_alias):
                     item.setHidden(False)
                 else:
                     item.setHidden(True)
@@ -259,7 +317,7 @@ class SelParasDialog(QDialog):
         
         list_paras = []
         for item in self.list_paras.selectedItems():
-            list_paras.append(item.text())
+            list_paras.append(item.data(Qt.UserRole))
         return list_paras
         
 #    不显示时间
@@ -274,6 +332,19 @@ class SelParasDialog(QDialog):
                     if para not in self.get_list_paras():
                         item = QListWidgetItem(para, self.list_paras)
                         item.setIcon(self.paraicon)
+                        if (self._data_dict and 
+                            CONFIG.OPTION['data dict scope paralist'] and
+                            para in self._data_dict):
+                            if CONFIG.OPTION['data dict scope style'] == 0:
+                                temp_str = para + '(' + self._data_dict[para][0] + ')'
+                            if CONFIG.OPTION['data dict scope style'] == 1:
+                                temp_str = para + '(' + self._data_dict[para][0] + ')'
+                            if CONFIG.OPTION['data dict scope style'] == 2:
+                                temp_str = self._data_dict[para][0] + '(' + para + ')'
+                            item.setText(temp_str)
+                        else:
+                            item.setText(para)
+                        item.setData(Qt.UserRole, para)
 #                跳过第一个参数，这里默认第一个参数时间
                 else:
                     time_hide = True
@@ -284,8 +355,16 @@ class SelParasDialog(QDialog):
         count = self.list_paras.count()
         for i in range(count):
             item = self.list_paras.item(i)
-            list_paras.append(item.text())
+            list_paras.append(item.data(Qt.UserRole))
         return list_paras
+    
+    def load_data_dict(self):
+        
+        try:
+            with open(CONFIG.SETUP_DIR + r'\data\data_dict.json') as f_obj:
+                self._data_dict = json.load(f_obj)
+        except:
+            pass
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
@@ -845,9 +924,9 @@ class AxisSettingDialog(QDialog):
         
 #        曲线设置成了不能pick所以可以这样判断，注意它只接受一条曲线
         self.curves = []
-        line_info = {}
         lines = axes.get_lines()
         for line in lines:
+            line_info = {}
             if line.pickable():
                 pass
             else:
@@ -1104,8 +1183,8 @@ class AxisSettingDialog(QDialog):
             curve['line'].set_marker(curve['line_marker'])
 #        似乎获得图注labels时是返回曲线的label而不是当前状态，所以需要用下面这个设置下
         self.axes.legend(hs, ls, loc=(0,1), fontsize = self.axes.get_legend()._fontsize,
-                         ncol=1, frameon=False, borderpad = 0.15,
-                         prop = CONSTANT.FONT_MSYH)
+                         ncol=4, frameon=False, borderpad = 0.15,
+                         prop = CONFIG.FONT_MSYH)
         
         QDialog.accept(self)
 
@@ -1355,10 +1434,11 @@ class ParameterExportDialog(QDialog):
         
         super().__init__(parent)
         
-        self.outfile_icon = QIcon(CONSTANT.ICON_FILE)
-        self.para_icon = QIcon(CONSTANT.ICON_PARA)
+        self.outfile_icon = QIcon(CONFIG.ICON_FILE)
+        self.para_icon = QIcon(CONFIG.ICON_PARA)
         self.file_info = {}
         self.current_file_dir = ''
+        self._data_dict = None
         
         self.setup()
         self.dict_data = {}
@@ -1496,6 +1576,7 @@ class ParameterExportDialog(QDialog):
         self.verticalLayout_4.addLayout(self.horizontalLayout_5)
 
         self.retranslateUi()
+        self.load_data_dict()
 # =======连接信号与槽
 # =============================================================================
         self.tool_btn_sel_filedir.clicked.connect(self.slot_sel_dir)        
@@ -1514,7 +1595,7 @@ class ParameterExportDialog(QDialog):
     def slot_sel_dir(self):
         
         filedir = QFileDialog.getExistingDirectory(self, QCoreApplication.translate('ParameterExportDialog', '导出路径'),
-                                                   CONSTANT.SETUP_DIR)
+                                                   CONFIG.SETUP_DIR)
         if filedir:
             filedir = filedir.replace('/','\\')
             self.line_edit_file_dir.setText(filedir)
@@ -1728,8 +1809,20 @@ class ParameterExportDialog(QDialog):
             item.setText(2, end)
             for paraname in paralist:
                 child_item = QTreeWidgetItem(item)
-                child_item.setText(0, paraname)
                 child_item.setIcon(0, self.para_icon)
+                child_item.setData(0, Qt.UserRole, paraname)
+                if (self._data_dict and 
+                    CONFIG.OPTION['data dict scope paralist'] and
+                    paraname in self._data_dict):
+                    if CONFIG.OPTION['data dict scope style'] == 0:
+                        temp_str = self._data_dict[paraname][0]
+                    if CONFIG.OPTION['data dict scope style'] == 1:
+                        temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                    if CONFIG.OPTION['data dict scope style'] == 2:
+                        temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                    child_item.setText(0, temp_str)
+                else:
+                    child_item.setText(0, paraname)
 #            在复选框中显示
 #            self.combo_box_filename.addItem(filename)
 #            self.combo_box_filename.setItemData(i, file_dir, Qt.UserRole)
@@ -1746,8 +1839,15 @@ class ParameterExportDialog(QDialog):
         self.line_edit_starttime.setText(stime)
         self.line_edit_endtime.setText(etime)
         self.line_edit_file_name.setText(f)
-        self.line_edit_file_dir.setText(CONSTANT.SETUP_DIR)
-            
+        self.line_edit_file_dir.setText(CONFIG.SETUP_DIR)
+        
+    def load_data_dict(self):
+        
+        try:
+            with open(CONFIG.SETUP_DIR + r'\data\data_dict.json') as f_obj:
+                self._data_dict = json.load(f_obj)
+        except:
+            pass            
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
@@ -1780,9 +1880,9 @@ class FileProcessDialog(QDialog):
     
         super().__init__(parent)
         
-        self.outfile_icon = QIcon(CONSTANT.ICON_FILE_EXPORT)
-        self.para_icon = QIcon(CONSTANT.ICON_PARA)
-        self.file_icon = QIcon(CONSTANT.ICON_FILE)
+        self.outfile_icon = QIcon(CONFIG.ICON_FILE_EXPORT)
+        self.para_icon = QIcon(CONFIG.ICON_PARA)
+        self.file_icon = QIcon(CONFIG.ICON_FILE)
         self.file_info = {}
         self.current_interval_item = None
         self.current_floder_item = None
@@ -2051,7 +2151,7 @@ class FileProcessDialog(QDialog):
     def slot_sel_dir(self):
         
         filedir = QFileDialog.getExistingDirectory(self, QCoreApplication.translate('FileProcessDialog', '导出路径'),
-                                                   CONSTANT.SETUP_DIR)
+                                                   CONFIG.SETUP_DIR)
         if filedir:
             filedir = filedir.replace('/','\\')
             self.line_edit_file_dir.setText(filedir)
@@ -2344,7 +2444,7 @@ class FileProcessDialog(QDialog):
         self.line_edit_endtime.setText(display_etime)
         self.line_edit_fre.setText(str(display_f))
         self.line_edit_file_name.setText(display_fname)
-        self.line_edit_file_dir.setText(CONSTANT.SETUP_DIR)
+        self.line_edit_file_dir.setText(CONFIG.SETUP_DIR)
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
@@ -2449,12 +2549,186 @@ class SelFunctionDialog(QDialog):
         self.btn_aver.setText(_translate('SelFunctionDialog', '导出各时间段的平均值'))
         self.btn_max.setText(_translate('SelFunctionDialog', '导出各时间段的最大值'))
         self.btn_min.setText(_translate('SelFunctionDialog', '导出各时间段的最小值'))
+        
+class OptionDialog(QDialog):
+    
+    def __init__(self, parent = None):
+    
+        super().__init__(parent)
+        
+        self.setup()
+        
+    def setup(self):
 
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
+        self.resize(600, 400)
+        self.verticalLayout = QVBoxLayout(self)
+        self.verticalLayout.setContentsMargins(9, 9, 9, 9)
+        self.verticalLayout.setSpacing(6)
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.list_option = QListWidget(self)
+        self.list_option.setMinimumSize(QSize(200, 0))
+        self.list_option.setMaximumSize(QSize(200, 16777215))
+        item = QListWidgetItem()
+        self.list_option.addItem(item)
+        item = QListWidgetItem()
+        self.list_option.addItem(item)
+        item = QListWidgetItem()
+        self.list_option.addItem(item)
+        self.horizontalLayout_2.addWidget(self.list_option)
+        self.stack_option_win = QStackedWidget(self)
+        self.page_general = QWidget()
+        self.verticalLayout_2 = QVBoxLayout(self.page_general)
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.label = QLabel(self.page_general)
+        self.label.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_2.addWidget(self.label)
+        self.stack_option_win.addWidget(self.page_general)
+        self.page_plot = QWidget()
+        self.verticalLayout_3 = QVBoxLayout(self.page_plot)
+        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
+        self.label_2 = QLabel(self.page_plot)
+        self.label_2.setAlignment(Qt.AlignCenter)
+        self.verticalLayout_3.addWidget(self.label_2)
+        self.stack_option_win.addWidget(self.page_plot)
+        self.page_data_dict = QWidget()
+        self.verticalLayout_5 = QVBoxLayout(self.page_data_dict)
+        self.verticalLayout_5.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_5.setSpacing(2)
+        self.groupBox = QGroupBox(self.page_data_dict)
+        self.verticalLayout_4 = QVBoxLayout(self.groupBox)
+        self.verticalLayout_4.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_4.setSpacing(4)
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.cb_paralist_win = QCheckBox(self.groupBox)
+        self.cb_paralist_win.setMinimumSize(QSize(110, 24))
+        self.cb_paralist_win.setMaximumSize(QSize(110, 24))
+        self.horizontalLayout_3.addWidget(self.cb_paralist_win)
+        self.com_box_style = QComboBox(self.groupBox)
+        self.com_box_style.setMinimumSize(QSize(150, 24))
+        self.com_box_style.setMaximumSize(QSize(150, 24))
+        self.com_box_style.addItem('')
+        self.com_box_style.addItem('')
+        self.com_box_style.addItem('')
+        self.com_box_style.setCurrentIndex(CONFIG.OPTION['data dict scope style'])
+        self.horizontalLayout_3.addWidget(self.com_box_style)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_3)
+        self.cb_plot_win = QCheckBox(self.groupBox)
+        self.cb_plot_win.setMinimumSize(QSize(0, 24))
+        self.cb_plot_win.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout_4.addWidget(self.cb_plot_win)
+        self.verticalLayout_5.addWidget(self.groupBox)
+        spacerItem = QSpacerItem(20, 269, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem)
+        self.stack_option_win.addWidget(self.page_data_dict)
+        self.horizontalLayout_2.addWidget(self.stack_option_win)
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
+        self.horizontalLayout = QHBoxLayout()
+        self.btn_reset = QPushButton(self)
+        self.btn_reset.setFocusPolicy(Qt.NoFocus)
+        self.btn_reset.setMinimumSize(QSize(0, 24))
+        self.btn_reset.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.btn_reset)
+        spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem1)
+        self.btn_ok = QPushButton(self)
+        self.btn_ok.setMinimumSize(QSize(0, 24))
+        self.btn_ok.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.btn_ok)
+        self.btn_cancel = QPushButton(self)
+        self.btn_cancel.setMinimumSize(QSize(0, 24))
+        self.btn_cancel.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.btn_cancel)
+#        self.btn_apply = QPushButton(self)
+#        self.btn_apply.setMinimumSize(QSize(0, 24))
+#        self.btn_apply.setMaximumSize(QSize(16777215, 24))
+#        self.horizontalLayout.addWidget(self.btn_apply)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+
+        if CONFIG.OPTION['data dict scope paralist']:
+            self.cb_paralist_win.setChecked(True)
+            self.com_box_style.setEnabled(True)
+        else:
+            self.cb_paralist_win.setChecked(False)
+            self.com_box_style.setEnabled(False)
+        if CONFIG.OPTION['data dict scope plot']:
+            self.cb_plot_win.setChecked(True)
+        else:
+            self.cb_plot_win.setChecked(False)
+        self.list_option.setCurrentRow(0)
+        self.stack_option_win.setCurrentIndex(0)    
+
+        self.btn_ok.clicked.connect(self.accept)
+        self.btn_cancel.clicked.connect(self.reject)
+        self.btn_reset.clicked.connect(self.reset)
+        self.list_option.currentRowChanged.connect(self.slot_option_win_change)
+        self.cb_paralist_win.stateChanged.connect(self.slot_pw_check_change)
+        
+        self.retranslateUi()
+        
+    def accept(self):
+        
+        if self.cb_paralist_win.isChecked():
+            CONFIG.OPTION['data dict scope paralist'] = True
+            CONFIG.OPTION['data dict scope style'] = self.com_box_style.currentIndex()
+        else:
+            CONFIG.OPTION['data dict scope paralist'] = False
+        if self.cb_plot_win.isChecked():
+            CONFIG.OPTION['data dict scope plot'] = True
+        else:
+            CONFIG.OPTION['data dict scope plot'] = False
+        QDialog.accept(self)
+        
+    def reset(self):
+        
+        self.cb_paralist_win.setChecked(True)
+        self.cb_plot_win.setChecked(True)
+        
+    
+    def slot_option_win_change(self, cur_row):
+        
+        self.stack_option_win.setCurrentIndex(cur_row)
+        
+    def slot_pw_check_change(self):
+        
+        if self.cb_paralist_win.isChecked():
+            self.com_box_style.setEnabled(True)
+        else:
+            self.com_box_style.setEnabled(False)
+
+    def retranslateUi(self):
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('OptionDialog', '软件设置'))
+        __sortingEnabled = self.list_option.isSortingEnabled()
+        self.list_option.setSortingEnabled(False)
+        item = self.list_option.item(0)
+        item.setText(_translate('OptionDialog', '通用'))
+        item = self.list_option.item(1)
+        item.setText(_translate('OptionDialog', '绘图'))
+        item = self.list_option.item(2)
+        item.setText(_translate('OptionDialog', '数据字典'))
+        self.list_option.setSortingEnabled(__sortingEnabled)
+        self.label.setText(_translate('OptionDialog', 'TBD'))
+        self.label_2.setText(_translate('OptionDialog', 'TBD'))
+        self.groupBox.setTitle(_translate('OptionDialog', '作用范围'))
+        self.cb_paralist_win.setText(_translate('OptionDialog', '参数列表'))
+        self.com_box_style.setItemText(0, _translate('OptionDialog', '参数名'))
+        self.com_box_style.setItemText(1, _translate('OptionDialog', '标识符(参数名)'))
+        self.com_box_style.setItemText(2, _translate('OptionDialog', '参数名(标识符)'))
+        self.cb_plot_win.setText(_translate('OptionDialog', '绘图'))
+        self.btn_reset.setText(_translate('OptionDialog', '默认设置'))
+        self.btn_ok.setText(_translate('OptionDialog', '确认'))
+        self.btn_cancel.setText(_translate('OptionDialog', '取消'))
+#        self.btn_apply.setText(_translate('OptionDialog', '应用'))
 
 #测试用     
 if __name__ == '__main__':
     
     app = QApplication(sys.argv)
-    d = SelFunctionDialog()
+    d = OptionDialog()
     d.show()
     app.exec_()

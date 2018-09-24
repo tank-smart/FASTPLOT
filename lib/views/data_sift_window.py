@@ -28,7 +28,8 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
 # =============================================================================
 from views.custom_dialog import SelParasDialog
 from models.analysis_model import DataAnalysis
-import views.constant as CONSTANT
+import views.config_info as CONFIG
+import models.time_model as Time_Model
 
 class SiftResultViewWidget(QWidget):
 
@@ -98,8 +99,8 @@ class DataSiftWindow(QWidget):
         
         self.tab_result_count = 0
         
-        self.file_icon = QIcon(CONSTANT.ICON_FILE)
-        self.time_icon = QIcon(CONSTANT.ICON_TIME)
+        self.file_icon = QIcon(CONFIG.ICON_FILE)
+        self.time_icon = QIcon(CONFIG.ICON_TIME)
 
 # =============================================================================
 # UI模块
@@ -212,8 +213,10 @@ class DataSiftWindow(QWidget):
                 for key_file in result_dict:
                     sift_results=result_dict[key_file]#a list
                     item = None
+#                    total_time = None
                     first_hit = True
                     for result in sift_results:
+
                         if first_hit:
                             item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
                             tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
@@ -240,6 +243,7 @@ class DataSiftWindow(QWidget):
                             filename = key_file[pos+1:]
                             item.setText(0, filename)
                             item.setText(1, 'No Fit')
+
                 self.tab_widget_datasift.addTab(
                         tab_sift_result, 
                         QCoreApplication.translate('DataAnalysisWindow',

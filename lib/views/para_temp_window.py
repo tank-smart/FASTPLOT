@@ -10,6 +10,7 @@
 # =======日志
 # 
 # =============================================================================
+import os, json
 # =============================================================================
 # Qt imports
 # =============================================================================
@@ -22,7 +23,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QAction,
                              QMessageBox, QFileDialog, QSizePolicy,
                              QPushButton, QSpacerItem)
 
-import views.constant as CONSTANT
+import views.config_info as CONFIG
 # =============================================================================
 # ParasListWithDropEvent
 # =============================================================================
@@ -31,6 +32,7 @@ class ParasListWithDropEvent(QListWidget):
     signal_drop_paras = pyqtSignal(list)    
 #    用于显示已选参数，因为需要增加
     def __init__(self, parent = None):
+        
         super().__init__(parent)
 #        设置多选模式
         self.setSelectionMode(
@@ -68,7 +70,7 @@ class ParasListWithDropEvent(QListWidget):
         if items:
             message = QMessageBox.warning(self,
                           QCoreApplication.translate('ParasListWithDropEvent', '删除参数'),
-                          QCoreApplication.translate('ParasListWithDropEvent', '确定要删除这些参数吗'),
+                          QCoreApplication.translate('ParasListWithDropEvent', '确定要删除所选参数吗'),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in items:
@@ -115,14 +117,16 @@ class ParaTempWindow(QWidget):
         super().__init__(parent)
         
         self.paras_temps = {}
+        self._data_dict = None
+        self.dir_import = CONFIG.SETUP_DIR
         
         self.current_temp = ''
 #        因为创建和编辑时取消按钮的槽函数应该进行不同的处理，
 #        为了让函数能判断正处在创建还是编辑，因此使用该判断
         self.is_creating = False
         
-        self.tempicon = QIcon(CONSTANT.ICON_TEMPLATE)
-        self.paraicon = QIcon(CONSTANT.ICON_PARA)
+        self.tempicon = QIcon(CONFIG.ICON_TEMPLATE)
+        self.paraicon = QIcon(CONFIG.ICON_PARA)
         
 
 # =============================================================================
@@ -261,7 +265,21 @@ class ParaTempWindow(QWidget):
         self.line_edit_paras_template_name.clear()
 #        显示参数列表
         for paraname in self.paras_temps[item.text()]:
-            QListWidgetItem(paraname, self.list_parameters_for_ana).setIcon(self.paraicon)
+            item_para = QListWidgetItem(paraname, self.list_parameters_for_ana)
+            item_para.setIcon(self.paraicon)
+            if (self._data_dict and 
+                CONFIG.OPTION['data dict scope paralist'] and
+                paraname in self._data_dict):
+                if CONFIG.OPTION['data dict scope style'] == 0:
+                    temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                if CONFIG.OPTION['data dict scope style'] == 1:
+                    temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                if CONFIG.OPTION['data dict scope style'] == 2:
+                    temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                item_para.setText(temp_str)
+            else:
+                item_para.setText(paraname)
+            item_para.setData(Qt.UserRole, paraname)
 #        显示模板名
         self.line_edit_paras_template_name.setText(item.text())
     
@@ -272,7 +290,7 @@ class ParaTempWindow(QWidget):
         if len(sel_items):
             message = QMessageBox.warning(self,
                           QCoreApplication.translate('ParaTempWindow', '删除模板'),
-                          QCoreApplication.translate('ParaTempWindow', '确定要删除这些模板吗'),
+                          QCoreApplication.translate('ParaTempWindow', '确定要删除所选模板吗'),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:
@@ -302,10 +320,24 @@ class ParaTempWindow(QWidget):
         if paralist:
             ex_paras = []
             for paraname in paralist:
-                    if self.list_parameters_for_ana.findItems(paraname, Qt.MatchExactly):
-                        ex_paras.append(paraname)
+                if self.list_parameters_for_ana.findItems(paraname, Qt.MatchExactly):
+                    ex_paras.append(paraname)
+                else:
+                    item = QListWidgetItem(paraname, self.list_parameters_for_ana)
+                    item.setIcon(self.paraicon)
+                    if (self._data_dict and 
+                        CONFIG.OPTION['data dict scope paralist'] and
+                        paraname in self._data_dict):
+                        if CONFIG.OPTION['data dict scope style'] == 0:
+                            temp_str = self._data_dict[paraname][0]
+                        if CONFIG.OPTION['data dict scope style'] == 1:
+                            temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                        if CONFIG.OPTION['data dict scope style'] == 2:
+                            temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                        item.setText(temp_str)
                     else:
-                        QListWidgetItem(paraname, self.list_parameters_for_ana).setIcon(self.paraicon)
+                        item.setText(paraname)
+                    item.setData(Qt.UserRole, paraname)
             if ex_paras:
                 print_para = '<br>以下参数已存在：'
                 for pa in ex_paras:
@@ -323,7 +355,7 @@ class ParaTempWindow(QWidget):
         if count > 0:
             paras = []
             for i in range(count):
-                paras.append(self.list_parameters_for_ana.item(i).text())
+                paras.append(self.list_parameters_for_ana.item(i).data(Qt.UserRole))
             self.paras_temps[result_tempname] = paras
             self.current_temp.setText(result_tempname)
             QMessageBox.information(self,
@@ -384,30 +416,49 @@ class ParaTempWindow(QWidget):
     def slot_import_temps(self):
         
         para_temps = {}
-        file_dir, unkown = QFileDialog.getOpenFileName(
-                    self, 'Import templates', CONSTANT.SETUP_DIR, 'Templates (*.txt *.csv)')
-        file_dir = file_dir.replace('/','\\')
-        
-        try:
-            if file_dir:
+        if os.path.exists(self.dir_import):
+            file_dir, unkown = QFileDialog.getOpenFileName(
+                        self, 'Import templates', self.dir_import, 'Templates (*.txt *.csv)')
+        else:
+            file_dir, unkown = QFileDialog.getOpenFileName(
+                        self, 'Import templates', CONFIG.SETUP_DIR, 'Templates (*.txt *.csv)')
+        if file_dir:
+            file_dir = file_dir.replace('/','\\')
+            self.dir_import = os.path.dirname(file_dir)
+            try:
                 with open(file_dir, 'r') as file:
                     flag = file.readline()
+                    if flag != '========\n':
+                        raise IOError('Unsupported file!(FastPlot.)')
                     while flag == '========\n':
-#                        readline函数会把'\n'也读进来
+#                            readline函数会把'\n'也读进来
                          name = file.readline()
-#                         去除'\n'
+    #                         去除'\n'
                          name = name.strip('\n')
-                         name = name.split()[0]
+                         name = name.split()
                          str_paralist = file.readline()
                          str_paralist = str_paralist.strip('\n')
-#                         split函数不加参数则默认使用空格
+    #                         split函数不加参数则默认使用空格
                          paralist = str_paralist.split()
                          para_temps[name] = paralist
                          flag = file.readline()
-        except:
-            pass
+            except:
+                QMessageBox.information(self,
+                                QCoreApplication.translate('ParaTempWindow', '模板提示'),
+                                QCoreApplication.translate('ParaTempWindow', 
+                                                           '''<p><b>文件内容格式不正确！</b></p>
+                                                           <p>请按下列格式输入：</p>
+                                                           <br>========
+                                                           <br>模板名
+                                                           <br>参数名+空格+参数名+空格+......
+                                                           <br>========
+                                                           <br>......
+                                                           <p>示例：</p>
+                                                           <br>========
+                                                           <br>角度
+                                                           <br>theta AOA FPA'''))
                  
-        self.slot_add_para_template(para_temps)
+            self.slot_add_para_template(para_temps)
 # =============================================================================
 # 功能函数模块
 # =============================================================================
@@ -416,20 +467,28 @@ class ParaTempWindow(QWidget):
         
         try:
 #            导入导出参数的模板
-            with open(CONSTANT.SETUP_DIR + r'\data\templates_export_paras.txt', 'r') as file:
-                flag = file.readline()
-                while flag == '========\n':
-#                     readline函数会把'\n'也读进来
-                     name = file.readline()
-#                     去除'\n'
-                     name = name.strip('\n')
-                     str_paralist = file.readline()
-                     str_paralist = str_paralist.strip('\n')
-                     paralist = str_paralist.split()
-                     self.paras_temps[name] = paralist
-                     flag = file.readline()
+            with open(CONFIG.SETUP_DIR + r'\data\templates_export_paras.json', 'r') as file:
+                self.paras_temps = json.load(file)
+#                flag = file.readline()
+#                while flag == '========\n':
+##                     readline函数会把'\n'也读进来
+#                     name = file.readline()
+##                     去除'\n'
+#                     name = name.strip('\n')
+#                     str_paralist = file.readline()
+#                     str_paralist = str_paralist.strip('\n')
+#                     paralist = str_paralist.split()
+#                     self.paras_temps[name] = paralist
+#                     flag = file.readline()
+
+#        读入数据字典，由于_data_dict这个变量需要比较的初始化，
+#        所以采用直接读文件的形式，而不是等data_dict_window类把数据传过来再初始化
+            with open(CONFIG.SETUP_DIR + r'\data\data_dict.json') as f_obj:
+                self._data_dict = json.load(f_obj)
         except:
-            pass
+            QMessageBox.information(self,
+                            QCoreApplication.translate('ParaTempWindow', '模板提示'),
+                            QCoreApplication.translate('ParaTempWindow', '加载模板失败！'))
         
         self.redisplay_para_templates()            
         
@@ -438,27 +497,31 @@ class ParaTempWindow(QWidget):
 
         try:
 #            打开保存模板的文件（将从头写入，覆盖之前的内容）
-            with open(CONSTANT.SETUP_DIR + r'\data\templates_export_paras.txt', 'w') as file:
-#                将内存中的模板一一写入文件
-                for temp in self.paras_temps:
-                    file.write('========\n')
-                    file.write(temp)
-                    file.write('\n')
-                    if self.paras_temps[temp]:
-                        paralist = ''
-                        index = 1
-                        length = len(self.paras_temps[temp])
-                        for para in self.paras_temps[temp]:
-                            if index == length:
-                                paralist += (para + '\n')
-                            else:
-                                paralist += (para + ' ')
-                            index += 1
-                        file.write(paralist)
-                    else:
-                        file.wirte(' \n')
+#            with open(CONFIG.SETUP_DIR + r'\data\templates_export_paras.txt', 'w') as file:
+##                将内存中的模板一一写入文件
+#                for temp in self.paras_temps:
+#                    file.write('========\n')
+#                    file.write(temp)
+#                    file.write('\n')
+#                    if self.paras_temps[temp]:
+#                        paralist = ''
+#                        index = 1
+#                        length = len(self.paras_temps[temp])
+#                        for para in self.paras_temps[temp]:
+#                            if index == length:
+#                                paralist += (para + '\n')
+#                            else:
+#                                paralist += (para + ' ')
+#                            index += 1
+#                        file.write(paralist)
+#                    else:
+#                        file.wirte(' \n')
+            with open(CONFIG.SETUP_DIR + r'\data\templates_export_paras.json', 'w') as file:
+                json.dump(self.paras_temps, file)
         except:
-            pass
+            QMessageBox.information(self,
+                            QCoreApplication.translate('ParaTempWindow', '模板提示'),
+                            QCoreApplication.translate('ParaTempWindow', '保存模板失败！'))
         
 #    更新模板显示
     def redisplay_para_templates(self):

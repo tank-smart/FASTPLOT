@@ -1,0 +1,9 @@
+========
+dir of importing
+E:\
+========
+data dict scope paralist
+True
+========
+data dict scope plot
+True

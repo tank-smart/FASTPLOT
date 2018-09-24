@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTreeWidget, QMenu, QAction,
 # Package views imports
 # =============================================================================
 from models.mathematics_model import MathematicsEditor
-import views.constant as CONSTANT
+import views.config_info as CONFIG
 from models.data_model import DataFactory
 
 class MathematicsWindow(QWidget):
@@ -40,7 +40,7 @@ class MathematicsWindow(QWidget):
         self._current_files = []
         self.dict_result_paras = {}
         self.count_created_result = 0
-        self.math_result_icon = QIcon(CONSTANT.ICON_MATH_RESULT)
+        self.math_result_icon = QIcon(CONFIG.ICON_MATH_RESULT)
         
     def setup(self):
 
@@ -162,7 +162,7 @@ class MathematicsWindow(QWidget):
         if len(sel_items):
             message = QMessageBox.warning(self,
                           QCoreApplication.translate('MathematicsWindow', '删除参数'),
-                          QCoreApplication.translate('MathematicsWindow', '确定要删除这些参数吗'),
+                          QCoreApplication.translate('MathematicsWindow', '确定要删除所选参数吗'),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:
