@@ -907,17 +907,19 @@ class AnnotationSettingDialog(QDialog):
 #            self.combo_box_text_style.setItemText(i, _translate('AnnotationSettingDialog',
 #                                                                self.enum_text_style_name[i]))
             
-class AxisSettingDialog(QDialog):
+class Base_AxisSettingDialog(QDialog):
     
     def __init__(self, parent = None, axes : Axes = None):
         
         super().__init__(parent)
         
         self.axes = axes
-        self.stime = ''
-        self.etime = ''
+        self.start = ''
+        self.end = ''
         self.xlim = axes.get_xlim()
         self.ylim = axes.get_ylim()
+        
+            
 #        !!只有当locator是MaxNLocator时才能使用下列语句!!
 #        self.xlocator = axes.xaxis.get_major_locator()._nbins
 #        self.ylocator = axes.yaxis.get_major_locator()._nbins
@@ -973,9 +975,8 @@ class AxisSettingDialog(QDialog):
         self.line_edit_x_left.setMinimumSize(QSize(120, 24))
         self.line_edit_x_left.setMaximumSize(QSize(16777215, 24))
         
-        stime = mdates.num2date(self.xlim[0]).time().isoformat(timespec='milliseconds')
-        self.stime = str(stime)
-        self.line_edit_x_left.setText(self.stime)
+        self.start = self.value_to_text(self.xlim[0])
+        self.line_edit_x_left.setText(self.start)
         
         self.horizontalLayout.addWidget(self.line_edit_x_left)
         self.verticalLayout.addLayout(self.horizontalLayout)
@@ -988,9 +989,8 @@ class AxisSettingDialog(QDialog):
         self.line_edit_x_right.setMinimumSize(QSize(120, 24))
         self.line_edit_x_right.setMaximumSize(QSize(16777215, 24))
         
-        etime = mdates.num2date(self.xlim[1]).time().isoformat(timespec='milliseconds')
-        self.etime = str(etime)
-        self.line_edit_x_right.setText(self.etime)
+        self.end = self.value_to_text(self.xlim[1])
+        self.line_edit_x_right.setText(self.end)
         
         self.horizontalLayout_8.addWidget(self.line_edit_x_right)
         self.verticalLayout.addLayout(self.horizontalLayout_8)
@@ -1143,8 +1143,8 @@ class AxisSettingDialog(QDialog):
         self.btn_confirm.clicked.connect(self.accept)
         self.btn_cancel.clicked.connect(self.reject)
         
-        self.line_edit_x_left.editingFinished.connect(self.slot_change_stime)
-        self.line_edit_x_right.editingFinished.connect(self.slot_change_etime)
+        self.line_edit_x_left.editingFinished.connect(self.slot_change_start)
+        self.line_edit_x_right.editingFinished.connect(self.slot_change_end)
         self.line_edit_legend.editingFinished.connect(self.slot_change_legend)
         self.line_edit_line_width.editingFinished.connect(self.slot_change_lw)
         
@@ -1162,8 +1162,10 @@ class AxisSettingDialog(QDialog):
             str_y_bottom = self.line_edit_y_bottom.text()
             str_y_top = self.line_edit_y_top.text()
 #            将时间转换为浮点值坐标
-            x0 = mdates.date2num(Time_Model.str_to_datetime(str_x_left))
-            x1 = mdates.date2num(Time_Model.str_to_datetime(str_x_right))
+            x0 = self.text_to_value(str_x_left)
+            x1 = self.text_to_value(str_x_right)
+#            x0 = mdates.date2num(Time_Model.str_to_datetime(str_x_left))
+#            x1 = mdates.date2num(Time_Model.str_to_datetime(str_x_right))
             self.xlim = (x0, x1)
             self.ylim = (float(str_y_bottom), float(str_y_top))
         except:
@@ -1187,56 +1189,80 @@ class AxisSettingDialog(QDialog):
                          prop = CONFIG.FONT_MSYH)
         
         QDialog.accept(self)
-
-    def slot_change_stime(self):
         
-        etime = self.line_edit_x_right.text()
-        stime = self.line_edit_x_left.text()
-        if Time_Model.is_std_format(stime):
-            if Time_Model.compare(stime, etime) != 1:
-#                    输入正确的起始时间后，还需要转换成标准格式后再显示
-                self.stime = Time_Model.timestr_to_stdtimestr(stime)
-                self.line_edit_x_left.setText(self.stime)
-            else:
-                self.line_edit_x_left.setText(self.stime)
-                QMessageBox.information(self,
-                                QCoreApplication.translate('AxisSettingDialog', '输入提示'),
-                                QCoreApplication.translate('AxisSettingDialog', '起始时间大于终止时间'))
+    def slot_change_start(self):
+        end = self.line_edit_x_right.text()
+        start = self.line_edit_x_left.text()
+        if start<=end:
+            self.line_edit_x_left.setText(start)
         else:
-            self.line_edit_x_left.setText(self.stime)
+            self.line_edit_x_left.setText(self.start)
             QMessageBox.information(self,
                             QCoreApplication.translate('AxisSettingDialog', '输入提示'),
-                            QCoreApplication.translate('AxisSettingDialog', '''<b>请输入正确时间格式</b>
-                                                       <br>HH
-                                                       <br>HH:MM
-                                                       <br>HH:MM:SS
-                                                       <br>HH:MM:SS.FFF
-                                                       <br>HH:MM:SS:FFF'''))
-
-    def slot_change_etime(self):
-        
-        etime = self.line_edit_x_right.text()
-        stime = self.line_edit_x_left.text()
-        if Time_Model.is_std_format(etime):
-            if Time_Model.compare(stime, etime) != 1:
-#                    输入正确的起始时间后，还需要转换成标准格式后再显示
-                self.etime = Time_Model.timestr_to_stdtimestr(etime)
-                self.line_edit_x_right.setText(self.etime)
-            else:
-                self.line_edit_x_right.setText(self.etime)
-                QMessageBox.information(self,
-                                QCoreApplication.translate('AxisSettingDialog', '输入提示'),
-                                QCoreApplication.translate('AxisSettingDialog', '终止时间小于起始时间'))
+                            QCoreApplication.translate('AxisSettingDialog', '起始值大于终止值'))
+            
+    def slot_change_end(self):
+        end = self.line_edit_x_right.text()
+        start = self.line_edit_x_left.text()
+        if start<=end:
+            self.line_edit_x_right.setText(end)
         else:
-            self.line_edit_x_right.setText(self.etime)
+            self.line_edit_x_right.setText(self.end)
             QMessageBox.information(self,
                             QCoreApplication.translate('AxisSettingDialog', '输入提示'),
-                            QCoreApplication.translate('AxisSettingDialog', '''<b>请输入正确时间格式</b>
-                                                       <br>HH
-                                                       <br>HH:MM
-                                                       <br>HH:MM:SS
-                                                       <br>HH:MM:SS.FFF
-                                                       <br>HH:MM:SS:FFF'''))
+                            QCoreApplication.translate('AxisSettingDialog', '终止值小于起始值'))
+            
+                
+
+#    def slot_change_stime(self):
+#        
+#        etime = self.line_edit_x_right.text()
+#        stime = self.line_edit_x_left.text()
+#        if Time_Model.is_std_format(stime):
+#            if Time_Model.compare(stime, etime) != 1:
+##                    输入正确的起始时间后，还需要转换成标准格式后再显示
+#                self.stime = Time_Model.timestr_to_stdtimestr(stime)
+#                self.line_edit_x_left.setText(self.stime)
+#            else:
+#                self.line_edit_x_left.setText(self.stime)
+#                QMessageBox.information(self,
+#                                QCoreApplication.translate('AxisSettingDialog', '输入提示'),
+#                                QCoreApplication.translate('AxisSettingDialog', '起始时间大于终止时间'))
+#        else:
+#            self.line_edit_x_left.setText(self.stime)
+#            QMessageBox.information(self,
+#                            QCoreApplication.translate('AxisSettingDialog', '输入提示'),
+#                            QCoreApplication.translate('AxisSettingDialog', '''<b>请输入正确时间格式</b>
+#                                                       <br>HH
+#                                                       <br>HH:MM
+#                                                       <br>HH:MM:SS
+#                                                       <br>HH:MM:SS.FFF
+#                                                       <br>HH:MM:SS:FFF'''))
+
+#    def slot_change_etime(self):
+#        
+#        etime = self.line_edit_x_right.text()
+#        stime = self.line_edit_x_left.text()
+#        if Time_Model.is_std_format(etime):
+#            if Time_Model.compare(stime, etime) != 1:
+##                    输入正确的起始时间后，还需要转换成标准格式后再显示
+#                self.etime = Time_Model.timestr_to_stdtimestr(etime)
+#                self.line_edit_x_right.setText(self.etime)
+#            else:
+#                self.line_edit_x_right.setText(self.etime)
+#                QMessageBox.information(self,
+#                                QCoreApplication.translate('AxisSettingDialog', '输入提示'),
+#                                QCoreApplication.translate('AxisSettingDialog', '终止时间小于起始时间'))
+#        else:
+#            self.line_edit_x_right.setText(self.etime)
+#            QMessageBox.information(self,
+#                            QCoreApplication.translate('AxisSettingDialog', '输入提示'),
+#                            QCoreApplication.translate('AxisSettingDialog', '''<b>请输入正确时间格式</b>
+#                                                       <br>HH
+#                                                       <br>HH:MM
+#                                                       <br>HH:MM:SS
+#                                                       <br>HH:MM:SS.FFF
+#                                                       <br>HH:MM:SS:FFF'''))
             
     def slot_change_legend(self):
         
@@ -1309,6 +1335,18 @@ class AxisSettingDialog(QDialog):
             self.label.setPalette(QPalette(color))
     #        按##RRGGBB的格式赋值颜色
             self.curves[index]['line_color'] = color.name()
+    
+    def value_to_text(self, value):
+        text = str(value)
+#        out_value = mdates.num2date(in_value).time().isoformat(timespec='milliseconds')
+            
+        return text
+    
+    def text_to_value(self, text):
+        value = float(text)
+#        out_value = mdates.date2num(Time_Model.str_to_datetime(in_value))
+            
+        return value
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
@@ -1337,6 +1375,76 @@ class AxisSettingDialog(QDialog):
         for i in range(count):
             self.combo_box_marker.setItemText(i, _translate('LineSettingDialog',
                                                                self.enum_marker_name[i]))
+
+class AxisSettingDialog(Base_AxisSettingDialog):
+
+    
+
+    def __init__(self, parent = None, axes : Axes = None):
+
+        super().__init__(parent, axes)
+
+    def slot_change_start(self):
+        
+        etime = self.line_edit_x_right.text()
+        stime = self.line_edit_x_left.text()
+        if Time_Model.is_std_format(stime):
+            if Time_Model.compare(stime, etime) != 1:
+#                    输入正确的起始时间后，还需要转换成标准格式后再显示
+                self.start = Time_Model.timestr_to_stdtimestr(stime)
+                self.line_edit_x_left.setText(self.start)
+            else:
+                self.line_edit_x_left.setText(self.start)
+                QMessageBox.information(self,
+                                QCoreApplication.translate('AxisSettingDialog', '输入提示'),
+                                QCoreApplication.translate('AxisSettingDialog', '起始时间大于终止时间'))
+        else:
+            self.line_edit_x_left.setText(self.start)
+            QMessageBox.information(self,
+                            QCoreApplication.translate('AxisSettingDialog', '输入提示'),
+                            QCoreApplication.translate('AxisSettingDialog', '''<b>请输入正确时间格式</b>
+                                                       <br>HH
+                                                       <br>HH:MM
+                                                       <br>HH:MM:SS
+                                                       <br>HH:MM:SS.FFF
+                                                       <br>HH:MM:SS:FFF'''))
+
+    def slot_change_end(self):
+        
+        etime = self.line_edit_x_right.text()
+        stime = self.line_edit_x_left.text()
+        if Time_Model.is_std_format(etime):
+            if Time_Model.compare(stime, etime) != 1:
+#                    输入正确的起始时间后，还需要转换成标准格式后再显示
+                self.end = Time_Model.timestr_to_stdtimestr(etime)
+                self.line_edit_x_right.setText(self.end)
+            else:
+                self.line_edit_x_right.setText(self.end)
+                QMessageBox.information(self,
+                                QCoreApplication.translate('AxisSettingDialog', '输入提示'),
+                                QCoreApplication.translate('AxisSettingDialog', '终止时间小于起始时间'))
+        else:
+            self.line_edit_x_right.setText(self.end)
+            QMessageBox.information(self,
+                            QCoreApplication.translate('AxisSettingDialog', '输入提示'),
+                            QCoreApplication.translate('AxisSettingDialog', '''<b>请输入正确时间格式</b>
+                                                       <br>HH
+                                                       <br>HH:MM
+                                                       <br>HH:MM:SS
+                                                       <br>HH:MM:SS.FFF
+                                                       <br>HH:MM:SS:FFF'''))
+
+    def value_to_text(self, value):
+        time_value = mdates.num2date(value).time().isoformat(timespec='milliseconds')
+        text = str(time_value)  
+        return text
+    
+    def text_to_value(self, text):
+        str_value = mdates.date2num(Time_Model.str_to_datetime(text))
+        value = float(str_value)
+        return value            
+
+
 
 class FigureCanvasSetiingDialog(QDialog):
 

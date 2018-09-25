@@ -20,8 +20,8 @@ import scipy.io as sio
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
                              QMessageBox, QScrollArea, QTableWidget,
-                             QFileDialog, QTableWidgetItem, 
-                             QComboBox, QGroupBox, QLabel, QTabWidget)
+                             QFileDialog, QTableWidgetItem, QProgressDialog,
+                             QComboBox, QGroupBox, QLabel, QTabWidget, QApplication)
 from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
                           QIODevice, Qt)
 from PyQt5.QtGui import QIcon
@@ -30,7 +30,7 @@ from PyQt5.QtGui import QIcon
 # Package views imports
 # =============================================================================
 from models.figure_model import PlotCanvas
-#from views.custom_dialog import SelectTemplateDialog, SaveTemplateDialog
+from views.custom_dialog import SelParasDialog
 import views.config_info as CONFIG
 # =============================================================================
 # FigureWindow
@@ -246,6 +246,14 @@ class PlotWindow(QWidget):
         self.button_add_sta_fig.setIconSize(QSize(22, 22))
         self.button_add_sta_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
         self.verticalLayout.addWidget(self.button_add_sta_fig)
+        
+        self.button_add_ux_fig = QToolButton(self.widget_plot_tools)
+        self.button_add_ux_fig.setMinimumSize(QSize(30, 30))
+        self.button_add_ux_fig.setMaximumSize(QSize(30, 30))
+        self.button_add_ux_fig.setIconSize(QSize(22, 22))
+        self.button_add_ux_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
+        self.verticalLayout.addWidget(self.button_add_ux_fig)
+        
         self.button_add_text = QToolButton(self.widget_plot_tools)
         self.button_add_text.setMinimumSize(QSize(30, 30))
         self.button_add_text.setMaximumSize(QSize(30, 30))
@@ -346,6 +354,7 @@ class PlotWindow(QWidget):
         self.button_add_sa_fig.clicked.connect(self.slot_add_sa_fig)
         self.button_add_ma_fig.clicked.connect(self.slot_add_ma_fig)
         self.button_add_sta_fig.clicked.connect(self.slot_add_stack_fig)
+        self.button_add_ux_fig.clicked.connect(self.slot_add_ux_fig)
         self.button_add_text.clicked.connect(self.slot_add_text)
         self.button_add_hl.clicked.connect(self.slot_add_hline)
         self.button_add_vl.clicked.connect(self.slot_add_vline)
@@ -361,6 +370,8 @@ class PlotWindow(QWidget):
         self.tab_widget_figure.currentChanged.connect(self.slot_fig_win_change)
         
         self.connect_cfw_sink_signal()
+        
+        self.current_canva.signal_progress.connect(self.set_value)
 
 #    连接与绘图窗口有关的信号槽
     def connect_cfw_sink_signal(self):
@@ -401,6 +412,24 @@ class PlotWindow(QWidget):
 # =============================================================================
 # slots模块
 # =============================================================================   
+    def add_PDialog(self):
+        self.pdialog = QProgressDialog(self)
+        self.pdialog.setWindowTitle('绘图中...')
+        self.pdialog.setValue(0)
+        self.pdialog.show()
+        
+    def set_value(self, value):
+        if self.pdialog:
+            self.pdialog.setValue(value)
+            if value >= 100: 
+                self.pdialog.close() 
+            QApplication.processEvents()
+        
+    def pDialog_close(self):
+        if self.pdialog:
+            self.pdialog.close()
+            print(self.pdialog)
+
 #    def slot_plot(self, filegroup):
 #        
 #        if filegroup:
@@ -427,7 +456,9 @@ class PlotWindow(QWidget):
             self.current_canva._data_dict = self._data_dict
             
             self.signal_send_status.emit('绘图中...', 0)
+            self.add_PDialog()
             self.current_canva.plot_paras(datadict, sorted_paras)
+            self.pDialog_close()
             self.signal_send_status.emit('绘图完成！', 1500)
             
             self.count_axis = self.current_canva.count_axes
@@ -756,6 +787,7 @@ class PlotWindow(QWidget):
                                       QCoreApplication.translate('PlotWindow',
                                                                  '单坐标图'))
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
+        sa_fig_win.canva.signal_progress.connect(self.set_value)
     
     def slot_add_ma_fig(self):
         
@@ -765,6 +797,7 @@ class PlotWindow(QWidget):
                                       QCoreApplication.translate('PlotWindow',
                                                                  '多坐标图'))
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(ma_fig_win))
+        ma_fig_win.canva.signal_progress.connect(self.set_value)
         
     def slot_add_stack_fig(self):
         
@@ -774,6 +807,19 @@ class PlotWindow(QWidget):
                                       QCoreApplication.translate('PlotWindow',
                                                                  '重叠图'))
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(stack_fig_win))
+        stack_fig_win.canva.signal_progress.connect(self.set_value)
+        
+    def slot_add_ux_fig(self):
+        
+        ux_fig_win = FigureWindow(self.tab_widget_figure, 'user-defined_axis')
+        self.tab_widget_figure.addTab(ux_fig_win,
+                                      QIcon(CONFIG.ICON_MULT_AXIS),
+                                      QCoreApplication.translate('PlotWindow',
+                                                                 '自定义坐标图'))
+        self.slot_fig_win_change(self.tab_widget_figure.indexOf(ux_fig_win))
+        ux_fig_win.canva.signal_progress.connect(self.set_value)
+#        uxplot_dialog = SelParasDialog(self)
+#        return_signal = uxplot_dialog.exec_()
         
     def slot_add_text(self):
         
@@ -834,6 +880,7 @@ class PlotWindow(QWidget):
         self.button_add_sa_fig.setToolTip(_translate('PlotWindow', '单坐标图'))
         self.button_add_ma_fig.setToolTip(_translate('PlotWindow', '多坐标图'))
         self.button_add_sta_fig.setToolTip(_translate('PlotWindow', '重叠图'))
+        self.button_add_ux_fig.setToolTip(_translate('PlotWindow', '自定义坐标图'))
         self.button_add_text.setToolTip(_translate('PlotWindow', '添加文字标注'))
         self.button_add_hl.setToolTip(_translate('PlotWindow', '添加水平标记线'))
         self.button_add_vl.setToolTip(_translate('PlotWindow', '添加垂直标记线'))
