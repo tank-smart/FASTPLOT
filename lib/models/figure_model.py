@@ -31,7 +31,8 @@ from matplotlib.lines import Line2D
 from matplotlib.text import Annotation
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QPoint, Qt
 import views.config_info as CONFIG
-from views.custom_dialog import (LineSettingDialog, AnnotationSettingDialog, Base_AxisSettingDialog, 
+from views.custom_dialog import (Base_LineSettingDialog, LineSettingDialog, 
+                                 AnnotationSettingDialog, Base_AxisSettingDialog, 
                                  AxisSettingDialog, FigureCanvasSetiingDialog,
                                  ParameterExportDialog, SelFunctionDialog,
                                  FileProcessDialog)
@@ -166,8 +167,9 @@ class PlotCanvas(FigureCanvas):
         
         self.cid_display_paravalue = None
         self.is_save_paravalue = False
-#        判断x轴是否为时间
+# -----------  判断x轴是否为时间  None时x为时间轴-------------
         self.xaxes_flag =None
+# ------------------------------------------------       
 #        添加右键菜单
         self.is_display_menu = True
 
@@ -309,7 +311,10 @@ class PlotCanvas(FigureCanvas):
         else:
             if type(event.artist) == Line2D:
                 line = event.artist
-                dialog = LineSettingDialog(self, line)
+                if self.xaxes_flag is None:
+                    dialog = LineSettingDialog(self, line)
+                else:
+                    dialog = Base_LineSettingDialog(self, line)
                 return_signal = dialog.exec_()
                 if (return_signal == QDialog.Accepted):
                     self.current_markline_color = dialog.line_color

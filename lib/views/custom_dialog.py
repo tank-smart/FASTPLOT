@@ -375,7 +375,7 @@ class SelParasDialog(QDialog):
             self.btn_add.setText(_translate('SelParasDialog', '添加'))
         self.btn_cancel.setText(_translate('SelParasDialog', '取消'))
 
-class LineSettingDialog(QDialog):
+class Base_LineSettingDialog(QDialog):
 
 #    linetype = 0为任意线，1为垂直线，2为水平线
     def __init__(self, parent = None, line : Line2D = None):
@@ -468,18 +468,17 @@ class LineSettingDialog(QDialog):
                                                                   '标记线起始'))
             self.label_line_y0.setText(QCoreApplication.translate('LineSettingDialog',
                                                                   '标记线终止'))
-            istime = False
+#            istime = False
 #            转换成功不一定就能判断这个是时间
             try:
 #                将浮点值转换为时间，由于经过转换，有误差
-                time = mdates.num2date(self.line_xdata[0]).time().isoformat(timespec='milliseconds')
-                istime = True
+                text_x0 = self.value_to_text(self.line_xdata[0])
+#                time = mdates.num2date(self.line_xdata[0]).time().isoformat(timespec='milliseconds')
+#                istime = True
             except:
                 pass
-            if istime:
-                self.line_edit_line_x0.setText(str(time))
-            else:
-                self.line_edit_line_x0.setText(str(self.line_xdata[0]))
+            self.line_edit_line_x0.setText(text_x0)
+            
             self.line_edit_line_x1.setText(str(self.line_ydata[0]))
             self.line_edit_line_y0.setText(str(self.line_ydata[1]))
         if self.linetype == 'Horizontal':
@@ -517,21 +516,23 @@ class LineSettingDialog(QDialog):
                                                                   '左端点纵坐标'))
             self.label_line_y1.setText(QCoreApplication.translate('LineSettingDialog',
                                                                   '右端点纵坐标'))
-            istime = False
+#            istime = False
 #            转换成功不一定就能判断这个是时间
             try:
 #                将浮点值转换为时间，由于经过转换，有误差
-                stime = mdates.num2date(self.line_xdata[0]).time().isoformat(timespec='milliseconds')
-                etime = mdates.num2date(self.line_xdata[1]).time().isoformat(timespec='milliseconds')
-                istime = True
+#                stime = mdates.num2date(self.line_xdata[0]).time().isoformat(timespec='milliseconds')
+                start = self.value_to_text(self.line_xdata[0])
+                end = self.value_to_text(self.line_xdata[1])
+#                etime = mdates.num2date(self.line_xdata[1]).time().isoformat(timespec='milliseconds')
+#                istime = True
             except:
                 pass
-            if istime:
-                self.line_edit_line_x0.setText(str(stime))
-                self.line_edit_line_x1.setText(str(etime))
-            else:
-                self.line_edit_line_x0.setText(str(self.line_xdata[0]))
-                self.line_edit_line_x1.setText(str(self.line_xdata[1]))
+            
+            self.line_edit_line_x0.setText(start)
+            self.line_edit_line_x1.setText(end)
+#            else:
+#                self.line_edit_line_x0.setText(str(self.line_xdata[0]))
+#                self.line_edit_line_x1.setText(str(self.line_xdata[1]))
             self.line_edit_line_y0.setText(str(self.line_ydata[0]))
             self.line_edit_line_y1.setText(str(self.line_ydata[1]))
 
@@ -631,15 +632,18 @@ class LineSettingDialog(QDialog):
             if self.linetype == 'Line':
                 str_y1 = self.line_edit_line_y1.text()
     #                将时间转换为浮点值坐标
-                x0 = mdates.date2num(Time_Model.str_to_datetime(str_x0))
-                x1 = mdates.date2num(Time_Model.str_to_datetime(str_x1))
+                x0 = self.text_to_value(str_x0)
+                x1 = self.text_to_value(str_x1)
+#                x0 = mdates.date2num(Time_Model.str_to_datetime(str_x0))
+#                x1 = mdates.date2num(Time_Model.str_to_datetime(str_x1))
     #            python3.7才可使用fromisoformat函数
     #            x0 = mdates.date2num(datetime.fromisoformat('1900-01-01*' + x[0]))
     #            x1 = mdates.date2num(datetime.fromisoformat('1900-01-01*' + x[1]))
                 self.line_xdata = [x0, x1]
                 self.line_ydata = [float(str_y0), float(str_y1)]
             if self.linetype == 'Vertical':
-                x = mdates.date2num(Time_Model.str_to_datetime(str_x0))
+                x = self.text_to_value(str_x0)
+#                x = mdates.date2num(Time_Model.str_to_datetime(str_x0))
     #            x = mdates.date2num(datetime.fromisoformat('1900-01-01*' + str_x))
                 self.line_xdata = [x, x]
                 if self.is_in_01(float(str_x1), float(str_y0)):
@@ -693,6 +697,14 @@ class LineSettingDialog(QDialog):
                 return True
             else:
                 return False
+            
+    def value_to_text(self, value):
+        text = str(value)            
+        return text
+    
+    def text_to_value(self, text):
+        value = float(text)
+        return value
     
     def retranslateUi(self):
         _translate = QCoreApplication.translate
@@ -712,6 +724,25 @@ class LineSettingDialog(QDialog):
         for i in range(count):
             self.combo_box_line_marker.setItemText(i, _translate('LineSettingDialog',
                                                                self.enum_marker_name[i]))
+    
+
+class LineSettingDialog(Base_LineSettingDialog):
+    
+    def __init__(self, parent = None, line : Line2D = None):
+
+        super().__init__(parent, line)
+            
+    def value_to_text(self, value):
+        time = mdates.num2date(value).time().isoformat(timespec='milliseconds')
+        text = str(time)
+        return text
+    
+    def text_to_value(self, text):
+        
+        value = mdates.date2num(Time_Model.str_to_datetime(text))
+        return value
+    
+    
 
 class AnnotationSettingDialog(QDialog):
     
@@ -1440,8 +1471,7 @@ class AxisSettingDialog(Base_AxisSettingDialog):
         return text
     
     def text_to_value(self, text):
-        str_value = mdates.date2num(Time_Model.str_to_datetime(text))
-        value = float(str_value)
+        value = mdates.date2num(Time_Model.str_to_datetime(text))
         return value            
 
 
