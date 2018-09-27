@@ -25,10 +25,13 @@ class DataFactory(object):
     
 #    通过文件路径+参数列表或者DataFrame初始化
     def __init__(self, data_source = None, sel_para = []):
-        
+
+# yanhua modified        
+        self.filedir = None
         if type(data_source) == str:
 #            确定数据类型
             self.data_type = 'DataFile'
+            self.filedir = data_source
             file = Normal_DataFile(data_source)
             if sel_para:
 #                参数列表是包括时间参数的

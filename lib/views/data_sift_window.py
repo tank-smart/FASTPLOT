@@ -195,52 +195,68 @@ class DataSiftWindow(QWidget):
         str_condition = self.plain_text_edit_expression.toPlainText()
         if list_files and str_condition:
             sift_object = DataAnalysis()
-            result_tuple = sift_object.condition_sift_class(list_files,
-                                                            str_condition,
-                                                            self.sift_search_paras)
+#            result_tuple = sift_object.condition_sift_class(list_files,
+#                                                            str_condition,
+#                                                            self.sift_search_paras)
             
-#            result_tuple = sift_object.condition_sift_wxl(list_files,
-#                                                          str_condition,
-#                                                          self.sift_search_paras)
-            if result_tuple:
-                sift_results=result_tuple[0]
+            result_dict = sift_object.condition_sift_wxl(list_files,
+                                                          str_condition,
+                                                          self.sift_search_paras)
+#            if result_tuple:
+#                sift_results=result_tuple[0]
+            if result_dict:
 
 #                创建一个结果显示窗口
                 self.tab_result_count += 1
                 tab_sift_result = SiftResultViewWidget(self.tab_widget_datasift,  str_condition)
-                for file in list_files:
+                
+#                for file in list_files:
+                for key_file in result_dict:
+                    sift_results=result_dict[key_file]
+                    
                     item = None
                     total_time = None
                     first_hit = True
                     for result in sift_results:
-                        if result.filedir == file:
-                            if first_hit:
-                                item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
-                                tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
-                                filedir = result.filedir
-                                pos = filedir.rindex('\\')
-                                filename = filedir[pos+1:]
-                                item.setText(0, filename)
-                                item.setIcon(0, self.file_icon)
-                                item.setText(1, 'Hit')
-                                child = QTreeWidgetItem(item)
-                                child.setIcon(0, self.time_icon)
-                                child.setText(2, result.begin_time + ' - ' + result.end_time)
-                                child.setText(3, result.period_time)
-                                first_hit = False
-                                total_time = Time_Model.str_to_datetime(result.end_time) - Time_Model.str_to_datetime(result.begin_time)
-                            else:
-                                child = QTreeWidgetItem(item)
-                                child.setIcon(0, self.time_icon)
-                                child.setText(2, result.begin_time + ' - ' + result.end_time)
-                                child.setText(3, result.period_time)
-                                total_time = total_time + Time_Model.str_to_datetime(result.end_time) - Time_Model.str_to_datetime(result.begin_time)
+#                        if result.filedir == file:
+                        if first_hit:
+                            item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
+                            tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
+#                            filedir = result.filedir
+                            filedir = key_file
+                            pos = filedir.rindex('\\')
+                            filename = filedir[pos+1:]
+                            item.setText(0, filename)
+                            item.setIcon(0, self.file_icon)
+                            item.setText(1, 'Hit')
+                            child = QTreeWidgetItem(item)
+                            child.setIcon(2, self.time_icon)
+#                            child.setText(2, result.begin_time + ' - ' + result.end_time)
+#                            child.setText(3, result.period_time)
+                            child.setText(2, result[0] + ' - ' + result[1])
+                            child.setText(3, result[2])
+                            first_hit = False
+#                            total_time = Time_Model.str_to_datetime(result.end_time) - Time_Model.str_to_datetime(result.begin_time)
+                            total_time = Time_Model.str_to_datetime(result[1]) - Time_Model.str_to_datetime(result[0])
+                        else:
+                            child = QTreeWidgetItem(item)
+                            child.setIcon(2, self.time_icon)
+#                            child.setText(2, result.begin_time + ' - ' + result.end_time)
+#                            child.setText(3, result.period_time)
+                            child.setText(2, result[0] + ' - ' + result[1])
+                            child.setText(3, result[2])
+#                            total_time = total_time + Time_Model.str_to_datetime(result.end_time) - Time_Model.str_to_datetime(result.begin_time)
+                            total_time = total_time + Time_Model.str_to_datetime(result[1]) - Time_Model.str_to_datetime(result[0])
                     if first_hit:
                         item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
                         tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
-                        pos = file.rindex('\\')
-                        filename = file[pos+1:]
-                        item.setText(0, file)
+#                        pos = file.rindex('\\')
+                        pos = key_file.rindex('\\')
+#                        filename = file[pos+1:]
+                        filename = key_file[pos+1:]
+#                        item.setText(0, file)
+                        item.setIcon(0, self.file_icon)
+                        item.setText(0, filename)
                         item.setText(1, 'No Fit')
                     if item and total_time:
                         item.setText(3, str(total_time))
