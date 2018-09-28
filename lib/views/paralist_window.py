@@ -58,8 +58,12 @@ class ParalistWindow(QDockWidget):
     signal_into_analysis = pyqtSignal(list)
 #    快速绘图的信号，带有字典型参数（存储了文件路径和参数名的信息）
     signal_quick_plot = pyqtSignal(tuple)
-    
+#    删除的文件
     signal_delete_files = pyqtSignal(list)
+#    要计算的参数
+    signal_into_mathematics = pyqtSignal(str)
+#    要增加的数据字典
+#    signal_into_data_dict = pyqtSignal(str)
     
 # =============================================================================
 # 初始化
@@ -70,6 +74,7 @@ class ParalistWindow(QDockWidget):
 #        设置文件与参数的图标
         self.fileicon = QIcon(CONSTANT.ICON_FILE)
         self.paraicon = QIcon(CONSTANT.ICON_PARA)
+        self.sel_paraname = ''
     
 # =============================================================================
 # UI模块
@@ -79,11 +84,9 @@ class ParalistWindow(QDockWidget):
         self.setWindowTitle(QCoreApplication.translate('ParalistDock', '参数浏览器'))
 
         self.paralist_dock_contents = QWidget(self)
-        self.paralist_dock_contents.setObjectName('paralist_dock_contents')
         self.vlayout_paralist_dock = QVBoxLayout(self.paralist_dock_contents)
         self.vlayout_paralist_dock.setContentsMargins(2, 2, 2, 2)
         self.vlayout_paralist_dock.setSpacing(2)
-        self.vlayout_paralist_dock.setObjectName('vlayout_paralist_dock')
         
 #        行输入部件的定义
         self.line_edit_search_para = QLineEdit(self.paralist_dock_contents)
@@ -96,15 +99,12 @@ class ParalistWindow(QDockWidget):
         self.line_edit_search_para.setAlignment(
                 Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.line_edit_search_para.setReadOnly(False)
-        self.line_edit_search_para.setObjectName('line_edit_search_para')
         self.vlayout_paralist_dock.addWidget(self.line_edit_search_para)
         
 #        文件树显示部件的定义
         self.datafiles_tree = ParasTree(self.paralist_dock_contents)
-        self.datafiles_tree.setObjectName(
-                'datafiles_tree')
         self.datafiles_tree.header().setVisible(False)
-#        设置每个item是可以被选择的
+#        设置多选模式
         self.datafiles_tree.setSelectionMode(
                 QAbstractItemView.ExtendedSelection)
 #        让树可支持右键菜单(step 1)
@@ -113,13 +113,25 @@ class ParalistWindow(QDockWidget):
 #        添加右键动作
         self.action_into_analysis = QAction(self.datafiles_tree)
         self.action_into_analysis.setText(QCoreApplication.
-                                   translate('ParalistDock', '添加到分析参数'))
+                                   translate('ParalistDock', '添加至分析'))
+        self.action_into_mathematics = QAction(self.datafiles_tree)
+        self.action_into_mathematics.setText(QCoreApplication.
+                                             translate('ParalistDock', '添加至计算'))
+#        self.action_into_data_dict = QAction(self.datafiles_tree)
+#        self.action_into_data_dict.setText(QCoreApplication.
+#                                           translate('ParalistDock', '添加字典'))
         self.action_quick_plot = QAction(self.datafiles_tree)
         self.action_quick_plot.setText(QCoreApplication.
                                        translate('ParalistDock', '快速绘图'))
         self.action_delete_files = QAction(self.datafiles_tree)
         self.action_delete_files.setText(QCoreApplication.
                                        translate('ParalistDock', '删除文件'))
+        self.action_expand_all = QAction(self.datafiles_tree)
+        self.action_expand_all.setText(QCoreApplication.
+                                       translate('ParalistDock', '展开列表'))
+        self.action_collapse_all = QAction(self.datafiles_tree)
+        self.action_collapse_all.setText(QCoreApplication.
+                                         translate('ParalistDock', '收起列表'))
         
         self.setWidget(self.paralist_dock_contents)
         
@@ -130,8 +142,12 @@ class ParalistWindow(QDockWidget):
                 self.on_tree_context_menu)
         
         self.action_into_analysis.triggered.connect(self.slot_into_analysis)
+        self.action_into_mathematics.triggered.connect(self.slot_into_mathematics)
+#        self.action_into_data_dict.triggered.connect(self.slot_into_data_dict)
         self.action_quick_plot.triggered.connect(self.slot_quick_plot)
         self.action_delete_files.triggered.connect(self.slot_delete_files)
+        self.action_collapse_all.triggered.connect(self.slot_collapse_all)
+        self.action_expand_all.triggered.connect(self.slot_expand_all)
         
         self.line_edit_search_para.textChanged.connect(self.slot_search_para)
 
@@ -147,16 +163,25 @@ class ParalistWindow(QDockWidget):
 #        如果鼠标不在item上，不显示右键菜单
         if sel_item:
 #            创建菜单，添加动作，显示菜单
+            self.sel_paraname = sel_item.text(0)
             menu = QMenu(self.datafiles_tree)
             menu.addActions([self.action_quick_plot,
                              self.action_into_analysis,
-                             self.action_delete_files])
+                             self.action_into_mathematics,
+#                             self.action_into_data_dict,
+                             self.action_delete_files,
+                             self.action_expand_all,
+                             self.action_collapse_all])
             if sel_item.parent():
                 self.action_into_analysis.setDisabled(False)
+                self.action_into_mathematics.setDisabled(False)
+#                self.action_into_data_dict.setDisabled(False)
                 self.action_quick_plot.setDisabled(False)
                 self.action_delete_files.setDisabled(True)
             else:
                 self.action_into_analysis.setDisabled(True)
+                self.action_into_mathematics.setDisabled(True)
+#                self.action_into_data_dict.setDisabled(True)
                 self.action_quick_plot.setDisabled(True)
                 self.action_delete_files.setDisabled(False)
             menu.exec_(self.datafiles_tree.mapToGlobal(pos))
@@ -236,17 +261,31 @@ class ParalistWindow(QDockWidget):
         dict_r, list_r = self.get_sel_item()
 #        传递出去
         self.signal_into_analysis.emit(list_r)
+        
+    def slot_into_mathematics(self):
+
+        if self.sel_paraname:
+#            传递出去
+            self.signal_into_mathematics.emit(self.sel_paraname)
+            
+#    def slot_into_data_dict(self):
+#        
+#        if self.sel_paraname:
+##            传递出去
+#            self.signal_into_data_dict.emit(self.sel_paraname)
     
     def slot_quick_plot(self):
-        
-#        获得被选项的文件路径和参数列表
-        dict_r, list_r = self.get_sel_item()
-        sorted_para = []
-        for para_tuple in list_r:
-            paraname, file_dir = para_tuple
-            sorted_para.append(paraname)
+
 #        传递出去
-        self.signal_quick_plot.emit((dict_r, sorted_para))
+        self.signal_quick_plot.emit(self.get_sel_item())
+        
+    def slot_expand_all(self):
+        
+        self.datafiles_tree.expandAll()
+        
+    def slot_collapse_all(self):
+        
+        self.datafiles_tree.collapseAll()
 
 # =============================================================================
 # 功能函数模块   

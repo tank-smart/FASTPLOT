@@ -1,0 +1,1912 @@
+DataDict
+FCM1_Voted_Calibrated_Airspeed,指示空速,kn
+FCM1_Voted_Ground_Speed_provisional,地速,kn
+FCM1_Voted_True_Airspeed,真空速,kn
+FCM1_Voted_Mach,马赫数,NaN
+FCM1_Voted_Body_AOA,机身迎角,°
+FCM1_Stall_Warning_Active,失速告警,NaN
+FCM1_Voted_Static_Air_Temperature,静温,°C
+FCM1_Voted_IRS_Pitch_Angle,俯仰角,°
+FCM1_Voted_IRS_Roll_Angle,滚转角,°
+FCM1_Voted_IRS_Magnetic_Heading,航向角,°
+FCM1_Voted_Magnetic_Track_Angle_provisional,航迹角,°
+FCM1_Voted_IRS_Lateral_Acceleration,侧向过载,g
+FCM1_Voted_IRS_Flight_Path_Angle,FPA,°
+FCM1_Voted_Pressure_Altitude,气压高度,ft
+FCM1_Voted_Baro_Corrected_Altitude_Baro_Set_1,气压修正高度,ft
+IRS1_L261_Hyb_Altitude,GPS高度,ft
+FCM1_Voted_Altitude_Rate,高度变化率,ft/min
+RA_L_FilteredHeight_BNR,无线电高度,ft
+FADEC_LA_Selected_N1_Actual,左N1,%
+FADEC_RA_Selected_N1_Actual,右N1,%
+FADEC_LA_Selected_TRA_Filtered,左油门杆位置,°
+FADEC_RA_Selected_TRA_Filtered,右油门杆位置,°
+FADEC_LA_Selected_EGT_for_Display,左EGT,°C
+FADEC_RA_Selected_EGT_for_Display,右EGT,°C
+FADEC_LA_Selected_N2_Actual_1,左N2,%
+FADEC_RA_Selected_N2_Actual_1,右N2,%
+FADEC_LA_Selected_Fuel_Flow,左燃油流量,kg/h
+FADEC_RA_Selected_Fuel_Flow,右燃油流量,kg/h
+FADEC_LA_Maximum_Fan_Vibration,左N1振动,NaN
+FADEC_RA_Maximum_Fan_Vibration,右N1振动,NaN
+FADEC_LA_Maximum_Core_Vibration,左N2振动,NaN
+FADEC_RA_Maximum_Core_Vibration,右N2振动,NaN
+FADEC_LA_Selected_Thrust_Reverser_Position,左反推位置,NaN
+FADEC_RA_Selected_Thrust_Reverser_Position,右反推位置,NaN
+FADEC_LA_TR_Position_is_Stowed_1,左反推收起,NaN
+FADEC_RA_TR_Position_is_Stowed_1,右反推收起,NaN
+FADEC_LA_TR_Position_is_Deployed,左反推展开,NaN
+FADEC_RA_TR_Position_is_Deployed,右反推展开,NaN
+ECU_A429_Out_1_L176_APU_Operating_Speed,APU转速,%
+ECU_A429_Out_1_L175_Exhaust_Gas_Temperature,APU EGT,°C
+Fuel_LRM_A429_Out_1_L251_LWingTank_FuelQuantity_KGS_CHANNEL_A,左燃油量,kg
+Fuel_LRM_A429_Out_1_L252_RWingTank_FuelQuantity_KGS_CHANNEL_A,右燃油量,kg
+Fuel_LRM_A429_Out_1_L253_CWingTank_FuelQuantity_KGS_CHANNEL_A,中燃油量,kg
+Fuel_LRM_A429_Out_1_L250_TotalFuelQuantity_KGS_CHANNEL_A,总油量,kg
+FCM1_Left_Aileron_Position,左副翼偏度,°
+FCM1_Right_Aileron_Position,右副翼偏度,°
+FCM1_Left_Elevator_Position,左升降舵位置,°
+FCM1_Right_Elevator_Position,右升降舵位置,°
+FCM1_Rudder_Position,方向舵,°
+FSECU_2_A429_Out_1_L106_Flap_Position_FSECU2_CMD,襟翼偏度,°
+FSECU_2_A429_Out_1_L105_Slat_Position_FSECU2_CMD,缝翼偏度,°
+FCM1_Stabilizer_Position,水平安定面配平,°
+FCM1_Aileron_Trim_Position,副翼配平,°
+FCM1_Rudder_Trim_Position,方向舵配平,°
+FCM1_Flight_Control_Mode,飞控首飞模式,NaN
+LGCU1_A429_Out_1_L271_NLG_UPLK_prx_Snsr,前起落架上位锁,NaN
+LGCU1_A429_Out_1_L271_NLG_DNLK_prx_Snsr,前起落架下位锁,NaN
+LGCU1_A429_Out_1_L274_NLG_WOFFW_prx_Snsr,前起轮载,NaN
+LGCU1_A429_Out_1_L271_MLG_LH_UPLK_prx_Snsr,左起落架上位锁,NaN
+LGCU1_A429_Out_1_L271_MLG_LH_DNLK_prx_Snsr,左起落架下位锁,NaN
+LGCU1_A429_Out_1_L274_MLG_LH_WOFFW_prx_Snsr,左起轮载,NaN
+LGCU1_A429_Out_1_L271_MLG_RH_UPLK_prx_Snsr,右起落架上位锁,NaN
+LGCU1_A429_Out_1_L271_MLG_RH_DNLK_prx_Snsr,右起落架下位锁,NaN
+LGCU1_A429_Out_1_L274_MLG_RH_WOFFW_prx_Snsr,右起轮载,NaN
+LGCU1_A429_Out_1_L271_LGCL_Selected_Posn_Up,起落架手柄UP,NaN
+LGCU1_A429_Out_1_L271_LGCL_selected_Posn_Down,起落架手柄DN,NaN
+BCMU_A429_Out_1_L114_Left_INBD_Brake_Temperature_BCMU,左外刹车温度,°C
+BCMU_A429_Out_1_L116_Left_OUTBD_Brake_Temperature_BCMU,左内刹车温度,°C
+BCMU_A429_Out_1_L115_Right_INBD_Brake_Temperature_BCMU,右内刹车温度,°C
+BCMU_A429_Out_1_L117_Right_OUTBD_Brake_Temperature_BCMU,右外刹车温度,°C
+BCMU_A429_Out_1_L70_Left_INBD_Brake_Pressure_BCMU,左外刹车压力,Psi
+BCMU_A429_Out_1_L72_Left_OUTBD_Brake_Pressure_BCMU,左内刹车压力,Psi
+BCMU_A429_Out_1_L71_Right_INBD_Brake_Pressure_BCMU,右内刹车压力,Psi
+BCMU_A429_Out_1_L73_Right_OUTBD_Brake_Pressure_BCMU,右外刹车压力,Psi
+FCM2_Voted_Calibrated_Airspeed,空速FMC2,kn
+FCM3_Voted_Calibrated_Airspeed,空速FMC3,kn
+FCM1_Channel_1_Calibrated_Airspeed,空速ch1,kn
+FCM1_Channel_2_Calibrated_Airspeed,空速ch2,kn
+FCM1_Channel_3_Calibrated_Airspeed,空速ch3,kn
+FCM2_Voted_IRS_Pitch_Angle,俯仰角 FCM2,°
+FCM3_Voted_IRS_Pitch_Angle,俯仰角 FCM3,°
+NX,纵向过载,NaN
+NY,横向过载,NaN
+NZ,法向过载,NaN
+FCM2_Voted_Pressure_Altitude,气压高度 FCM2,ft
+FCM3_Voted_Pressure_Altitude,气压高度 FCM3,ft
+FCM2_Voted_Altitude_Rate,垂直速度 FCM2,ft/min
+FCM3_Voted_Altitude_Rate,垂直速度 FCM3,ft/min
+THET,俯仰角（加装）,°
+BETA,侧滑角,°
+FCM2_Voted_Ground_Speed_provisional,地速,kn
+FCM3_Voted_Ground_Speed_provisional,地速,kn
+FCM2_Voted_Mach,马赫数,NaN
+FCM3_Voted_Mach,马赫数,NaN
+FCM2_Voted_Body_AOA,机身迎角,°
+FCM3_Voted_Body_AOA,机身迎角,°
+FCM2_Voted_Baro_Corrected_Altitude_Baro_Set_1,气压修正高度,ft
+FCM3_Voted_Baro_Corrected_Altitude_Baro_Set_1,气压修正高度,ft
+L_GLU_GNSS_1_L76_GNSS_Altitude,GPS高度,ft
+IDS_L_ID_ICE,左结冰探测信号,NaN
+IDS_R_ID_ICE,右结冰探测信号,NaN
+FCM2_Flight_Control_Mode,飞控模式,NaN
+FCM3_Flight_Control_Mode,飞控模式,NaN
+FCM2_Stall_Warning_Active,失速告警,NaN
+FCM3_Stall_Warning_Active,失速告警,NaN
+FCM1_Voted_Body_Norm_Accel_provisional,法向过载,g
+FCM2_Voted_Body_Norm_Accel_provisional,法向过载,g
+FCM3_Voted_Body_Norm_Accel_provisional,法向过载,g
+FCM2_Voted_IRS_Lateral_Acceleration,侧向过载,g
+FCM3_Voted_IRS_Lateral_Acceleration,侧向过载,g
+FCM2_Voted_IRS_Roll_Angle,滚转角,°
+FCM3_Voted_IRS_Roll_Angle,滚转角,°
+FCM2_Voted_IRS_Magnetic_Heading,航向角,°
+FCM3_Voted_IRS_Magnetic_Heading,航向角,°
+HF_FCM_1_FCS_Output_SP20_DS27_Captain_Sidestick_Pitch_Position,左侧杆纵向位移,°
+HF_FCM_2_FCS_Output_SP20_DS27_Captain_Sidestick_Pitch_Position,左侧杆纵向位移,°
+HF_FCM_3_FCS_Output_SP20_DS27_Captain_Sidestick_Pitch_Position,左侧杆纵向位移,°
+HF_FCM_1_FCS_Output_SP20_DS28_First_Officer_Sidestick_Pitch_Pos,右侧杆纵向位移,°
+HF_FCM_2_FCS_Output_SP20_DS28_First_Officer_Sidestick_Pitch_Pos,右侧杆纵向位移,°
+HF_FCM_3_FCS_Output_SP20_DS28_First_Officer_Sidestick_Pitch_Pos,右侧杆纵向位移,°
+HF_FCM_1_FCS_Output_SP20_DS29_Captain_Sidestick_Roll_Position,左侧杆横向位移,°
+HF_FCM_2_FCS_Output_SP20_DS29_Captain_Sidestick_Roll_Position,左侧杆横向位移,°
+HF_FCM_3_FCS_Output_SP20_DS29_Captain_Sidestick_Roll_Position,左侧杆横向位移,°
+HF_FCM_1_FCS_Output_SP20_DS30_First_Officer_Sidestick_Roll_Posi,右侧杆横向位移,°
+HF_FCM_2_FCS_Output_SP20_DS30_First_Officer_Sidestick_Roll_Posi,右侧杆横向位移,°
+HF_FCM_3_FCS_Output_SP20_DS30_First_Officer_Sidestick_Roll_Posi,右侧杆横向位移,°
+FCM1_Speedbrake_Lever_Position,减速板手柄位置,°
+FCM2_Speedbrake_Lever_Position,减速板手柄位置,°
+FCM3_Speedbrake_Lever_Position,减速板手柄位置,°
+FSECU_1_A429_Out_1_L107_FSCL_Detent_0_FSECU1_CMD,襟缝翼手柄位置F0,NaN
+FSECU_1_A429_Out_1_L107_FSCL_Detent_1_FSECU1_CMD,襟缝翼手柄位置F1,NaN
+FSECU_1_A429_Out_1_L107_FSCL_Detent_2_FSECU1_CMD,襟缝翼手柄位置F2,NaN
+FSECU_1_A429_Out_1_L107_FSCL_Detent_3_FSECU1_CMD,襟缝翼手柄位置F3,NaN
+FSECU_1_A429_Out_1_L107_FSCL_Detent_FULL_FSECU1_CMD,襟缝翼手柄位置FULL,NaN
+FSECU_1_A429_Out_1_L107_Detent_Command_0_FSECU1_CMD,襟缝翼构型F0,NaN
+FSECU_1_A429_Out_1_L107_Detent_Command_1_FSECU1_CMD,襟缝翼构型F1,NaN
+FSECU_1_A429_Out_1_L107_Detent_Command_1_PLUS_F_FSECU1_CMD,襟缝翼构型F1+F,NaN
+FSECU_1_A429_Out_1_L107_Detent_Command_2_FSECU1_CMD,襟缝翼构型F2,NaN
+FSECU_1_A429_Out_1_L107_Detent_Command_3_FSECU1_CMD,襟缝翼构型F3,NaN
+FSECU_1_A429_Out_1_L107_Detent_Command_FULL_FSECU1_CMD,襟缝翼构型FULL,NaN
+FCM1_pedal_position,脚蹬位置,°
+FCM2_pedal_position,脚蹬位置,°
+FCM3_pedal_position,脚蹬位置,°
+FCM1_FCM_1_Valid,FCM1状态,NaN
+FCM2_FCM_2_Valid,FCM2状态,NaN
+FCM3_FCM_3_Valid,FCM3状态,NaN
+FCM1_Captain_SSU_Position_Invaild,左侧杆（有效性）,NaN
+FCM2_Captain_SSU_Position_Invaild,左侧杆（有效性）,NaN
+FCM3_Captain_SSU_Position_Invaild,左侧杆（有效性）,NaN
+FCM1_FO_SSU_Position_Invalid,右侧杆（有效性）,NaN
+FCM2_FO_SSU_Position_Invalid,右侧杆（有效性）,NaN
+FCM3_FO_SSU_Position_Invalid,右侧杆（有效性）,NaN
+FCM_1_DS38_Flap_Invld,Flap Fault,NaN
+FCM_2_DS38_Flap_Invld,Flap Fault,NaN
+FCM_3_DS38_Flap_Invld,Flap Fault,NaN
+FCM_1_DS38_Slat_Invld,Slat Fault,NaN
+FCM_2_DS38_Slat_Invld,Slat Fault,NaN
+FCM_3_DS38_DS38_Slat_Invld,Slat Fault,NaN
+FCM1_ACE_1_Status,ACE1状态,NaN
+FCM_2_ACE_1_Status,ACE1状态,NaN
+FCM_3_ACE_1Status,ACE1状态,NaN
+FCM1_ACE_2_Status,ACE2状态,NaN
+FCM_2_ACE_2_Status,ACE2状态,NaN
+FCM_3_ACE_2_Status,ACE2状态,NaN
+FCM1_ACE_3_Status,ACE3状态,NaN
+FCM_2_ACE_3_Status,ACE3状态,NaN
+FCM_3_ACE_3_Status,ACE3状态,NaN
+FCM1_ACE_4_Status,ACE4状态,NaN
+FCM_2_ACE_4_Status,ACE4状态,NaN
+FCM_3_ACE_4_Status,ACE4状态,NaN
+FCM2_Left_Aileron_Position,左副翼偏度,°
+FCM3_Left_Aileron_Position,左副翼偏度,°
+FCM1_MFS_5L_Position,MFS5L,°
+FCM2_MFS_5L_Position,MFS5L,°
+FCM3_MFS_5L_Position,MFS5L,°
+FCM1_MFS_4L_Position,MFS4L,°
+FCM2_MFS_4L_Position,MFS4L,°
+FCM3_MFS_4L_Position,MFS4L,°
+FCM1_MFS_3L_Position,MFS3L,°
+FCM2_MFS_3L_Position,MFS3L,°
+FCM3_MFS_3L_Position,MFS3L,°
+FCM1_MFS_2L_Position,MFS2L,°
+FCM2_MFS_2L_Position,MFS2L,°
+FCM3_MFS_2L_Position,MFS2L,°
+FCM1_Left_Gnd_Spoiler_Position,GSL,NaN
+FCM2_Left_Gnd_Spoiler_Position,GSL,NaN
+FCM3_Left_Gnd_Spoiler_Position,GSL,NaN
+FCM1_Right_Gnd_Spoiler_Position,GSR,NaN
+FCM2_Right_Gnd_Spoiler_Position,GSR,NaN
+FCM3_Right_Gnd_Spoiler_Position,GSR,NaN
+FCM1_MFS_2R_Position,MFS2R,°
+FCM2_MFS_2R_Position,MFS2R,°
+FCM3_MFS_2R_Position,MFS2R,°
+FCM1_MFS_3R_Position,MFS3R,°
+FCM2_MFS_3R_Position,MFS3R,°
+FCM3_MFS_3R_Position,MFS3R,°
+FCM1_MFS_4R_Position,MFS4R,°
+FCM2_MFS_4R_Position,MFS4R,°
+FCM3_MFS_4R_Position,MFS4R,°
+FCM1_MFS_5R_Position,MFS5R,°
+FCM2_MFS_5R_Position,MFS5R,°
+FCM3_MFS_5R_Position,MFS5R,°
+FCM2_Right_Aileron_Position,右副翼偏度,°
+FCM3_Right_Aileron_Position,右副翼偏度,°
+FCM2_Left_Elevator_Position,左升降舵偏度,°
+FCM3_Left_Elevator_Position,左升降舵偏度,°
+FCM2_Rudder_Position,方向舵偏度,°
+FCM3_Rudder_Position,方向舵偏度,°
+FCM2_Right_Elevator_Position,右升降舵偏度,°
+FCM3_Right_Elevator_Position,右升降舵偏度,°
+FCM2_Stabilizer_Position,水平安定面偏度,°
+FCM3_Stabilizer_Position,水平安定面偏度,°
+AIL_LOB_REU_STATE_REU_6D41,左外副翼状态,NaN
+AIL_LIB_REU_STATE_REU_4D41,左内副翼状态,NaN
+FCM1_MFS_5L_Status,左5# MFS状态,NaN
+FCM_2_MFS_5L_Status,左5# MFS状态,NaN
+FCM_3_MFS_5L_Status,左5# MFS状态,NaN
+FCM1_MFS_4L_Status,左4# MFS状态,NaN
+FCM_2_MFS_4L_Status,左4# MFS状态,NaN
+FCM_3_MFS_4L_Status,左4# MFS状态,NaN
+FCM1_MFS_3L_Status,左3# MFS状态,NaN
+FCM_2_MFS_3L_Status,左3# MFS状态,NaN
+FCM_3_MFS_3L_Status,左3# MFS状态,NaN
+FCM1_MFS_2L_Status,左2# MFS状态,NaN
+FCM_2_MFS_2L_Status,左2# MFS状态,NaN
+FCM_3_MFS_2L_Status,左2# MFS状态,NaN
+FCM1_MCE1,MCE1状态,NaN
+FCM2_MCE1,MCE1状态,NaN
+FCM3_MCE1,MCE1状态,NaN
+FCM1_MCE2,MCE2状态,NaN
+FCM2_MCE2,MCE2状态,NaN
+FCM3_MCE2,MCE2状态,NaN
+FCM1_MFS_2R_Status,右2# MFS状态,NaN
+FCM_2_MFS_2R_Status,右2# MFS状态,NaN
+FCM_3_MFS_2R_Status,右2# MFS状态,NaN
+FCM1_MFS_3R_Status,右3# MFS状态,NaN
+FCM_2_MFS_3R_Status,右3# MFS状态,NaN
+FCM_3_MFS_3R_Status,右3# MFS状态,NaN
+FCM1_MFS_4R_Status,右4# MFS状态,NaN
+FCM_2_MFS_4R_Status,右4# MFS状态,NaN
+FCM_3_MFS_4R_Status,右4# MFS状态,NaN
+AIL_RIB_REU_STATE_REU_5D41,右内副翼状态,NaN
+AIL_ROB_REU_STATE_REU_7D41,右外副翼状态,NaN
+ELEV_LOB_REU_STATE_REU_6D43,左外升降舵状态,NaN
+ELEV_LIB_REU_STATE_REU_4D43,左内升降舵状态,NaN
+RUD_UPR_REU_STATE_REU_6D44,上方向舵状态,NaN
+RUD_MID_REU_STATE_REU_4D44,中方向舵状态,NaN
+RUD_LWR_REU_STATE_REU_7D44,下方向舵状态,NaN
+ELEV_RIB_REU_STATE_REU_5D43,右内升降舵状态,NaN
+ELEV_ROB_REU_STATE_REU 7D43,右外升降舵状态,NaN
+FCM2_Aileron_Trim_Position,副翼配平值,°
+FCM3_Aileron_Trim_Position,副翼配平值,°
+FCM1_rudder_trim_switch_position,方向舵配平位置值,NaN
+FCM2_rudder_trim_switch_position,方向舵配平位置值,NaN
+FCM3_rudder_trim_switch_position,方向舵配平位置值,NaN
+FCM1_stablizer_trim_switch_position,水平安定面配平开关位置,NaN
+FCM2_stablizer_trim_switch_position,水平安定面配平开关位置,NaN
+FCM3_stablizer_trim_switch_position,水平安定面配平开关位置,NaN
+FCM1_Voted_Body_Pitch_Rate_provisional,俯仰角速度,°/S
+FCM2_Voted_Body_Pitch_Rate_provisional,俯仰角速度,°/S
+FCM3_Voted_Body_Pitch_Rate_provisional,俯仰角速度,°/S
+FCM1_Voted_Body_Roll_Rate_provisional,滚转角速度,°/S
+FCM2_Voted_Body_Roll_Rate_provisional,滚转角速度,°/S
+FCM3_Voted_Body_Roll_Rate_provisional,滚转角速度,°/S
+IRU_1_429_04_L330_Body_Yaw_Rate,偏航角速度,°/S
+FCM1_V_Alpha_STW,失速告警速度,kn
+FCM2_V_Alpha_STW,失速告警速度,kn
+FCM3_V_Alpha_STW,失速告警速度,kn
+FCM1_VLS_Speed,最小选择速度,kn
+FCM2_VLS_Speed,最小选择速度,kn
+FCM3_VLS_Speed,最小选择速度,kn
+FCM1_Voted_Body_Long_Accel_provisional,纵向过载,g
+FCM2_Voted_Body_Long_Accel_provisional,纵向过载,g
+FCM3_Voted_Body_Long_Accel_provisional,纵向过载,g
+PHI,滚转角（加装）,°
+QRS,俯仰角速度（加装）,°/S
+PRS,滚转角速度（加装）,°/S
+RRS,偏航角速度（加装）,°/S
+PDEEDL,左升降舵偏度（加装）,°
+PDEEDR,右升降舵偏度（加装）,°
+PDERD,方向舵偏度（加装）,°
+PDR,左座脚蹬位移（加装）,°
+VIB57,左驾驶员座椅X向振动加速度,g
+VIB58,左驾驶员座椅Y向振动加速度,g
+VIB59,左驾驶员座椅Z向振动加速度,g
+Left_Ail_Delta_Press,左副翼两作动器压力差,psi
+Right_Ail_Delta_Press,右副翼两作动器压力差,psi
+Left_ELE_Delta_Press,左升降舵两作动器压力差,psi
+Right_ELE_Delta_Press,右升降舵两作动器压力差,psi
+RUD_UPR_ Delta_Press,方向舵两作动器压力差（上）,psi
+RUD_ MID_Delta_Press,方向舵两作动器压力差（中）,psi
+RUD_ LWR_Delta_Press,方向舵两作动器压力差（下）,psi
+L_510701_ST,左侧平尾前梁下缘条6-7号肋应变,με
+L_520401_ST,左侧平尾后梁下缘条3-4号肋应变,με
+L_520402_ST,左侧平尾后梁上缘条3-4号肋应变,με
+L_576101_ST,左侧后缘舱下长桁3~4号肋应变,με
+L_576102_ST,左侧后缘舱上长桁3~4号肋应变,με
+L_576201_ST,左侧后缘舱下长桁5~6号肋应变,με
+L_576202_ST,左侧后缘舱上长桁5~6号肋应变,με
+L_576301_ST,左侧后缘舱下长桁6~7号肋应变,με
+L_576302_ST,左侧后缘舱上长桁6~7号肋应变,με
+R_676301_ST,右侧后缘舱下长桁6~7号肋应变,με
+R_676302_ST,右侧后缘舱上长桁6~7号肋应变,με
+L_710101_ST,左侧升降舵前梁缘条-1#肋-2#肋应变,με
+L_710102_ST,左侧升降舵前梁缘条-3#肋-4#肋应变,με
+L_710103_ST,左侧外作动器接头耳片边缘应变,με
+R_810101_ST,右侧升降舵前梁缘条-1#肋-2#肋应变,με
+R_810102_ST,右侧升降舵前梁缘条-3#肋-4#肋应变,με
+R_810103_ST,右侧外作动器接头耳片边缘应变,με
+L_576402_ST,左长桁测点3应变,με
+L_576405_ST,左长桁测点2应变,με
+L_573507_ST,左侧长桁平尾盒段后梁腹板应变,με
+EM_B_R1,右侧1#作动器连杆弯曲全桥应变,με
+EMT_B_R1,右侧1#作动器连杆拉弯全桥应变,με
+EM_B_R3,右侧3#作动器连杆弯曲全桥应变,με
+EMT_B_R3,右侧3#作动器连杆拉弯全桥应变,με
+FCM1_Channel_1_Total_Pressure,总压ch1,mbar
+FCM1_Channel_2_Total_Pressure,总压ch2,mbar
+FCM1_Channel_3_Total_Pressure,总压ch3,mbar
+FCM1_Voted_Total_Pressure,总压Voted,mbar
+FCM1_Channel_1_Static_Pressure,静压ch1,mbar
+FCM1_Channel_2_Static_Pressure,静压ch2,mbar
+FCM1_Channel_3_Static_Pressure,静压ch3,mbar
+FCM1_Voted_Static_Pressure,静压Voted,mbar
+ISIS_1_A429_Tx_1A_L206_Calibrated_Airspeed,空速ISI,kn
+FCM1_Channel_1_Pressure_Altitude,气压高度 ch1,ft
+FCM1_Channel_2_Pressure_Altitude,气压高度 ch2,ft
+FCM1_Channel_3_Pressure_Altitude,气压高度 ch3,ft
+FCM1_Voted_IRS_Inertial_Vertical_Speed,垂直速度 IRS,ft/min
+ISIS_1_A429_Tx_1A_L212_Altitude_Rate,垂直速度-ISI,ft/min
+FCM1_Voted_Baro_Corrected_Altitude_Baro_Set_2,修正气压高度2,ft
+ISIS_1_A429_Tx_1A_L204_Baro_Corrected_Altitude,修正气压高度ISI,ft
+HF_IDULEFTOUTBOARD_PFD_BAROSET_CURR_HPA_CAPT_L,修正气压1,HPA
+HF_IDURIGHTOUTBOARD_PFD_BAROSET_CURR_HPA_FO_L,修正气压2,HPA
+ISIS_1_A429_Tx_1A_L235_Baro_Correction_InHg,修正气压ISI,HPA
+RA_R_FilteredHeight_BNR,无线电高度表R-RA,ft
+FCM1_Voted_Total_Air_Temperature,总温Voted,°
+FMS1_L312_Ground_Speed,地速GS,kn
+FMS1_L315_Wind_Speed,风速WS,kn
+ADHC1_Monitor_AOA_Right1_Status,右1迎角传感器加温状态,NaN
+ADHC1_Monitor_Left_TAT_Status,左总温传感器加温状态,NaN
+ADHC1_Monitor_Left_Pitot_Probe_Status,左全压探头加温状态,NaN
+ADHC1_Monitor_Left_Static1_Status_Status,左1静压孔加温状态,NaN
+ADHC1_Monitor_Right_Static1_Status,右1静压孔加温状态,NaN
+ADHC2_Monitor_AOA_Left1_Status,左1迎角传感器加温状态,NaN
+ADHC2_Monitor_Left_Pitot_Static_Probe_Status,左全静压探头加温状态,NaN
+ADHC2_Monitor_Right_Pitot_Static_Probe_Status,右全静压探头加温状态,NaN
+ADHC3_Monitor_AOA_Left2_Status,左2迎角传感器加温状态,NaN
+ADHC3_Monitor_AOA_Right2_Status,右2迎角传感器加温状态,NaN
+ADHC3_Monitor_Right_TAT_Status,右总温传感器加温状态,NaN
+ADHC3_Monitor_Right_Pitot_Probe_Status,右全压探头加温状态,NaN
+ADHC3_Monitor_Left_Static3_Status,左3静压孔加温状态,NaN
+ADHC3_Monitor_Right_Static3_Status,右3静压孔加温状态,NaN
+IRU_1_429_04_L324_Pitch_Angle,俯仰角 IRU1,°
+IRU_2_429_04_L324_Pitch_Angle,俯仰角 IRU2,°
+IRU_3_429_04_L324_Pitch_Angle,俯仰角 IRU3,°
+ISIS_1_A429_Tx_1A_L324_Pitch_Angle,俯仰角ISI,°
+IRU_1_429_04_L325_Roll_Angle,滚转角 IRU1,°
+IRU_2_429_04_L325_Roll_Angle,滚转角 IRU2,°
+IRU_3_429_04_L325_Roll_Angle,滚转角 IRU3,°
+ISIS_1_A429_Tx_1A_L325_Roll_Angle,滚转角ISI,°
+IRU_1_429_04_L320_Magnetic_Heading_Heading_8_Hz_Filter,磁航向 IRU1,°
+IRU_2_429_04_L320_Magnetic_Heading_Heading_8_Hz_Filter,磁航向 IRU2,°
+IRU_3_429_04_L320_Magnetic_Heading_Heading_8_Hz_Filter,磁航向 IRU3,°
+IRU_1_429_04_L331_Body_Long_Accel,纵向加速度IRU1,NaN
+IRU_2_429_04_L331_Body_Long_Accel,纵向加速度IRU2,NaN
+IRU_3_429_04_L331_Body_Long_Accel,纵向加速度IRU3,NaN
+ISIS_1_A429_Tx_1A_L331_Body_Longitudinal_Acceleration,纵向加速度ISI,NaN
+IRU_1_429_04_L332_Body_Lat_Accel,横向加速度IRU1,NaN
+IRU_2_429_04_L332_Body_Lat_Accel,横向加速度IRU2,NaN
+IRU_3_429_04_L332_Body_Lat_Accel,横向加速度IRU3,NaN
+ISIS_1_A429_Tx_1A_L332_Body_Lateral_Acceleration,横向加速度ISI,NaN
+IRU_1_429_04_L333_Body_Norm_Accel,法向加速度IRU1,NaN
+IRU_2_429_04_L333_Body_Norm_Accel,法向加速度IRU2,NaN
+IRU_3_429_04_L333_Body_Norm_Accel,法向加速度IRU3,NaN
+ISIS_1_A429_Tx_1A_L333_Body_Normal_Acceleration,法向加速度ISI,NaN
+L_GLU_ILS_1_L173_LOC_Deviation_NAV1,L-LOC偏差,DDM
+R_GLU_ILS_1_L173_LOC_Deviation_NAV2,R-LOC偏差,DDM
+L_GLU_ILS_1_L174_G_S_Deviation_NAV1,L-GS偏差,DDM
+R_GLU_ILS_1_L174_G_S_Deviation_NAV2,R-GS偏差,DDM
+L_GLU_GNSS_1_L110_GNSS_Present_Position_Latitude,GPS1纬度,°
+L_GLU_GNSS_1_L111_GNSS_Present_Position_Longitude,GPS1经度,°
+L_GLU_GNSS_1_L112_GPS_Ground_Speed_Left_GPS,GPS1地速,Kn
+R_GLU_GNSS_1_L110_GNSS_Present_Position_Latitude,GPS2纬度,°
+R_GLU_GNSS_1_L111_GNSS_Present_Position_Longitude,GPS2经度,°
+R_GLU_GNSS_1_L112_GPS_Ground_Speed_Right_GPS,GPS2地速,Kn
+L_NAV_VIR_2_L34_VIR_Frequency_15,VOR1 频率,Mhz
+L_NAV_VIR_2_L34_VIR_Frequency_19,VOR1 频率,Mhz
+L_NAV_VIR_2_L34_VIR_Frequency_23,VOR1 频率,Mhz
+L_NAV_VIR_2_L34_VIR_Frequency_27,VOR1 频率,Mhz
+L_DME_3_L35_DME_Frequency_Paring,VOR1 Distance,NM
+L_DME_3_L202_DME_Distance_Binary,VOR1 Distance,NM
+L_NAV_VIR_2_L114_VOR_Bearing,VOR1 Bearing,°
+R_NAV_VIR_2_L34_VIR_Frequency_15,VOR2 频率,Mhz
+R_NAV_VIR_2_L34_VIR_Frequency_19,VOR2 频率,Mhz
+R_NAV_VIR_2_L34_VIR_Frequency_23,VOR2 频率,Mhz
+R_NAV_VIR_2_L34_VIR_Frequency_27,VOR2 频率,Mhz
+R_DME_3_L35_DME_Frequency_Paring,VOR2 Distance,NM
+R_DME_3_L202_DME_Distance_Binary,VOR2 Distance,NM
+R_NAV_VIR_2_L114_VOR_Bearing,VOR2 Bearing,°
+L_GLU_ILS_1_L33_Frequency_Hundredths_Digit_Left_Unit,LOC1 频率,Mhz
+L_GLU_ILS_1_L33_Frequency_Tenths_Digit_Left_Unit,LOC2 频率,Mhz
+L_GLU_ILS_1_L33_Frequency_Ones_Digit_Left_Unit,LOC3 频率,Mhz
+L_GLU_ILS_1_L33_Frequency_tens_Digit_Left_Unit,LOC4 频率,Mhz
+R_GLU_ILS_1_L33_Frequency_Hundredths_Digit_Right_Unit,LOC2 频率,Mhz
+R_GLU_ILS_1_L33_Frequency_Tenths_Digit_Right_Unit,LOC2 频率,Mhz
+R_GLU_ILS_1_L33_Frequency_Ones_Digit_Right_Unit,LOC2 频率,Mhz
+R_GLU_ILS_1_L33_Frequency_tens_Digit_Right_Unit,LOC2 频率,Mhz
+L_NAV_VIR_2_L43_Outer_Marker_Present,MB1,NaN
+L_NAV_VIR_2_L43_Middle_Marker_Present,MB1,NaN
+L_NAV_VIR_2_L43_Inner_Marker_Present,MB1,NaN
+R_NAV_VIR_2_L43_Outer_Marker_Present,MB2,NaN
+R_NAV_VIR_2_L43_Middle_Marker_Present,MB2,NaN
+R_NAV_VIR_2_L43_Inner_Marker_Present,MB2,NaN
+RIU_1_A429_Out_5_L337_ACP_Transmitter_Selection_COM1_ACP1,ACP1电台选择,NaN
+RIU_1_A429_Out_5_L337_ACP_Transmitter_Selection_COM2_ACP1,ACP1电台选择,NaN
+RIU_1_A429_Out_5_L337_ACP_Transmitter_Selection_COM3_ACP1,ACP1电台选择,NaN
+RIU_1_A429_Out_5_L337_ACP_Transmitter_Selection_COM1_ACP2,ACP2电台选择,NaN
+RIU_1_A429_Out_5_L337_ACP_Transmitter_Selection_COM2_ACP2,ACP2电台选择,NaN
+RIU_1_A429_Out_5_L337_ACP_Transmitter_Selection_COM3_ACP2,ACP2电台选择,NaN
+RIU_1_A429_Out_5_L337_ACP_Transmitter_Selection_COM1_ACP3,ACP3电台选择,NaN
+RIU_1_A429_Out_5_L337_ACP_Transmitter_Selection_COM2_ACP3,ACP3电台选择,NaN
+RIU_1_A429_Out_5_L337_ACP_Transmitter_Selection_COM3_ACP3,ACP3电台选择,NaN
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Thousandths_VHF_1_L,VHF 1 频率,MHz
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Hundredths_VHF_1_L,VHF 1 频率,MHz
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Tenths_VHF_1_L,VHF 1 频率,MHz
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Ones_VHF_1_L,VHF 1 频率,MHz
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Tens_VHF_1_L,VHF 1 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Thousandths_VHF_1_L,VHF 1 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Hundredths_VHF_1_L,VHF 1 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Tenths_VHF_1_L,VHF 1 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Ones_VHF_1_L,VHF 1 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Tens_VHF_1_L,VHF 1 频率,MHz
+RIU_1_A429_Out_5_L131_Tx_Indicator_Discrete_Status_VHF1,VHF1接收/发送状态,NaN
+RIU_1_A429_Out_5_L70_VHF_1_Voice_Data_Status,VHF1语音/数据状态,NaN
+RB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Thousandths_VHF2,VHF 2 频率,MHz
+RB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Hundredths_VHF2,VHF 2 频率,MHz
+RB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Tenths_VHF2,VHF 2 频率,MHz
+RB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Ones_VHF2,VHF 2 频率,MHz
+RB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Tens_VHF2,VHF 2 频率,MHz
+RB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Thousandths_VHF2,VHF 2 频率,MHz
+RB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Hundredths_VHF2,VHF 2 频率,MHz
+RB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Tenths_VHF2,VHF 2 频率,MHz
+RB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Ones_VHF2,VHF 2 频率,MHz
+RB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Tens_VHF2,VHF 2 频率,MHz
+RIU_2_A429_Out_2_L131_Tx_Indicator_Discrete_Status_VHF2,VHF2接收/发送状态,NaN
+NaN,VHF2语音/数据状态,NaN
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Thousandths_VHF_3_C,VHF 3 频率,MHz
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Hundredths_VHF_3_C,VHF 3 频率,MHz
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Tenths_VHF_3_C,VHF 3 频率,MHz
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Ones_VHF_3_C,VHF 3 频率,MHz
+LB_A429_RIU_1_L30_VHF_Comm_Frequency_25_KHz_Tuning_Control_Tens_VHF_3_C,VHF 3 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Thousandths_VHF_3_C,VHF 3 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Hundredths_VHF_3_C,VHF 3 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Tenths_VHF_3_C,VHF 3 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Ones_VHF_3_C,VHF 3 频率,MHz
+LB_A429_RIU_1_L47_VHF_Comm_Frequency_8_33_KHz_Tuning_Control_Tens_VHF_3_C,VHF 3 频率,MHz
+RIU_1_A429_Out_5_L131_Tx_Indicator_Discrete_Status_VHF3,VHF3接收/发送状态,NaN
+RIU_1_A429_Out_5_L70_VHF_3Voice_Data_Status,VHF3语音/数据状态,NaN
+ISS_L_ACAS_MODE,ACAS MODE,NaN
+SS_L_ACAS_AURAL_ALERT_REQUEST,Aural REQ ,NaN
+ISS_L_TAWS_AURAL_ALERT_REQUEST,Aural REQ ,NaN
+ISS_L_WXR_AURAL_ALERT_REQUEST,Aural REQ ,NaN
+EPS1_L_GCU_POR_V_PHA,LVFG  A相电压有效值,V
+EPS1_L_GCU_POR_V_PHB,LVFG  B相电压有效值,V
+EPS1_L_GCU_POR_V_PHC,LVFG  C相电压有效值,V
+EPS1_L_GCU_LVFG_LOAD,LVFG负载,kVA
+EPS1_L_GCU_VFG_FREQ,LVFG频率,Hz
+EPS1_L_Disc_Switch_FAULT,LVFG滑油告警,NaN
+EPS1_R_GCU_POR_V_PHA,RVFG  A相电压有效值,V
+EPS1_R_GCU_POR_V_PHB,RVFG  B相电压有效值,V
+EPS1_R_GCU_POR_V_PHC,RVFG  C相电压有效值,V
+EPS1_R_GCU_RVFG_LOAD,RVFG负载,kVA
+EPS1_R_GCU_VFG_FREQ,RVFG频率,Hz
+EPS1_R_Disc_Switch_FAULT,RVFG滑油告警,NaN
+EPS1_CAN_B_SGCU_POR_VOLTAGE_PHA,ASG  A相电压有效值,V
+EPS1_CAN_B_SGCU_POR_VOLTAGE_PHB,ASG  B相电压有效值,V
+EPS1_CAN_B_SGCU_POR_VOLTAGE_PHC,ASG  C相电压有效值,V
+EPS1_CAN_B_SGCU_APU_GEN_LOAD,ASG负载百分比,NaN
+EPS1_CAN_B_SGCU_ASG_FREQ,ASG频率,Hz
+EPS1_R_BPCU_AC_ESS_BUS_PHA_VOLT,3PH AC ESS BUS A相电压,V
+EPS1_R_BPCU_AC_ESS_FREQ,3PH AC ESS BUS频率,Hz
+EPS1_L_BPCU_L_AC_BUS_PHA_VOLT,L AC BUS A相电压,V
+EPS1_BPCU_R_AC_BUS_PHA_VOLT,R AC BUS A相电压,V
+EPS1_L_BPCU_L_AC_BUS_OFF,L_BPCU_L_AC_BUS_OFF,NaN
+EPS2_R_BPCU_R_AC_BUS_OFF,R_BPCU_R_AC_BUS_OFF,NaN
+EPS_R_BPCU_AC_ESS_BUS_OFF,R_BPCU_AC_ESS_BUS_OFF,NaN
+EPS1_L_BPCU_AC_ESS_BUS_OFF,L_BPCU_AC_ESS_BUS_OFF,NaN
+EPS1_L_BPCU_AC_ESS_BUS_PHA_VOLT,L_BPCU_AC_ESS_BUS_PHA_VOLT,NaN
+EPS1_L_BPCU_BATT_PWR_CONFIG,L_BPCU_BATT_PWR_CONFIG,NaN
+EPS1_L_BPCU_INV_AC_BUS_OFF,L_BPCU_INV_AC_BUS_OFF,NaN
+EPS1_L_GCU_LGC_AUX,LVFG connected to L AC BUS,NaN
+EPS1_R_GCU_RGC_AUX,RVFG connected to R AC BUS,NaN
+EPS1_R_BPCU_AGC_AUX,ASG connected to AC Tie BUS,NaN
+EPS1_L_BPCU_RGLC_AUX,L_BPCU_RGLC_AUX,NaN
+EPS1_R_BPCU_RGLC_AUX,R_BPCU_RGLC_AUX,NaN
+EPS1_L_BPCU_AC1ER_AUX,3PH AC ESS BUS connected to 1PH AC BUS,NaN
+EPS1_R_BPCU_RACTR_AUX,R AC Tie BUS,NaN
+EPS1_L_BPCU_LACTR_AUX,L AC Tie BUS,NaN
+EPS1_L_BPCU_LEPR_AUX,L_BPCU_LEPR_AUX,NaN
+EPS1_R_BPCU_BTC_AUX,R_BPCU_BTC_AUX,NaN
+EPS1_L_BPCU_LACETR_AUX,L_BPCU_LACETR_AUX,NaN
+EPS1_R_BPCU_RACETR_AUX,R_BPCU_RACETR_AUX,NaN
+EPS1_L_BPCU_LTRU_VOLT,LTRU电压,V
+EPS1_L_BPCU_LTRU_SHUNT_CURRENT,LTRU电流,A
+EPS1_R_BPCU_RTRU_VOLT,RTRU电压,V
+EPS1_R_BPCU_RTRU_SHUNT_CURRENT,RTRU电流,A
+HF_EMPC_EPS_EMPC_A429_Tx_Msg_200_L111_EMPC_DC_ETRU_V_EMPC_DC_ET,ETRU电压,V
+HF_EMPC_EPS_EMPC_A429_Tx_Msg_200_L112_EMPC_ETRU_ISENSE_EMPC_ETR,ETRU电流,A
+EPS1_L_BPCU_L_DC_BUS_VOLT,L DC BUS电压,V
+EPS1_L_BPCU_L_DC_ESS_VOLT,L DC ESS BUS电压,V
+EPS1_R_BPCU_R_DC_BUS_VOLT,R DC BUS电压,V
+EPS1_R_BPCU_R_DC_ESS_VOLT,R DC ESS BUS电压,V
+EPS1_L_BPCU_MAIN_BATT_CURRENT,MAIN  BATT电流,A
+EPS1_L_BPCU_MAIN_BATT_DIR_BUS_VOLT,MAIN  BATT电压,V
+EPS1_L_BPCU_MAIN_BATT_TEMP_SNS_BPCU_POS,MAIN  BATT温度,°C
+EPS1_R_BPCU_APU_BATT_CURRENT,APU BATT电流,A
+EPS1_R_BPCU_APU_BATT_DIR_BUS_VOLT,APU BATT电压,V
+EPS1_R_BPCU_APU_BATT_TEMP_SNS_BPCU_POS,APU BATT温度,°C
+EPS1_L_BPCU_BATT_FLIGHT_CONTROL_VOLTAGE,FC BATT电压,V
+EPS1_L_BPCU_L_DC_BUS_OFF,L_BPCU_L_DC_BUS_OFF,NaN
+EPS1_R_BPCU_R_DC_BUS_OFF,R_BPCU_R_DC_BUS_OFF,NaN
+EPS1_L_BPCU_L_DC_ESS_BUS_OFF,L_BPCU_L_DC_ESS_BUS_OFF,NaN
+EPS1_R_BPCU_R_DC_ESS_BUS_OFF,R_BPCU_R_DC_ESS_BUS_OFF,NaN
+EPS1_L_BPCU_XFER_DC_ESS_BUS_OFF,L_BPCU_XFER_DC_ESS_BUS_OFF,NaN
+EPS1_R_BPCU_XFER_DC_ESS_BUS_OFF,R_BPCU_XFER_DC_ESS_BUS_OFF,NaN
+EPS1_L_BPCU_FC_BR_AUX,L_BPCU_FC_BR_AUX,NaN
+EPS1_R_BPCU_FC_BR_AUX,R_BPCU_FC_BR_AUX,NaN
+EPS1_L_BPCU_FLIGHT_CONTROL_BUS_OFF,L_BPCU_FLIGHT_CONTROL_BUS_OFF,NaN
+EPS1_L_BPCU_LTRU_FAIL,L_BPCU_LTRU_FAIL,NaN
+EPS1_R_BPCU_RTRU_FAIL,R_BPCU_RTRU_FAIL,NaN
+EPS1_R_BPCU_ETRU_FAIL,R_BPCU_ETRU_FAIL,NaN
+EPS1_L_BPCU_LDTC_AUX,L DC BUS connected to L DC ESS BUS,NaN
+EPS1_R_BPCU_RDTC_AUX,R DC BUS connected to R DC ESS BUS,NaN
+EPS1_L_BPCU_LBLC_AUX,Main BATT selected on,NaN
+EPS1_R_BPCU_RBLC_AUX,APU BATT selected on,NaN
+EPS1_L_BPCU_DTC_AUX,L_BPCU_DTC_AUX,NaN
+EPS1_R_BPCU_DTC_AUX,R_BPCU_DTC_AUX,NaN
+EPS1_L_BPCU_LETR_AUX,L DC ESS BUS connected to DC ESS XFER BUS,NaN
+EPS1_R_BPCU_RETR_AUX,R DC ESS BUS connected to DC ESS XFER BUS,NaN
+EPS2_R_BPCU_INVERTER_GOOD,R_BPCU_INVERTER_GOOD,NaN
+EPS1_L_BPCU_ETC_AUX,L_BPCU_ETC_AUX,NaN
+EPS1_R_BPCU_ETC_AUX,R_BPCU_ETC_AUX,NaN
+ALERT ID 239,RAT GEN ON,NaN
+ALERT ID 241,RAT DEPLOYED,NaN
+IASC1A_ARINC_OUT_L270_MAN_PRESS_ON,压力控制手动模式,NaN
+IASC1B_ARINC_OUT_L205_CPCS_Cabin_Man_Rate_Of_Change,压力控制变化率,ft/min
+IASC1A_ARINC_OUT_L270_LDG_ALT_MAN,着陆标高手动模式,NaN
+IASC1A_ARINC_OUT_L204_CPCS_SELECTED_LANDING_ALTITUDE,着陆标高选择值,ft
+IASC1A_ARINC_OUT_L203_CPCS_COMPUTED_LANDING_ALTITUDE,着陆标高计算值,ft
+IASC1A_ARINC_OUT_L270_EMER_DEPRESS_ON,EMER DEPRESS,NaN
+IASC1A_ARINC_OUT_L270_DITCHING_ON,DITCHING,NaN
+IASC1A_ARINC_OUT_L202_CPCS_CABIN_DIFFERENTIAL_PRESSURE,ΔP,psi
+IASC1A_ARINC_OUT_L200_CPCS_CABIN_ALTITUDE,CAB ALT,ft
+IASC1A_ARINC_OUT_L201_CPCS_CABIN_RATE_OF_CHANGE,CAB RATE,ft/min
+IASC1A_ARINC_OUT_L207_CPCS_OFV_POSITION,OFV位置,°
+IASC2A_ARINC_OUT_L206_CPCS_TRV_POSITION,TRV位置,°
+IASC1A_ARINC_OUT_L271_HPV_OPEN,L HPV,NaN
+IASC2A_ARINC_OUT_L271_HPV_OPEN,R HPV,NaN
+FADEC_LA_IP_Pressure_Stage_4_Calculated,L IP PRE,psia
+FADEC_RA_IP_Pressure_Stage_4_Calculated,R IP PRE,psia
+FADEC_LA_HP_Pressure_Selected_PS3,L HP PS3,psia
+FADEC_RA_HP_Pressure_Selected_PS3,R HP PS3,psia
+FADEC_LA_Selected_P3B,L HP P3B,psia
+FADEC_RA_Selected_P3B,R HP P3B,psia
+FADEC_LA_IP_Temp_Stage_4_Calculated,L IP TEM,°C
+FADEC_RA_IP_Temp_Stage_4_Calculated,R IP TEM,°C
+FADEC_LA_HP_Temp_Selected_T3,L HP TEM,°C
+FADEC_RA_HP_Temp_Selected_T3,R HP TEM,°C
+IASC1A_ARINC_OUT_L113_BAS_BLEED_TEMP,L BTS,°C
+IASC2A_ARINC_OUT_L113_BAS_BLEED_TEMP,R BTS,°C
+IASC1A_ARINC_OUT_L220_BAS_BLEED_PRESSURE,L BPS,psi
+IASC2A_ARINC_OUT_L220_BAS_BLEED_PRESSURE,R BPS,psi
+IASC1A_ARINC_OUT_L115_BAS_BLEED_MONITORING_PRESSURE,L BMPS,psi
+IASC2A_ARINC_OUT_L115_BAS_BLEED_MONITORING_PRESSURE,R BMPS,psi
+IASC1A_ARINC_OUT_L271_PRSOV_OPEN,L PRSOV,NaN
+IASC2A_ARINC_OUT_L271_PRSOV_OPEN,R PRSOV,NaN
+IASC1A_ARINC_OUT_L271_BLEED_OFF,L BLEED,NaN
+IASC2A_ARINC_OUT_L271_BLEED_OFF,R BLEED,NaN
+IASC1B_ARINC_OUT_L271_CBV_FO,XBLEED（FO）,NaN
+IASC1B_ARINC_OUT_L271_CBV_FC,XBLEED（FC）,NaN
+IASC1A_ARINC_OUT_L271_APU_BLEED_ON,APU BLEED,NaN
+IASC1A_ARINC_IN_AV1_L52_ERAIA_FO,RAM AIR(FO),NaN
+IASC1A_ARINC_IN_AV1_L52_ERAIA_FC,RAM AIR(FC),NaN
+IASC1A_ARINC_OUT_L260_FCV_OPEN,L FCV,NaN
+IASC2A_ARINC_OUT_L260_FCV_OPEN,R FCV,NaN
+IASC1A_ARINC_OUT_L272_PACK_OFF,L PACK,NaN
+IASC2A_ARINC_OUT_L272_PACK_OFF,R PACK,NaN
+IASC1A_ARINC_OUT_L272_TRIM_AIR_OFF,TRIM,NaN
+IASC1A_ARINC_OUT_L276_RECIRC_OFF,RECIRC,NaN
+ECU_A429_Out_1_L272_Bleed_Air_Valve_Open_Position,APUBAV,NaN
+FADEC_LA_SAV_Status,L SAV,NaN
+FADEC_RA_SAV_Status,R SAV,NaN
+IASC1A_ARINC_OUT_L210_ACS_ASS_ZONE_SELECTED_TEMPERATURE,COCKPIT Selected T,°C
+IASC1A_ARINC_OUT_L214_ACS_ADJ_ZONE_SELECTED_TEMPERATURE,FWD CABIN Selected T,°C
+IASC2A_ARINC_OUT_L210_ACS_ASS_ZONE_SELECTED_TEMPERATURE,AFT CABIN Selected T,°C
+IASC1A_ARINC_OUT_L213_ACS_ASS_ZONE_ACTUAL_TEMPERATURE,COCKPIT Actual T,°C
+IASC1A_ARINC_OUT_L217_ACS_ADJ_ZONE_ACTUAL_TEMPERATURE,FWD CABIN Actual T,°C
+IASC2A_ARINC_OUT_L213_ACS_ASS_ZONE_ACTUAL_TEMPERATURE,AFT CABIN Actual T,°C
+IASC1A_ARINC_OUT_L274_WAIV_OPEN,L WAIV,NaN
+IASC2A_ARINC_OUT_L274_WAIV_OPEN,R WAIV,NaN
+FADEC_LA_Selected_NAI_Switch_Position,L NAI,NaN
+FADEC_RA_Selected_NAI_Switch_Position,R NAI,NaN
+FADEC_LA_NAI_Duct_Pressure_Upstream,L NAI上游压力,psi
+FADEC_LA_NAI_Duct_Pressure_Downstream,L NAI下游压力,psi
+FADEC_RA_NAI_Duct_Pressure_Upstream,R NAI上游压力,psi
+FADEC_RA_NAI_Duct_Pressure_Downstream,R NAI下游压力,psi
+IASC1A_ARINC_OUT_L320_FWD_AVENTS_1_AFT_AVENTS_TEMP,前EE舱温度1,°C
+IASC2A_ARINC_OUT_L217_ACS_ADJ_ZONE_ACTUAL_TEMPERATURE,前EE舱温度2,°C
+IASC2A_ARINC_OUT_L320_FWD_AVENTS_1_AFT_AVENTS_TEMP,中EE舱温度,°C
+IASC1A_ARINC_OUT_L314_FWD_CED1_BLOWING_MASS_FLOW,前CED1流量,lb/min
+IASC1A_ARINC_OUT_L312_FWD_CED2_BLOWING_MASS_FLOW,前CED2流量,lb/min
+IASC1A_ARINC_OUT_L316_AFT_CED_BLOWING_MASS_FLOW,后CED流量,lb/min 
+IASC1A_ARINC_OUT_L315_FWD_CED1_BLOWING_TEMPERATURE,前CED1温度,°C
+IASC2A_ARINC_OUT_L313_FWD_CED2_BLOWING_TEMPERATURE,前CED2温度,°C
+IASC1A_ARINC_OUT_L317_AFT_CED_BLOWING_TEMPERATURE,后CED温度,°C
+FADEC_LA_Selected_T12_Engine_TAT,L T12,°C
+FADEC_RA_Selected_T12_Engine_TAT,R T12,°C
+FADEC_LB_Selected_TRA_Filtered,L TRA,°
+FADEC_RB_Selected_TRA_Filtered,R TRA,°
+FADEC_LB_Selected_N1_Actual,L N1,%
+FADEC_LB_Selected_N2_Actual_1,L N2,%
+FADEC_RB_Selected_N1_Actual,R N1,%
+FADEC_RB_Selected_N2_Actual_1,R N2,%
+FADEC_LB_Selected_EGT_for_Display,L EGT,Deg C
+FADEC_RB_Selected_EGT_for_Display,R EGT,Deg C
+FADEC_LA_EGT_Amber_Exceedance,L EGT黄线超限,NaN
+FADEC_LB_EGT_Amber_Exceedance,L EGT黄线超限,NaN
+FADEC_RA_EGT_Amber_Exceedance,R EGT黄线超限,NaN
+FADEC_RB_EGT_Amber_Exceedance,R EGT黄线超限,NaN
+FADEC_LA_EGT_Start_Redline_Exceedance,L EGT红线超限,NaN
+FADEC_LB_EGT_Start_Redline_Exceedance,L EGT红线超限,NaN
+FADEC_LA_EGT_Normal_Redline_Exceedance,L EGT红线超限,NaN
+FADEC_LB_EGT_Normal_Redline_Exceedance,L EGT红线超限,NaN
+FADEC_RA_EGT_Start_Redline_Exceedance,R EGT红线超限,NaN
+FADEC_RB_EGT_Start_Redline_Exceedance,R EGT红线超限,NaN
+FADEC_RA_EGT_Normal_Redline_Exceedance,R EGT红线超限,NaN
+FADEC_RB_EGT_Normal_Redline_Exceedance,R EGT红线超限,NaN
+FADEC_LA_N1_Redline_Exceedance,L N1红线超限,NaN
+FADEC_LB_N1_Redline_Exceedance,L N1红线超限,NaN
+FADEC_RA_N1_Redline_Exceedance,R N1红线值,NaN
+FADEC_RB_N1_Redline_Exceedance,R N1红线值,NaN
+FADEC_LA_N2_Redline_Exceedance,L N2红线值,NaN
+FADEC_LB_N2_Redline_Exceedance,L N2红线值,NaN
+FADEC_RA_N2_Redline_Exceedance,R N2红线值,NaN
+FADEC_RB_N2_Redline_Exceedance,R N2红线值,NaN
+FADEC_LB_Maximum_Fan_Vibration,L N1 Vib,Cockpit Unit
+FADEC_LB_Maximum_Core_Vibration,L N2 Vib,Cockpit Unit
+FADEC_RB_Maximum_Fan_Vibration,R N1 Vib,Cockpit Unit
+FADEC_RB_Maximum_Core_Vibration,R N2 Vib,Cockpit Unit
+FADEC_LA_N1_Vibration_Exceedance,左发N1振动超限,NaN
+FADEC_LB_N1_Vibration_Exceedance,左发N1振动超限,NaN
+FADEC_RA_N1_Vibration_Exceedance,右发N1振动超限,NaN
+FADEC_RB_N1_Vibration_Exceedance,右发N1振动超限,NaN
+FADEC_LA_N2_Vibration_Exceedance,左发N2振动超限,NaN
+FADEC_LB_N2_Vibration_Exceedance,左发N2振动超限,NaN
+FADEC_RA_N2_Vibration_Exceedance,右发N2振动超限,NaN
+FADEC_RB_N2_Vibration_Exceedance,右发N2振动超限,NaN
+FADEC_LA_Selected_SAV_dP,左发SAV_DP,PSID
+FADEC_LB_Selected_SAV_dP,左发SAV_DP,PSID
+FADEC_RA_Selected_SAV_dP,右发SAV_DP,PSID
+FADEC_RB_Selected_SAV_dP,右发SAV_DP,PSID
+FADEC_LA_Local_Channel_in_Control_1,左发控制通道,NaN
+FADEC_LB_Local_Channel_in_Control_1,左发控制通道,NaN
+FADEC_RA_Local_Channel_in_Control_1,右发控制通道,NaN
+FADEC_RB_Local_Channel_in_Control_1,右发控制通道,NaN
+FADEC_LA_Channel_Health,左发channel Health,NaN
+FADEC_LB_Channel_Health,左发channel Health,NaN
+FADEC_RA_Channel_Health,右发channel Health,NaN
+FADEC_RB_Channel_Health,右发channel Health,NaN
+FADEC_LA_Fuel_Control_Switch_Analog,左发燃油控制开关,NaN
+FADEC_LB_Fuel_Control_Switch_Analog,左发燃油控制开关,NaN
+FADEC_RA_Fuel_Control_Switch_Analog,右发燃油控制开关,NaN
+FADEC_RB_Fuel_Control_Switch_Analog,右发燃油控制开关,NaN
+FADEC_LA_Igniter_1_Commanded_ON,左发1号点火器,NaN
+FADEC_LB_Igniter_1_Commanded_ON,左发1号点火器,NaN
+FADEC_LA_Igniter_2_Commanded_ON,左发2号点火器,NaN
+FADEC_LB_Igniter_2_Commanded_ON,左发2号点火器,NaN
+FADEC_RA_Igniter_1_Commanded_ON,右发1号点火器,NaN
+FADEC_RB_Igniter_1_Commanded_ON,右发1号点火器,NaN
+FADEC_RA_Igniter_2_Commanded_ON,右发2号点火器,NaN
+FADEC_RB_Igniter_2_Commanded_ON,右发2号点火器,NaN
+FADEC_LA_Selected_Start_and_Ignition_Switch_Position,左发点火开关状态,NaN
+FADEC_LB_Selected_Start_and_Ignition_Switch_Position,左发点火开关状态,NaN
+FADEC_RA_Selected_Start_and_Ignition_Switch_Position,左发点火开关状态,NaN
+FADEC_RB_Selected_Start_and_Ignition_Switch_Position,左发点火开关状态,NaN
+FADEC_LA_Engine_Running_1,左发ENG_RUNING,NaN
+FADEC_LB_Engine_Running_1,左发ENG_RUNING,NaN
+FADEC_RA_Engine_Running_1,右发ENG_RUNING,NaN
+FADEC_RB_Engine_Running_1,右发ENG_RUNING,NaN
+IHDC_A429_Out_1_L270_LEFT_ENGINE_FIRE_CHANNEL_A,左发ENG_FIRE,NaN
+IHDC_A429_Out_2_L270_LEFT_ENGINE_FIRE_CHANNEL_B,左发ENG_FIRE,NaN
+IHDC_A429_Out_1_L270_RIGHT_ENGINE_FIRE_CHANNEL_A,右发ENG_FIRE,NaN
+IHDC_A429_Out_2_L270_RIGHT_ENGINE_FIRE_CHANNEL_B,右发ENG_FIRE,NaN
+IHDC_A429_Out_1_L272_L_ENG_OVHT_CHANNEL_A,左发过热,NaN
+IHDC_A429_Out_2_L272_L_ENG_OVHT_CHANNEL_B,左发过热,NaN
+IHDC_A429_Out_1_L272_R_ENG_OVHT_CHANNEL_A,右发过热,NaN
+IHDC_A429_Out_2_L272_R_ENG_OVHT_CHANNEL_B,右发过热,NaN
+FADEC_LA_NAI_FLOW_INDICATION_1,L NAI,NaN
+FADEC_RA_NAI_FLOW_INDICATION_1,R NAI,NaN
+FADEC_LA_Selected_Oil_Pressure,左发滑油压力,PSID
+FADEC_LB_Selected_Oil_Pressure,左发滑油压力,PSID
+FADEC_RA_Selected_Oil_Pressure,右发滑油压力,PSID
+FADEC_RB_Selected_Oil_Pressure,右发滑油压力,PSID
+FADEC_LA_Selected_Engine_Oil_Temperature,左发滑油温度,Deg C
+FADEC_LB_Selected_Engine_Oil_Temperature,左发滑油温度,Deg C
+FADEC_RA_Selected_Engine_Oil_Temperature,右发滑油温度,Deg C
+FADEC_RB_Selected_Engine_Oil_Temperature,右发滑油温度,Deg C
+FADEC_LA_Engine_Oil_Quantity,左发滑油量,Quarts
+FADEC_LB_Engine_Oil_Quantity,左发滑油量,Quarts
+FADEC_RA_Engine_Oil_Quantity,右发滑油量,Quarts
+FADEC_RB_Engine_Oil_Quantity,右发滑油量,Quarts
+FADEC_LB_Selected_Fuel_Flow,左发燃油流量,PPH
+FADEC_RB_Selected_Fuel_Flow,右发燃油流量,PPH
+FADEC_LA_Accepted_Thrust_Rating,左发推力等级,NaN
+FADEC_LB_Accepted_Thrust_Rating,左发推力等级,NaN
+FADEC_RA_Accepted_Thrust_Rating,右发推力等级,NaN
+FADEC_RB_Accepted_Thrust_Rating,右发推力等级,NaN
+FADEC_LA_TRCU_115_VAC_Power_Supply_Monitor,左发115V AC PWR,NaN
+FADEC_RA_TRCU_115_VAC_Power_Supply_Monitor,右发115V AC PWR,NaN
+FADEC_LA_Status_of_FADEC_Deploy_Command_to_TRCU,左发Deploy CMD,NaN
+FADEC_RA_Status_of_FADEC_Deploy_Command_to_TRCU,右发Deploy CMD,NaN
+FADEC_LA_Status_of_FADEC_Stow_Command_to_TRCU,左发Stow CMD,NaN
+FADEC_RA_Status_of_FADEC_Stow_Command_to_TRCU,右发Stow CMD,NaN
+FADEC_LA_Thrust_Reverser_is_not_operational,左发REV Fault,NaN
+FADEC_RA_Thrust_Reverser_is_not_operational,右发REV Fault,NaN
+FADEC_LA_TR_Inhibited,左发TR inhibited,NaN
+FADEC_RA_TR_Inhibited,右发TR inhibited,NaN
+FADEC_LA_TR_Control_Unit_has_failed,左TRCU失效,NaN
+FADEC_RA_TR_Control_Unit_has_failed,右TRCU失效,NaN
+ECU_A429_Out_1_L326_APU_Door_Position,APU风门位置,%
+ECU_A429_Out_1_L247_APU_Oil_Temperature,APU滑油温度,Deg C
+ECU_A429_Out_1_L246_Generator_Load_Amps,APU发电量,kW
+HF_L_FWDPumpPressSw_DISC_PumpStatus_Status,左机翼油箱1号燃油泵压力开关,NaN
+HF_L_AFTPumpPressSw_DISC_PumpStatus_Status,左机翼油箱2号燃油泵压力开关,NaN
+HF_R_FWDPumpPressSw_DISC_PumpStatus_Status,右机翼油箱1号燃油泵压力开关,NaN
+HF_R_AFTPumpPressSw_DISC_PumpStatus_Status,右机翼油箱2号燃油泵压力开关,NaN
+HF_L_OverridePumpPressSw_DISC_PumpStatus_Status,中央翼油箱1号超控泵压力开关,NaN
+HF_R_OverridePumpPressSw_DISC_PumpStatus_Status,中央翼油箱2号超控泵压力开关,NaN
+HF_APU_DC_PumpPressSw_DISC_PumpStatus_Status,APU燃油泵压力开关,NaN
+HF_FUEL_LRM_po429_A1_Msg_250_L_CTR_AC_Pump_Inhibit,中央翼左泵抑制,NaN
+HF_FUEL_LRM_po429_A1_Msg_250_R_CTR_AC_Pump_Inhibit,中央翼右泵抑制,NaN
+HF_FuelOverheadPanel_DISC_LPump1onA_Status,左机翼油箱1号燃油泵开关位置,NaN
+HF_FuelOverheadPanel_DISC_LPump2onA_Status,左机翼油箱2号燃油泵开关位置,NaN
+HF_FuelOverheadPanel_DISC_RPump1onA_Status,右机翼油箱1号燃油泵开关位置,NaN
+HF_FuelOverheadPanel_DISC_RPump2onA_Status,右机翼油箱2号燃油泵开关位置,NaN
+HF_FuelOverheadPanel_DISC_CPump1onA_Status,中央翼油箱1号超控泵开关位置,NaN
+HF_FuelOverheadPanel_DISC_CPump2onA_Status,中央翼油箱2号超控泵开关位置,NaN
+HF_FUELOVERHEADPANEL_DISC_XfeedSOVOpenB_Status,交输供油阀开关位置,NaN
+HF_FuelOverheadPanel_DISC_DCPumponA_Status,APU燃油泵开关位置,NaN
+Fuel_LRM_A429_Out_1_L114_L_Wing_Fuel_Temperature_CHANNEL_A,左机翼集油箱油温,Deg C
+Fuel_LRM_A429_Out_1_L115_R_Wing_Fuel_Temperature_CHANNEL_A,右机翼集油箱油温,Deg C
+HF_L_EngSOVPosSw_DISC_StatusOpen_Status,左发供油切断阀位置,NaN
+HF_R_EngSOVPosSw_DISC_StatusOpen_Status,右发供油切断阀位置,NaN
+HF_APU_SOVPosSw_DISC_StatusOpen_Status,APU供油切断阀位置,NaN
+HF_XFEED_SOVPOSSW_DISC_StatusOpen_Status,交输供油切断阀位置,NaN
+FADEC_LA_N1_Throttle_Reference,L N1 REF,%
+FADEC_LB_N1_Throttle_Reference,L N1 REF,%
+FADEC_RA_N1_Throttle_Reference,R N1 REF,%
+FADEC_RB_N1_Throttle_Reference,R N1 REF,%
+FADEC_LA_Corrected_N1_Speed,L Corrected_N1_Speed,%
+FADEC_LB_Corrected_N1_Speed,L Corrected_N1_Speed,%
+FADEC_RA_Corrected_N1_Speed,R Corrected_N1_Speed,%
+FADEC_RB_Corrected_N1_Speed,R Corrected_N1_Speed,%
+FADEC_LA_Corrected_N2_Speed,L Corrected_N2_Speed,%
+FADEC_LB_Corrected_N2_Speed,L Corrected_N2_Speed,%
+FADEC_RA_Corrected_N2_Speed,R Corrected_N2_Speed,%
+FADEC_RB_Corrected_N2_Speed,R Corrected_N2_Speed,%
+FADEC_LA_Selected_VBV_position,L VBV,%
+FADEC_LB_Selected_VBV_position,L VBV,%
+FADEC_RA_Selected_VBV_position,R VBV,%
+FADEC_RB_Selected_VBV_position,R VBV,%
+FADEC_LA_Selected_VSV_position,L VSV,%
+FADEC_LB_Selected_VSV_position,L VSV,%
+FADEC_RA_Selected_VSV_position,R VSV,%
+FADEC_RB_Selected_VSV_position,R VSV,%
+FADEC_LB_HP_Pressure_Selected_PS3,L PS3,PSI
+FADEC_RB_HP_Pressure_Selected_PS3,R PS3,PSI
+FADEC_LA_Selected_TBV_position,L TBV,%
+FADEC_LB_Selected_TBV_position,L TBV,%
+FADEC_RA_Selected_TBV_position,R TBV,%
+FADEC_RB_Selected_TBV_position,R TBV,%
+IHDC_A429_Out_1_L270_APU_FIRE_CHANNEL_A,APU FIRE,NaN
+IHDC_A429_Out_2_L270_APU_FIRE_CHANNEL_B,APU FIRE,NaN
+IHDC_A429_Out_1_L270_MLG_BAY_OVHT_CHANNEL_A,MLG BAY OVHT,NaN
+IHDC_A429_Out_2_L270_MLG_BAY_OVHT_CHANNEL_B,MLG BAY OVHT,NaN
+IHDC_A429_Out_1_L274_FWD_CARGO_SMOKE_CHANNEL_A,FWD CARGO SMOKE,NaN
+IHDC_A429_Out_2_L274_FWD_CARGO_SMOKE_CHANNEL_B,FWD CARGO SMOKE,NaN
+IHDC_A429_Out_1_L274_AFT_CARGO_SMOKE_CHANNEL_A,AFT CARGO SMOKE,NaN
+IHDC_A429_Out_2_L274_AFT_CARGO_SMOKE_CHANNEL_B,AFT CARGO SMOKE,NaN
+IHDC_A429_Out_1_L270_L_ENG_BLEED_AREA_OVHT_CHANNEL_A,L BLEED LEAK,NaN
+IHDC_A429_Out_2_L270_L_ENG_BLEED_AREA_OVHT_CHANNEL_B,L BLEED LEAK,NaN
+IHDC_A429_Out_1_L270_R_ENG_BLEED_AREA_OVHT_CHANNEL_A,R BLEED LEAK,NaN
+IHDC_A429_Out_2_L270_R_ENG_BLEED_AREA_OVHT_CHANNEL_B,R BLEED LEAK,NaN
+IHDC_A429_Out_1_L270_APU_BLEED_AREA_OVHT_CHANNEL_A,APU BLEED LEAK,NaN
+IHDC_A429_Out_2_L270_APU_BLEED_AREA_OVHT_CHANNEL_B,APU BLEED LEAK,NaN
+IHDC_A429_Out_1_L270_L_WAI_AREA_OVHT_CHANNEL_A,L WAI BLEED LEAK,NaN
+IHDC_A429_Out_2_L270_L_WAI_AREA_OVHT_CHANNEL_B,L WAI BLEED LEAK,NaN
+IHDC_A429_Out_1_L270_R_WAI_AREA_OVHT_CHANNEL_A,R WAI BLEED LEAK,NaN
+IHDC_A429_Out_2_L270_R_WAI_AREA_OVHT_CHANNEL_B,R WAI BLEED LEAK,NaN
+IHDC_A429_Out_1_L270_L_PACK_AREA_OVHT_CHANNEL_A,L PACK LEAK,NaN
+IHDC_A429_Out_2_L270_L_PACK_AREA_OVHT_CHANNEL_B,L PACK LEAK,NaN
+IHDC_A429_Out_1_L270_R_PACK_AREA_OVHT_CHANNEL_A,R PACK LEAK,NaN
+IHDC_A429_Out_2_L270_R_PACK_AREA_OVHT_CHANNEL_B,R PACK LEAK,NaN
+IHDC_A429_Out_1_L270_TRIM_AREA_OVHT_CHANNEL_A,TRIM AIR LEAK,NaN
+IHDC_A429_Out_2_L270_TRIM_AREA_OVHT_CHANNEL_B,TRIM AIR LEAK,NaN
+IHDC_A429_Out_1_L270_FWD_CARGO_TRIM_AREA_OVHT_CHANNEL_A,FWD CGO TRIM AIR LEAK,NaN
+IHDC_A429_Out_2_L270_FWD_CARGO_TRIM_AREA_OVHT_CHANNEL_B,FWD CGO TRIM AIR LEAK,NaN
+IHDC_A429_Out_1_L270_FUEL_INERTING_AREA_OVHT_CHANNEL_A,INERTING SYS LEAK,NaN
+IHDC_A429_Out_2_L270_FUEL_INERTING_AREA_OVHT_CHANNEL_B,INERTING SYS LEAK,NaN
+IHDC_A429_Out_1_L274_FWD_LAV_SMOKE_CHANNEL_A,FWD LAV SMOKE,NaN
+IHDC_A429_Out_2_L274_FWD_LAV_SMOKE_CHANNEL_B,FWD LAV SMOKE,NaN
+IHDC_A429_Out_1_L274_AFT_L_LAV_SMOKE_CHANNEL_A,AFT L LAV SMOKE,NaN
+IHDC_A429_Out_2_L274_AFT_L_LAV_SMOKE_CHANNEL_B,AFT L LAV SMOKE,NaN
+IHDC_A429_Out_1_L274_AFT_R_LAV_SMOKE_CHANNEL_A,AFT R LAV SMOKE,NaN
+IHDC_A429_Out_2_L274_AFT_R_LAV_SMOKE_CHANNEL_B,AFT R LAV SMOKE,NaN
+ECU_A429_Out_1_L174_Overtemperature_Limit,EGT限制值,℃
+ECU_A429_Out_1_L131_APU_SCV_Position,APU SCV Position,%
+ECU_A429_Out_1_L130_IGV_Position,IGV Position,%
+ECU_A429_Out_1_L270_Ready_to_Load,Ready-to-Load,NaN
+ECU_A429_Out_1_L121_Calculated_Bleed_Air_Temperature,Calculated Bleed Air Temperature,℃
+ECU_A429_Out_1_L243_APU_Commanded_Fuel_Flow,APU Commanded Fuel Flow,lb/h
+ECU_A429_Out_1_L232_APU_Fuel_Temperature,APU Fuel Temperature,℃
+ECU_A429_Out_1_L166_Total_Pressure,Bleed Total Pressure,mbar
+ECU_A429_In_1_L124_APU_FLOW_DEMAND_00,APU_FLOW_DEMAND_00,%
+ECU_A429_In_1_L124_APU_FLOW_DEMAND_10,APU_FLOW_DEMAND_10,%
+ECU_A429_In_1_L272_Left_Starter_Command_On,L Starter On Cmd,NaN
+ECU_A429_In_1_L272_Right_Starter_Command_On,R Starter On Cmd,NaN
+ENGINEAPU_FIRECNTRLPANEL_Status_1,左发灭火预位按钮位置,NaN
+ENGINEAPU_FIRECNTRLPANEL_Status_2,右发灭火预位按钮位置,NaN
+HF_ENGINEAPU_FIRECNTRLPANEL_DISC_APU_FIRE_EXT_SYS_ARMED_Status,APU灭火预位按钮位置,NaN
+IASC1A_ARINC_OUT_L304_FTIS_INHIBIT_DMD,惰化系统抑制信号,NaN
+FTIS_LRM_A429_Out_1_L331_FTIS_ASM_Inlet_Temperature_T2B_CHANNEL_A,ASM进口温度(T2B),Deg C
+FADEC_LA_Oil_Temperature_High_Exceedance,左发滑油温度超红线值,NaN
+FADEC_LB_Oil_Temperature_High_Exceedance,左发滑油温度超红线值,NaN
+FADEC_LA_Oil_Temperature_Too_Low,左发滑油温度低,NaN
+FADEC_LB_Oil_Temperature_Too_Low,左发滑油温度低,NaN
+FADEC_RA_Oil_Temperature_High_Exceedance,右发滑油温度超红线值,NaN
+FADEC_RB_Oil_Temperature_High_Exceedance,右发滑油温度超红线值,NaN
+FADEC_RA_Oil_Temperature_Too_Low,右发滑油温度低,NaN
+FADEC_RB_Oil_Temperature_Too_Low,右发滑油温度低,NaN
+FADEC_LA_Oil_Temperature_High_Amber_Exceedance,左发滑油温度超黄线值,NaN
+FADEC_LB_Oil_Temperature_High_Amber_Exceedance,左发滑油温度超黄线值,NaN
+FADEC_RA_Oil_Temperature_High_Amber_Exceedance,右发滑油温度超黄线值,NaN
+FADEC_RB_Oil_Temperature_High_Amber_Exceedance,右发滑油温度超黄线值,NaN
+FADEC_LA_Oil_Pressure_Low_Amber_Exceedance,左发滑油压力低黄线值,NaN
+FADEC_LB_Oil_Pressure_Low_Amber_Exceedance,左发滑油压力低黄线值,NaN
+FADEC_LA_Oil_Pressure_Low_Redline_Exceedance,左发滑油压力低红线值,NaN
+FADEC_LB_Oil_Pressure_Low_Redline_Exceedance,左发滑油压力低红线值,NaN
+FADEC_LA_Oil_Pressure_High_Redline_Exceedance,左发滑油压力高红线值,NaN
+FADEC_LB_Oil_Pressure_High_Redline_Exceedance,左发滑油压力高红线值,NaN
+FADEC_RA_Oil_Pressure_Low_Amber_Exceedance,右发滑油压力低黄线值,NaN
+FADEC_RB_Oil_Pressure_Low_Amber_Exceedance,右发滑油压力低黄线值,NaN
+FADEC_RA_Oil_Pressure_Low_Redline_Exceedance,右发滑油压力低红线值,NaN
+FADEC_RB_Oil_Pressure_Low_Redline_Exceedance,右发滑油压力低红线值,NaN
+FADEC_RA_Oil_Pressure_High_Redline_Exceedance,右发滑油压力高红线值,NaN
+FADEC_RB_Oil_Pressure_High_Redline_Exceedance,右发滑油压力高红线值,NaN
+TF_AFT_CT,中油箱油温,℃
+T_MFUPBP_L,左发入口燃油温度,℃
+T_MFUPBP_R,右发入口燃油温度,℃
+TF_FW_APU,APU入口燃油温度,℃
+P_MFUPBP_L,左发入口燃油压力,PSIA
+P_MFUPBP_R,右发入口燃油压力,PSIA
+PF_FW_APU,APU入口燃油压力,PSIG
+QF_UPS_L,左发入口燃油流量,l/min
+QF_UPS_R,右发入口燃油流量,l/min
+Q_FW_APU,APIU入口燃油流量,l/min
+FTIS_LRM_A429_Out_1_L272_FTIS_Temperature_Control_Valve_Position_CHANNEL_A,温度控制阀,°
+FTIS_LRM_A429_Out_1_L330_FTIS_Heat_Exchanger_Outlet_Temperature_T1B_CHANNEL_A,换热器出口温度,℃
+FTIS_LRM_A429_Out_1_L334_FTIS_ASM_Inlet_Pressure_P1_SSM_29_CHANNEL_A,ASM进口压力,PSIA
+FTIS_LRM_A429_Out_1_L352_FTIS_Status_FTIS_IIV_Status_CHANNEL_A,进口隔离阀状态,NaN
+FTIS_LRM_A429_In_1_L220_Bleed_Pressure,引气压力,PSI
+FTIS_LRM_A429_In_1_L270_Fuel_Inerting_Area_OVHT,惰化系统区域超温,NaN
+COXY_5L6,左翼5-6号肋氧气浓度,%
+COXY_FWD_CT1,中央翼盒前隔舱氧气浓度,%
+PF_OUT_L1PUMP,L1泵出口压力,PSIG
+PF_OUT_L2PUMP,L2泵出口压力,PSIG
+PF_OUT_1CTRLPUMP,C1泵出口压力,PSIG
+PF_OUT_R1PUMP,R1泵出口压力,PSIG
+PF_OUT_R2PUMP,R2泵出口压力,PSIG
+PF_OUT_2CTRLPUMP,C2泵出口压力,PSIG
+IASC1A_ARINC_OUT_L131_ACS_PACK_MASS_FLOW,L PACK FLOW,kg/s
+IASC2A_ARINC_OUT_L131_ACS_PACK_MASS_FLOW,R PACK FLOW,kg/s
+FADEC_LA_Selected_SBV_BAI_Position,SBV/BAI,%
+FADEC_LB_Selected_SBV_BAI_Position,SBV/BAI,%
+FADEC_LA_Selected_LPTC_valve_position,LPTC,%
+FADEC_LB_Selected_LPTC_valve_position,LPTC,%
+FADEC_LA_Selected_HPTC_valve_position,HPTC,%
+FADEC_LB_Selected_HPTC_valve_position,HPTC,%
+FADEC_LA_MTC_Valve_Position_1,MTC,%
+FADEC_LB_MTC_Valve_Position_1,MTC,%
+FADEC_LA_Selected_PMV_Position,PMV,%
+FADEC_LB_Selected_PMV_Position,PMV,%
+FADEC_LA_Engine_N2_Actual_1,左发N2,%
+FADEC_RA_Oil_Pressure_High_Amber_Limit,右发滑油压力黄线值,NaN
+FADEC_RA_Oil_Pressure_High_Redline_Limit,右发滑油压力红线值,NaN
+FADEC_RA_Oil_Temperature_High_Amber_Limit,右发滑油温度黄线值,NaN
+FADEC_RA_Oil_Temperature_High_Redline_Limit,右发滑油温度红线值,NaN
+FADEC_RA_Engine_N2_Actual_1,右发N2,%
+TA_FCVE_L,TA_FCVE_L,℃
+TA_T12S_L,TA_T12S_L,℃
+TA_N2S_L,TA_N2S_L,℃
+TA_EECA1_L,TA_EECA1_L,℃
+TS_EECA1_L,TS_EECA1_L,℃
+TS_FMU_L,TS_FMU_L,℃
+TS_OILTANK_L,TS_OILTANK_L,℃
+TS_SAV_L,TS_SAV_L,℃
+T/C_TRCU_L,T/C_TRCU_L,℃
+TS_FSCU_L,TS_FSCU_L,℃
+TS_SBV_L,TS_SBV_L,℃
+TS_TBV_L,TS_TBV_L,℃
+TS_TCFA_L,TS_TCFA_L,℃
+TS_EGTH1_L,TS_EGTH1_L,℃
+TS_T3_L,TS_T3_L,℃
+TA_EECB2_L,TA_EECB2_L,℃
+TA_EGTS1_L,TA_EGTS1_L,℃
+TA_EB_L,TA_EB_L,℃
+TS_IGN,TS_IGN,℃
+TS_IGNPLUG,TS_IGNPLUG,℃
+TS_IGNLEAD,TS_IGNLEAD,℃
+TS_PR,TS_PR,℃
+TS_FFD,TS_FFD,℃
+TS_FCUSOS,TS_FCUSOS,℃
+TS_SS,TS_SS,℃
+TS_INDA,TS_INDA,℃
+TS_GEN_1,TS_GEN_1,℃
+TS_GEN_2,TS_GEN_2,℃
+TS_OC,TS_OC,℃
+TS_EGTTC_1,TS_EGTTC_1,℃
+TS_EGTTC_2,TS_EGTTC_2,℃
+TS_SCV,TS_SCV,℃
+TS_IGVA,TS_IGVA,℃
+TS_BAV,TS_BAV,℃
+TS_DMM,TS_DMM,℃
+TS_TCV,TS_TCV,℃
+TS_PSM_1,TS_PSM_1,℃
+TS_PSM_2,TS_PSM_2,℃
+TS_PSM_3,TS_PSM_3,℃
+TS_LFDPW,TS_LFDPW,℃
+TS_T2S,TS_T2S,℃
+TS_LOPS,TS_LOPS,℃
+TS_WH,TS_WH,℃
+TS_OLS,TS_OLS,℃
+TS_OTS,TS_OTS,℃
+TS_SH,TS_SH,℃
+TS_CC_1,TS_CC_1,℃
+TS_CC_2,TS_CC_2,℃
+TS_AFTFW_1,TS_AFTFW_1,℃
+TS_AFTFW_2,TS_AFTFW_2,℃
+TS_AFTFW_3,TS_AFTFW_3,℃
+TS_AFTFW_4,TS_AFTFW_4,℃
+TS_AFTFW_5,TS_AFTFW_5,℃
+TS_AFTFW_6,TS_AFTFW_6,℃
+TS_AFTFW_7,TS_AFTFW_7,℃
+TS_BAD_1,TS_BAD_1,℃
+TS_BAD_2,TS_BAD_2,℃
+TS_FN_1,TS_FN_1,℃
+TS_FN_2,TS_FN_2,℃
+TS_BOS,TS_BOS,℃
+IASC1B_ARINC_OUT_L271_PRSOV_OPEN,L BLEED,NaN
+IASC2B_ARINC_OUT_L271_PRSOV_OPEN,R BLEED,NaN
+EPS1_L_Gen_Switch_OFF,L VFG开关,NaN
+EPS1_R_Gen_Switch_OFF,R VFG开关,NaN
+EPS1_SGCU_APU_AGCS_OFF,ASG开关,NaN
+FADEC_LA_N1_Redline_Limit,L N1红线值,%
+FADEC_LB_N1_Redline_Limit,L N1红线值,%
+FADEC_LA_N2_Redline_Limit,L N2红线值,%
+FADEC_LB_N2_Redline_Limit,L N2红线值,%
+FADEC_RA_N1_Redline_Limit,R N1红线值,%
+FADEC_RB_N1_Redline_Limit,R N1红线值,%
+FADEC_RA_N2_Redline_Limit,R N2红线值,%
+FADEC_RB_N2_Redline_Limit,R N2红线值,%
+FADEC_LA_EGT_Amber_Limit,L EGT黄线值,Deg C
+FADEC_LB_EGT_Amber_Limit,L EGT黄线值,Deg C
+FADEC_LA_EGT_Redline_Starting,L EGT红线值,Deg C
+FADEC_LB_EGT_Redline_Starting,L EGT红线值,Deg C
+FADEC_RA_EGT_Amber_Limit,R EGT黄线值,Deg C
+FADEC_RB_EGT_Amber_Limit,R EGT黄线值,Deg C
+FADEC_RA_EGT_Redline_Starting,R EGT红线值,Deg C
+FADEC_RB_EGT_Redline_Starting,R EGT红线值,Deg C
+FADEC_LB_SAV_Status,L SAV,NaN
+FADEC_RB_SAV_Status,R SAV,NaN
+FADEC_LA_Igniter_1_Select,L IGN A ON,NaN
+FADEC_LB_Igniter_1_Select,L IGN A ON,NaN
+FADEC_LA_Igniter_2_Select,L IGN B ON,NaN
+FADEC_LB_Igniter_2_Select,L IGN B ON,NaN
+FADEC_RA_Igniter_1_Select,R IGN A ON,NaN
+FADEC_RB_Igniter_1_Select,R IGN A ON,NaN
+FADEC_RA_Igniter_2_Select,R IGN B ON,NaN
+FADEC_RB_Igniter_2_Select,R IGN B ON,NaN
+ECU_A429_Out_1_L275_Master_Switch_Status,MASTER SWITCH,NaN
+ECU_A429_Out_1_L270_Overspeed_Shutdown_HW_or_SW,APU 超转,NaN
+ECU_A429_Out_1_L272_Low_Oil_Quantity,Low Oil Quantity,NaN
+ECU_A429_Out_1_L270_Low_Oil_Pressure_Shutdown,Low Oil Pressure,NaN
+PFC_MODE_SW_1_DIRECT_COM_4D31,飞控模式切换开关,NaN
+PFC_MODE_SW_2_DIRECT_COM_5D31,飞控模式切换开关,NaN
+PFC_MODE_SW_3_DIRECT_COM_6D31,飞控模式切换开关,NaN
+PFC_MODE_SW_4_DIRECT_COM_7D31,飞控模式切换开关,NaN
+FCM2_FCM_1_Valid,FCM1状态,NaN
+FCM3_FCM_1_Valid,FCM1状态,NaN
+FCM1_FCM_2_Valid,FCM2状态,NaN
+FCM3_FCM_2_Valid,FCM2状态,NaN
+FCM1_FCM_3_Valid,FCM3状态,NaN
+FCM2_FCM_3_Valid,FCM3状态,NaN
+FCM1_pedal_position_FSB6,脚蹬（有效性）,NaN
+FCM2_pedal_position_FSB6,脚蹬（有效性）,NaN
+FCM3_pedal_position_FSB6,脚蹬（有效性）,NaN
+FCM1_Voted_Body_Norm_Accel_provisional_FSB6,Nz（法向过载有效性）,NaN
+FCM2_Voted_Body_Norm_Accel_provisional_FSB6,Nz（法向过载有效性）,NaN
+FCM3_Voted_Body_Norm_Accel_provisional_FSB6,Nz（法向过载有效性）,NaN
+FCM1_Voted_Body_AOA_FSB11,AOA有效性,NaN
+FCM2_Voted_Body_AOA_FSB11,AOA有效性,NaN
+FCM3_Voted_Body_AOA_FSB11,AOA有效性,NaN
+FCM1_Channel_1_Calibrated_Airspeed_FSB20,空速1有效性,NaN
+FCM2_Channel_1_Calibrated_Airspeed_FSB20,空速1有效性,NaN
+FCM3_Channel_1_Calibrated_Airspeed_FSB20,空速1有效性,NaN
+FCM1_Channel_2_Calibrated_Airspeed_FSB25,空速2有效性,NaN
+FCM2_Channel_2_Calibrated_Airspeed_FSB25,空速2有效性,NaN
+FCM3_Channel_2_Calibrated_Airspeed_FSB25,空速2有效性,NaN
+FCM1_Channel_3_Calibrated_Airspeed_FSB30,空速3有效性,NaN
+FCM2_Channel_3_Calibrated_Airspeed_FSB30,空速3有效性,NaN
+FCM3_Channel_3_Calibrated_Airspeed_FSB30,空速3有效性,NaN
+FCM2_Channel_1_Calibrated_Airspeed,空速1,kn
+FCM3_Channel_1_Calibrated_Airspeed,空速1,kn
+FCM2_Channel_2_Calibrated_Airspeed,空速2,kn
+FCM3_Channel_2_Calibrated_Airspeed,空速2,kn
+FCM2_Channel_3_Calibrated_Airspeed,空速3,kn
+FCM3_Channel_3_Calibrated_Airspeed,空速3,kn
+FCM1_Voted_Body_Pitch_Rate_provisional_FSB7,俯仰角速率（q）有效性,NaN
+FCM2_Voted_Body_Pitch_Rate_provisional_FSB7,俯仰角速率（q）有效性,NaN
+FCM3_Voted_Body_Pitch_Rate_provisional_FSB7,俯仰角速率（q）有效性,NaN
+FCM1_Voted_Body_Roll_Rate_provisional_FSB8,横滚角速率（p）有效性,NaN
+FCM2_Voted_Body_Roll_Rate_provisional_FSB8,横滚角速率（p）有效性,NaN
+FCM3_Voted_Body_Roll_Rate_provisional_FSB8,横滚角速率（p）有效性,NaN
+IRS_YAW_RATE_VLD_1F10,偏航角速率（r）有效性,NaN
+IRS_YAW_RATE_VLD_2F10,偏航角速率（r）有效性,NaN
+IRS_YAW_RATE_VLD_3F10,偏航角速率（r）有效性,NaN
+FCM1_Voted_Calibrated_Airspeed_FSB7,CAS有效性,NaN
+FCM2_Voted_Calibrated_Airspeed_FSB7,CAS有效性,NaN
+FCM3_Voted_Calibrated_Airspeed_FSB7,CAS有效性,NaN
+FCM1_Voted_Mach_FSB8,Mach有效性,NaN
+FCM2_Voted_Mach_FSB8,Mach有效性,NaN
+FCM3_Voted_Mach_FSB8,Mach有效性,NaN
+FCM_1_Voted_ADM_NotAvailable,ADM Fault,NaN
+FCM_2_Voted_ADM_NotAvailable,ADM Fault,NaN
+FCM_3_Voted_ADM_NotAvailable,ADM Fault,NaN
+DMRS_1_VLD_4D4A,DMRS1,NaN
+DMRS_2_VLD_5D4A,DMRS2,NaN
+DMRS_3_VLD_6D4A,DMRS3,NaN
+DMRS_4_VLD_7D4A,DMRS4,NaN
+FCM1_Left_Pitot_Static_Probe_Heater_Command,AOA  L1加热,NaN
+FCM2_Left_Pitot_Static_Probe_Heater_Command,AOA  L1加热,NaN
+FCM3_Left_Pitot_Static_Probe_Heater_Command,AOA  L1加热,NaN
+FCM1_Left_Pitot_Probe_Heater_Command,AOA  R1加热,NaN
+FCM2_Left_Pitot_Probe_Heater_Command,AOA  R1加热,NaN
+FCM3_Left_Pitot_Probe_Heater_Command,AOA  R1加热,NaN
+FCM1_Right_Pitot_Probe_Heater_Command,AOA  L2加热,NaN
+FCM2_Right_Pitot_Probe_Heater_Command,AOA  L2加热,NaN
+FCM3_Right_Pitot_Probe_Heater_Command,AOA  L2加热,NaN
+FCM1_ADM1_LS_STATUS,Left Static 1有效性,NaN
+FCM2_ADM1_LS_STATUS,Left Static 1有效性,NaN
+FCM3_ADM1_LS_STATUS,Left Static 1有效性,NaN
+FCM1_ADM1_RS_STATUS,Right_Static_1有效性,NaN
+FCM2_ADM1_RS_STATUS,Right_Static_1有效性,NaN
+FCM3_ADM1_RS_STATUS,Right_Static_1有效性,NaN
+FCM1_ADM3_LS_STATUS,Left Static 3有效性,NaN
+FCM2_ADM3_LS_STATUS,Left Static 3有效性,NaN
+FCM3_ADM3_LS_STATUS,Left Static 3有效性,NaN
+FCM1_ADM3_RS_STATUS,Right_Static_3有效性,NaN
+FCM2_ADM3_RS_STATUS,Right_Static_3有效性,NaN
+FCM3_ADM3_RS_STATUS,Right_Static_3有效性,NaN
+FCM1_ADM1_PT_STATUS,Left Pitot Probe有效性,NaN
+FCM2_ADM1_PT_STATUS,Left Pitot Probe有效性,NaN
+FCM3_ADM1_PT_STATUS,Left Pitot Probe有效性,NaN
+FCM1_ADM3_PT_STATUS,Right Pitot Probe有效性,NaN
+FCM2_ADM3_PT_STATUS,Right Pitot Probe有效性,NaN
+FCM3_ADM3_PT_STATUS,Right Pitot Probe有效性,NaN
+FCM3_ADM2_PT_STATUS,Left_Pitot_Static_Probe有效性,NaN
+FCM2_ADM2_PT_STATUS,Left_Pitot_Static_Probe有效性,NaN
+FCM1_ADM2_S_STATUS,Right_Pitot_Static_Probe有效性,NaN
+FCM2_ADM2_S_STATUS,Right_Pitot_Static_Probe有效性,NaN
+FCM3_ADM2_S_STATUS,Right_Pitot_Static_Probe有效性,NaN
+MFS_5L_REU_STATE_REU_6D45,左5# MFS状态,NaN
+MFS_4L_REU_STATE_REU_7D42,左4# MFS状态,NaN
+MFS_3L_REU_STATE_REU_4D45,左3# MFS状态,NaN
+MFS_2L_REU_STATE_REU_5D42,左2# MFS状态,NaN
+MFS_2R_REU_STATE_REU_5D45,右2# MFS状态,NaN
+MFS_3R_REU_STATE_REU_4D42,右3# MFS状态,NaN
+MFS_4R_REU_STATE_REU_7D45,右4# MFS状态,NaN
+MFS_5R_REU_STATE_REU_6D42,右5# MFS状态,NaN
+FCM1_Dual_Input,侧杆双输入,NaN
+FCM2_Dual_Input,侧杆双输入,NaN
+FCM3_Dual_Input,侧杆双输入,NaN
+FCM1_ELEV_SPLIT,ELEV SPLIT,NaN
+FCM2_ELEV_SPLIT,ELEV SPLIT,NaN
+FCM3_ELEV_SPLIT,ELEV SPLIT,NaN
+FCM1_Stabilizer_Trim_System_FAIL,STAB FAULT,NaN
+FCM2_Stabilizer_Trim_System_FAIL,STAB FAULT,NaN
+FCM3_Stabilizer_Trim_System_FAIL,STAB FAULT,NaN
+FCM1_Flight_Control_Degraded,FLT CTRL DEGRD,NaN
+FCM2_Flight_Control_Degraded,FLT CTRL DEGRD,NaN
+FCM3_Flight_Control_Degraded,FLT CTRL DEGRD,NaN
+FCM1_Flight_Controls_Minimum_Acceptable_Control,FLT CTRL MAC,NaN
+FCM2_Flight_Controls_Minimum_Acceptable_Control,FLT CTRL MAC,NaN
+FCM3_Flight_Controls_Minimum_Acceptable_Control,FLT CTRL MAC,NaN
+FCM1_Ground_Spoiler,GROUND SPOILER,NaN
+FCM2_Ground_Spoiler,GROUND SPOILER,NaN
+FCM3_Ground_Spoiler,GROUND SPOILER,NaN
+FCM1_Rudder_Trim_Function_Fault,RUD TRIM FAULT,NaN
+FCM2_Rudder_Trim_Function_Fault,RUD TRIM FAULT,NaN
+FCM3_Rudder_Trim_Function_Fault,RUD TRIM FAULT,NaN
+FCM1_Flight_Controls_No_Dispatch,FLT CTRL NO DISPATCH,NaN
+FCM2_Flight_Controls_No_Dispatch,FLT CTRL NO DISPATCH,NaN
+FCM3_Flight_Controls_No_Dispatch,FLT CTRL NO DISPATCH,NaN
+FCM1_Flight_Controls_Maintenance,FLT CTRL MAINT,NaN
+FCM2_Flight_Controls_Maintenance,FLT CTRL MAINT,NaN
+FCM3_Flight_Controls_Maintenance,FLT CTRL MAINT,NaN
+STAB_1_ADB_RATE_CMD_1400,STAB1_Rate,RPM
+STAB_1_ADB_RATE_CMD_2400,STAB1_Rate,RPM
+STAB_1_ADB_RATE_CMD_3400,STAB1_Rate,RPM
+STAB_2_ADB_RATE_CMD_1700,STAB2_Rate,RPM
+STAB_2_ADB_RATE_CMD_2700,STAB2_Rate,RPM
+STAB_2_ADB_RATE_CMD_3700,STAB2_Rate,RPM
+HYDIMC_A429_Out_1_L174_PRESS_SYS1_T1A,1#液压压力,PSI
+HYDIMC_A429_Out_1_L174_PRESS_SYS2_T1A,2#液压压力,PSI
+HYDIMC_A429_Out_1_L174_PRESS_SYS3_T1A,3#液压压力,PSI
+STAB_1_TRIM_SW_UP_MCE_4D49,Nose UP(1通道),NaN
+STAB_1_TRIM_SW_DN_MCE_4D49,Nose DN(1通道),NaN
+STAB_1_TRIM_SW_ARM_UP_MCE_4D49,ARM UP（1通道),NaN
+STAB_1_TRIM_SW_ARM_DN_MCE_4D49,ARM DN（1通道),NaN
+STAB_1_TRIM_SW_CUTOUT_MCE_4D49,CUTOFF（1通道）,NaN
+STAB_2_TRIM_SW_UP_MCE_7D49,Nose UP(2通道),NaN
+STAB_2_TRIM_SW_DN_MCE_7D49,Nose DN(2通道),NaN
+STAB_2_TRIM_SW_ARM_UP_MCE_7D49,ARM UP（2通道),NaN
+STAB_2_TRIM_SW_ARM_DN_MCE_7D49,ARM DN（2通道),NaN
+STAB_2_TRIM_SW_CUTOUT_MCE_7D49,CUTOFF（2通道）,NaN
+FCM2_Voted_Static_Air_Temperature,静温,℃
+FCM3_Voted_Static_Air_Temperature,静温,℃
+AIL_TRIM_SW_1_ARM_COM_6D31,副翼配平ARM1,NaN
+AIL_TRIM_SW_2_ARM_COM_7D31,副翼配平ARM2,NaN
+AIL_TRIM_SW_1_LWD_COM_6D31,副翼配平LWD1,NaN
+AIL_TRIM_SW_2_LWD_COM_7D31,副翼配平LWD2,NaN
+AIL_TRIM_SW_1_RWD_COM_6D31,副翼配平RWD1,NaN
+AIL_TRIM_SW_2_RWD_COM_7D31,副翼配平RWD2,NaN
+FCM2_Rudder_Trim_Position,方向舵配平位置,°
+FCM3_Rudder_Trim_Position,方向舵配平位置,°
+RUD_TRIM_SW_1_TEL_COM_4D31,方向舵配平开关TEL1,NaN
+RUD_TRIM_SW_2_TEL_COM_5D31,方向舵配平开关TEL2,NaN
+RUD_TRIM_SW_1_ARM_COM_4D31,方向舵配平开关ARM1,NaN
+RUD_TRIM_SW_2_ARM_COM_5D31,方向舵配平开关ARM2,NaN
+RUD_TRIM_SW_1_TER_COM_4D31,方向舵配平开关TER1,NaN
+RUD_TRIM_SW_2_TER_COM_5D31,方向舵配平开关TER2,NaN
+ELEV_LOB_ADB_POSN_CMD_1600,RAM Position(ELEV_LOB),inch
+ELEV_LOB_ADB_POSN_CMD_2600,RAM Position(ELEV_LOB),inch
+ELEV_LOB_ADB_POSN_CMD_3600,RAM Position(ELEV_LOB),inch
+ELEV_LIB_ADB_POSN_CMD_1400,RAM Position(ELEV_LIB),inch
+ELEV_LIB_ADB_POSN_CMD_2400,RAM Position(ELEV_LIB),inch
+ELEV_LIB_ADB_POSN_CMD_3400,RAM Position(ELEV_LIB),inch
+ELEV_RIB_ADB_POSN_CMD_1500,RAM Position(ELEV_RIB),inch
+ELEV_RIB_ADB_POSN_CMD_2500,RAM Position(ELEV_RIB),inch
+ELEV_RIB_ADB_POSN_CMD_3500,RAM Position(ELEV_RIB),inch
+ELEV_ROB_ADB_POSN_CMD_1700,RAM Position(ELEV_ROB),inch
+ELEV_ROB_ADB_POSN_CMD_2700,RAM Position(ELEV_ROB),inch
+ELEV_ROB_ADB_POSN_CMD_3700,RAM Position(ELEV_ROB),inch
+AIL_LOB_ADB_POSN_CMD_1600,RAM Position(AIL_LOB),inch
+AIL_LOB_ADB_POSN_CMD_2600,RAM Position(AIL_LOB),inch
+AIL_LOB_ADB_POSN_CMD_3600,RAM Position(AIL_LOB),inch
+AIL_LIB_ADB_POSN_CMD_1400,RAM Position(AIL_LIB),inch
+AIL_LIB_ADB_POSN_CMD_2400,RAM Position(AIL_LIB),inch
+AIL_LIB_ADB_POSN_CMD_3400,RAM Position(AIL_LIB),inch
+AIL_RIB_ADB_POSN_CMD_1500,RAM Position(AIL_RIB),inch
+AIL_RIB_ADB_POSN_CMD_2500,RAM Position(AIL_RIB),inch
+AIL_RIB_ADB_POSN_CMD_3500,RAM Position(AIL_RIB),inch
+AIL_ROB_ADB_POSN_CMD_1700,RAM Position(AIL_ROB),inch
+AIL_ROB_ADB_POSN_CMD_2700,RAM Position(AIL_ROB),inch
+AIL_ROB_ADB_POSN_CMD_3700,RAM Position(AIL_ROB),inch
+RUD_UPR_ADB_POSN_CMD_1600,RAM Position(RUD_U),inch
+RUD_UPR_ADB_POSN_CMD_2600,RAM Position(RUD_U),inch
+RUD_UPR_ADB_POSN_CMD_3600,RAM Position(RUD_U),inch
+RUD_MID_ADB_POSN_CMD_1400,RAM Position(RUD_M),inch
+RUD_MID_ADB_POSN_CMD_2400,RAM Position(RUD_M),inch
+RUD_MID_ADB_POSN_CMD_3400,RAM Position(RUD_M),inch
+RUD_LWR_ADB_POSN_CMD_1700,RAM Position(RUD_L),inch
+RUD_LWR_ADB_POSN_CMD_2700,RAM Position(RUD_L),inch
+RUD_LWR_ADB_POSN_CMD_3700,RAM Position(RUD_L),inch
+MFS_2L_ADB_POSN_CMD_1500,RAM Position(2L),inch
+MFS_2L_ADB_POSN_CMD_2500,RAM Position(2L),inch
+MFS_2L_ADB_POSN_CMD_3500,RAM Position(2L),inch
+MFS_3L_ADB_POSN_CMD_1400,RAM Position(3L),inch
+MFS_3L_ADB_POSN_CMD_2400,RAM Position(3L),inch
+MFS_3L_ADB_POSN_CMD_3400,RAM Position(3L),inch
+MFS_4L_ADB_POSN_CMD_1700,RAM Position(4L),inch
+MFS_4L_ADB_POSN_CMD_2700,RAM Position(4L),inch
+MFS_4L_ADB_POSN_CMD_3700,RAM Position(4L),inch
+MFS_5L_ADB_POSN_CMD_1600,RAM Position(5L),inch
+MFS_5L_ADB_POSN_CMD_2600,RAM Position(5L),inch
+MFS_5L_ADB_POSN_CMD_3600,RAM Position(5L),inch
+MFS_2R_ADB_POSN_CMD_1500,RAM Position(2R),inch
+MFS_2R_ADB_POSN_CMD_2500,RAM Position(2R),inch
+MFS_2R_ADB_POSN_CMD_3500,RAM Position(2R),inch
+MFS_3R_ADB_POSN_CMD_1400,RAM Position(3R),inch
+MFS_3R_ADB_POSN_CMD_2400,RAM Position(3R),inch
+MFS_3R_ADB_POSN_CMD_3400,RAM Position(3R),inch
+MFS_4R_ADB_POSN_CMD_1700,RAM Position(4R),inch
+MFS_4R_ADB_POSN_CMD_2700,RAM Position(4R),inch
+MFS_4R_ADB_POSN_CMD_3700,RAM Position(4R),inch
+MFS_5R_ADB_POSN_CMD_1600,RAM Position(5R),inch
+MFS_5R_ADB_POSN_CMD_2600,RAM Position(5R),inch
+MFS_5R_ADB_POSN_CMD_3600,RAM Position(5R),inch
+SSU_CAPT_PITCH_POSN_1_VLD_1F10,主驾驶1 pitch1有效性,NaN
+SSU_CAPT_PITCH_POSN_2_VLD_1F10,主驾驶1 pitch2有效性,NaN
+SSU_CAPT_PITCH_POSN_3_VLD_1F10,主驾驶1 pitch3有效性,NaN
+SSU_CAPT_PITCH_POSN_4_VLD_1F10,主驾驶1 pitch4有效性,NaN
+SSU_CAPT_PITCH_POSN_1_VLD_2F10,主驾驶2 pitch1有效性,NaN
+SSU_CAPT_PITCH_POSN_2_VLD_2F10,主驾驶2 pitch2有效性,NaN
+SSU_CAPT_PITCH_POSN_3_VLD_2F10,主驾驶2 pitch3有效性,NaN
+SSU_CAPT_PITCH_POSN_4_VLD_2F10,主驾驶2 pitch4有效性,NaN
+SSU_CAPT_PITCH_POSN_1_VLD_3F10,主驾驶3 pitch1有效性,NaN
+SSU_CAPT_PITCH_POSN_2_VLD_3F10,主驾驶3 pitch2有效性,NaN
+SSU_CAPT_PITCH_POSN_3_VLD_3F10,主驾驶3 pitch3有效性,NaN
+SSU_CAPT_PITCH_POSN_4_VLD_3F10,主驾驶3 pitch4有效性,NaN
+SSU_FO_PITCH_POSN_1_VLD_1F10,副驾驶1 pitch1有效性,NaN
+SSU_FO_PITCH_POSN_2_VLD_1F10,副驾驶1 pitch2有效性,NaN
+SSU_FO_PITCH_POSN_3_VLD_1F10,副驾驶1 pitch3有效性,NaN
+SSU_FO_PITCH_POSN_4_VLD_1F10,副驾驶1 pitch4有效性,NaN
+SSU_FO_PITCH_POSN_1_VLD_2F10,副驾驶2 pitch1有效性,NaN
+SSU_FO_PITCH_POSN_2_VLD_2F10,副驾驶2 pitch2有效性,NaN
+SSU_FO_PITCH_POSN_3_VLD_2F10,副驾驶2 pitch3有效性,NaN
+SSU_FO_PITCH_POSN_4_VLD_2F10,副驾驶2 pitch4有效性,NaN
+SSU_FO_PITCH_POSN_1_VLD_3F10,副驾驶3pitch1有效性,NaN
+SSU_FO_PITCH_POSN_2_VLD_3F10,副驾驶3pitch2有效性,NaN
+SSU_FO_PITCH_POSN_3_VLD_3F10,副驾驶3pitch3有效性,NaN
+SSU_FO_PITCH_POSN_4_VLD_3F10,副驾驶3pitch4有效性,NaN
+SSU_CAPT_ROLL_POSN_1_VLD_1F10,主驾驶1 ROLL1有效性,NaN
+SSU_CAPT_ROLL_POSN_2_VLD_1F10,主驾驶1 ROLL2有效性,NaN
+SSU_CAPT_ROLL_POSN_3_VLD_1F10,主驾驶1 ROLL3有效性,NaN
+SSU_CAPT_ROLL_POSN_4_VLD_1F10,主驾驶1 ROLL4有效性,NaN
+SSU_CAPT_ROLL_POSN_1_VLD_2F10,主驾驶2 ROLL1有效性,NaN
+SSU_CAPT_ROLL_POSN_2_VLD_2F10,主驾驶2 ROLL2有效性,NaN
+SSU_CAPT_ROLL_POSN_3_VLD_2F10,主驾驶2 ROLL3有效性,NaN
+SSU_CAPT_ROLL_POSN_4_VLD_2F10,主驾驶2 ROLL4有效性,NaN
+SSU_CAPT_ROLL_POSN_1_VLD_3F10,主驾驶3 ROLL1有效性,NaN
+SSU_CAPT_ROLL_POSN_2_VLD_3F10,主驾驶3 ROLL2有效性,NaN
+SSU_CAPT_ROLL_POSN_3_VLD_3F10,主驾驶3 ROLL3有效性,NaN
+SSU_CAPT_ROLL_POSN_4_VLD_3F10,主驾驶3 ROLL4有效性,NaN
+SSU_FO_ROLL_POSN_1_VLD_1F10,副驾驶1 ROLL1有效性,NaN
+SSU_FO_ROLL_POSN_2_VLD_1F10,副驾驶1 ROLL2有效性,NaN
+SSU_FO_ROLL_POSN_3_VLD_1F10,副驾驶1 ROLL3有效性,NaN
+SSU_FO_ROLL_POSN_4_VLD_1F10,副驾驶1 ROLL4有效性,NaN
+SSU_FO_ROLL_POSN_1_VLD_2F10,副驾驶2 ROLL1有效性,NaN
+SSU_FO_ROLL_POSN_2_VLD_2F10,副驾驶2 ROLL2有效性,NaN
+SSU_FO_ROLL_POSN_3_VLD_2F10,副驾驶2 ROLL3有效性,NaN
+SSU_FO_ROLL_POSN_4_VLD_2F10,副驾驶2 ROLL4有效性,NaN
+SSU_FO_ROLL_POSN_1_VLD_3F10,副驾驶3ROLL1有效性,NaN
+SSU_FO_ROLL_POSN_2_VLD_3F10,副驾驶3ROLL2有效性,NaN
+SSU_FO_ROLL_POSN_3_VLD_3F10,副驾驶3ROLL3有效性,NaN
+SSU_FO_ROLL_POSN_4_VLD_3F10,副驾驶3ROLL4有效性,NaN
+RBPU_CAPT_PED_POSN_1_VLD_1F10,主驾脚蹬RVDT1有效性,NaN
+RBPU_CAPT_PED_POSN_1_VLD_2F10,主驾脚蹬RVDT1有效性,NaN
+RBPU_CAPT_PED_POSN_1_VLD_3F10,主驾脚蹬RVDT1有效性,NaN
+RBPU_CAPT_PED_POSN_2_VLD_1F10,主驾脚蹬RVDT2有效性,NaN
+RBPU_CAPT_PED_POSN_2_VLD_2F10,主驾脚蹬RVDT2有效性,NaN
+RBPU_CAPT_PED_POSN_2_VLD_3F10,主驾脚蹬RVDT2有效性,NaN
+RBPU_FO_PED_POSN_1_VLD_1F10,副驾脚蹬RVDT1有效性,NaN
+RBPU_FO_PED_POSN_1_VLD_2F10,副驾脚蹬RVDT1有效性,NaN
+RBPU_FO_PED_POSN_1_VLD_3F10,副驾脚蹬RVDT1有效性,NaN
+RBPU_FO_PED_POSN_2_VLD_1F10,副驾脚蹬RVDT1有效性,NaN
+RBPU_FO_PED_POSN_2_VLD_2F10,副驾脚蹬RVDT1有效性,NaN
+RBPU_FO_PED_POSN_2_VLD_3F10,副驾脚蹬RVDT1有效性,NaN
+PFTU_PED_POSN_1_VLD_1F10,脚蹬PFTU RVDT1有效性,NaN
+PFTU_PED_POSN_1_VLD_2F10,脚蹬PFTU RVDT1有效性,NaN
+PFTU_PED_POSN_1_VLD_3F10,脚蹬PFTU RVDT1有效性,NaN
+PFTU_PED_POSN_2_VLD_1F10,脚蹬PFTU RVDT2有效性,NaN
+PFTU_PED_POSN_2_VLD_2F10,脚蹬PFTU RVDT2有效性,NaN
+PFTU_PED_POSN_2_VLD_3F10,脚蹬PFTU RVDT2有效性,NaN
+SPD_BRK_LVR_POSN_1_VLD_1F10,减速板手柄RVDT1有效性,NaN
+SPD_BRK_LVR_POSN_1_VLD_2F10,减速板手柄RVDT1有效性,NaN
+SPD_BRK_LVR_POSN_1_VLD_3F10,减速板手柄RVDT1有效性,NaN
+SPD_BRK_LVR_POSN_2_VLD_1F10,减速板手柄RVDT2有效性,NaN
+SPD_BRK_LVR_POSN_2_VLD_2F10,减速板手柄RVDT2有效性,NaN
+SPD_BRK_LVR_POSN_2_VLD_3F10,减速板手柄RVDT2有效性,NaN
+SPD_BRK_LVR_POSN_3_VLD_1F10,减速板手柄RVDT3有效性,NaN
+SPD_BRK_LVR_POSN_3_VLD_2F10,减速板手柄RVDT3有效性,NaN
+SPD_BRK_LVR_POSN_3_VLD_3F10,减速板手柄RVDT3有效性,NaN
+SPD_BRK_LVR_POSN_4_VLD_1F10,减速板手柄RVDT4有效性,NaN
+SPD_BRK_LVR_POSN_4_VLD_2F10,减速板手柄RVDT4有效性,NaN
+SPD_BRK_LVR_POSN_4_VLD_3F10,减速板手柄RVDT4有效性,NaN
+PFC_MODE_SW_1_VLD_1F10,飞控模式开关1有效性,NaN
+PFC_MODE_SW_1_VLD_2F10,飞控模式开关1有效性,NaN
+PFC_MODE_SW_1_VLD_3F10,飞控模式开关1有效性,NaN
+PFC_MODE_SW_2_VLD_1F10,飞控模式开关2有效性,NaN
+PFC_MODE_SW_2_VLD_2F10,飞控模式开关2有效性,NaN
+PFC_MODE_SW_2_VLD_3F10,飞控模式开关2有效性,NaN
+PFC_MODE_SW_3_VLD_1F10,飞控模式开关3有效性,NaN
+PFC_MODE_SW_3_VLD_2F10,飞控模式开关3有效性,NaN
+PFC_MODE_SW_3_VLD_3F10,飞控模式开关3有效性,NaN
+PFC_MODE_SW_4_VLD_1F10,飞控模式开关4有效性,NaN
+PFC_MODE_SW_4_VLD_2F10,飞控模式开关4有效性,NaN
+PFC_MODE_SW_4_VLD_3F10,飞控模式开关4有效性,NaN
+FCM_MY_LEFT_VLD_1F10,FCM Myleft 有效性,NaN
+FCM_MY_LEFT_VLD_2F10,FCM Myleft 有效性,NaN
+FCM_MY_LEFT_VLD_3F10,FCM Myleft 有效性,NaN
+FCM_NM_1F10,FCM 有效性,NaN
+FCM_NM_2F10,FCM 有效性,NaN
+FCM_NM_3F10,FCM 有效性,NaN
+FCM_MY_RIGHT_VLD_1F10,FCM Myright 有效性,NaN
+FCM_MY_RIGHT_VLD_2F10,FCM Myright 有效性,NaN
+FCM_MY_RIGHT_VLD_3F10,FCM Myright 有效性,NaN
+FSECU_SLAT_DEPLOYED_SEL_1F10,缝翼放下,NaN
+FSECU_SLAT_DEPLOYED_SEL_2F10,缝翼放下,NaN
+FSECU_SLAT_DEPLOYED_SEL_3F10,缝翼放下,NaN
+FCM_ACE_1_COM_NM_VLD_1400,FCM1、ACE1通道有效性,NaN
+FCM_ACE_1_COM_NM_VLD_2400,FCM2、ACE1通道有效性,NaN
+FCM_ACE_1_COM_NM_VLD_3400,FCM3、ACE1通道有效性,NaN
+FCM_ACE_2_COM_NM_VLD_1500,FCM1、ACE2通道有效性,NaN
+FCM_ACE_2_COM_NM_VLD_2500,FCM2、ACE2通道有效性,NaN
+FCM_ACE_2_COM_NM_VLD_3500,FCM3、ACE2通道有效性,NaN
+FCM_ACE_3_COM_NM_VLD_1600,FCM1、ACE3通道有效性,NaN
+FCM_ACE_3_COM_NM_VLD_2600,FCM2、ACE3通道有效性,NaN
+FCM_ACE_3_COM_NM_VLD_3600,FCM3、ACE3通道有效性,NaN
+FCM_ACE_4_COM_NM_VLD_1700,FCM1、ACE4通道有效性,NaN
+FCM_ACE_4_COM_NM_VLD_2700,FCM2、ACE4通道有效性,NaN
+FCM_ACE_4_COM_NM_VLD_3700,FCM3、ACE4通道有效性,NaN
+ACE_1_NM_ENBL_COM_4D30,ACE1正常模式可用性,NaN
+ACE_2_NM_ENBL_COM_5D30,ACE2正常模式可用性,NaN
+ACE_3_NM_ENBL_COM_6D30,ACE3正常模式可用性,NaN
+ACE_4_NM_ENBL_COM_7D30,ACE4正常模式可用性,NaN
+ACE_1_NM_STATUS_COM_4D9F,ACE1正常模式激活,NaN
+ACE_2_NM_STATUS_COM_5D9F,ACE2正常模式激活,NaN
+ACE_3_NM_STATUS_COM_6D9F,ACE3正常模式激活,NaN
+ACE_4_NM_STATUS_COM_7D9F,ACE4正常模式激活,NaN
+FSECU_1_FCE_1_SLAT_POSN_VTR_INP_VLD_1F10,ACE1缝翼位置有效性,NaN
+FSECU_1_FCE_1_SLAT_POSN_VTR_INP_VLD_2F10,ACE1缝翼位置有效性,NaN
+FSECU_1_FCE_1_SLAT_POSN_VTR_INP_VLD_3F10,ACE1缝翼位置有效性,NaN
+FSECU_1_FCE_2_SLAT_POSN_VTR_INP_VLD_1F10,ACE2缝翼位置有效性,NaN
+FSECU_1_FCE_2_SLAT_POSN_VTR_INP_VLD_2F10,ACE2缝翼位置有效性,NaN
+FSECU_1_FCE_2_SLAT_POSN_VTR_INP_VLD_3F10,ACE2缝翼位置有效性,NaN
+FSECU_2_FCE_3_SLAT_POSN_VTR_INP_VLD_1F10,ACE3缝翼位置有效性,NaN
+FSECU_2_FCE_3_SLAT_POSN_VTR_INP_VLD_2F10,ACE3缝翼位置有效性,NaN
+FSECU_2_FCE_3_SLAT_POSN_VTR_INP_VLD_3F10,ACE3缝翼位置有效性,NaN
+FSECU_2_FCE_4_SLAT_POSN_VTR_INP_VLD_1F10,ACE4缝翼位置有效性,NaN
+FSECU_2_FCE_4_SLAT_POSN_VTR_INP_VLD_2F10,ACE4缝翼位置有效性,NaN
+FSECU_2_FCE_4_SLAT_POSN_VTR_INP_VLD_3F10,ACE4缝翼位置有效性,NaN
+FSECU_1_FCE_1_FLAP_POSN_VTR_INP_VLD_1F10,ACE1襟翼位置有效性,NaN
+FSECU_1_FCE_1_FLAP_POSN_VTR_INP_VLD_2F10,ACE1襟翼位置有效性,NaN
+FSECU_1_FCE_1_FLAP_POSN_VTR_INP_VLD_3F10,ACE1襟翼位置有效性,NaN
+FSECU_1_FCE_2_FLAP_POSN_VTR_INP_VLD_1F10,ACE2襟翼位置有效性,NaN
+FSECU_1_FCE_2_FLAP_POSN_VTR_INP_VLD_2F10,ACE2襟翼位置有效性,NaN
+FSECU_1_FCE_2_FLAP_POSN_VTR_INP_VLD_3F10,ACE2襟翼位置有效性,NaN
+FSECU_2_FCE_3_FLAP_POSN_VTR_INP_VLD_1F10,ACE3襟翼位置有效性,NaN
+FSECU_2_FCE_3_FLAP_POSN_VTR_INP_VLD_2F10,ACE3襟翼位置有效性,NaN
+FSECU_2_FCE_3_FLAP_POSN_VTR_INP_VLD_3F10,ACE3襟翼位置有效性,NaN
+FSECU_2_FCE_4_FLAP_POSN_VTR_INP_VLD_1F10,ACE4襟翼位置有效性,NaN
+FSECU_2_FCE_4_FLAP_POSN_VTR_INP_VLD_2F10,ACE4襟翼位置有效性,NaN
+FSECU_2_FCE_4_FLAP_POSN_VTR_INP_VLD_3F10,ACE4襟翼位置有效性,NaN
+PCM_1_FLT_4D31,PCM1故障,NaN
+PCM_2_FLT_5D31,PCM2故障,NaN
+PCM_3_FLT_6D31,PCM3故障,NaN
+PCM_4_FLT_7D31,PCM4故障,NaN
+PCM_1_PMG_RECTF_VOLT_4D90,PMG电压1,V
+PCM_2_PMG_RECTF_VOLT_5D90,PMG电压2,V
+PCM_3_PMG_RECTF_VOLT_6D90  (6D90_7_0_15),PMG电压3,V
+PCM_4_PMG_RECTF_VOLT_7D90  (7D90_7_0_15),PMG电压4,V
+PCM_1_DC_1_INP_VOLT_4D90,PCM1 DC1电压,V
+PCM_2_DC_1_INP_VOLT_5D90,PCM2 DC1电压,V
+PCM_3_DC_1_INP_VOLT_6D90,PCM3 DC1电压,V
+PCM_4_DC_1_INP_VOLT_7D90,PCM4 DC1电压,V
+PCM_1_DC_2_INP_VOLT_4D90,PCM1 DC2电压,V
+PCM_2_DC_2_INP_VOLT_5D90,PCM2 DC2电压,V
+PCM_3_DC_2_INP_VOLT_6D90,PCM3 DC3电压,V
+PCM_4_DC_2_INP_VOLT_7D90,PCM4 DC4电压,V
+PCM_1_FCE_BUS_VOLT_4D90,FCE1电压,V
+PCM_2_FCE_BUS_VOLT_5D90,FCE2电压,V
+PCM_3_FCE_BUS_VOLT_6D90,FCE3电压,V
+PCM_4_FCE_BUS_VOLT_7D90,FCE4电压,V
+PCM_1_PRI_SEL_4D90,PCM1 PMG选择,NaN
+PCM_2_PRI_SEL_5D90,PCM2 PMG选择,NaN
+PCM_3_PRI_SEL_6D90,PCM3 PMG选择,NaN
+PCM_4_PRI_SEL_7D90,PCM4 PMG选择,NaN
+PCM_1_SEC_SEL_4D90,PCM1 DC1选择,NaN
+PCM_2_SEC_SEL_5D90,PCM2 DC1选择,NaN
+PCM_3_SEC_SEL_6D90,PCM31 DC1选择,NaN
+PCM_4_SEC_SEL_7D90,PCM4 DC1选择,NaN
+PCM_1_BATT_SEL_4D90,PCM1 蓄电池选择,NaN
+PCM_2_BATT_SEL_5D90,PCM2 蓄电池选择,NaN
+PCM_3_BATT_SEL_6D90,PCM3 蓄电池选择,NaN
+PCM_4_BATT_SEL_7D90,PCM4蓄电池选择,NaN
+RUD_TRIM_RST_SW_1_RST_COM_4D31,方向舵复位开关COM1,NaN
+RUD_TRIM_RST_SW_1_NORM_COM_4D31,方向舵复位开关NORM1,NaN
+RUD_TRIM_RST_SW_2_RST_COM_5D31,方向舵复位开关COM2,NaN
+RUD_TRIM_RST_SW_2_NORM_COM_5D31,方向舵复位开关NORM2,NaN
+RUD_TRIM_POSN_1_VLD_1F10,方向舵配平1有效性,NaN
+RUD_TRIM_POSN_1_VLD_2F10,方向舵配平1有效性,NaN
+RUD_TRIM_POSN_1_VLD_3F10,方向舵配平1有效性,NaN
+RUD_TRIM_POSN_2_VLD_1F10,方向舵配平2有效性,NaN
+RUD_TRIM_POSN_2_VLD_2F10,方向舵配平2有效性,NaN
+RUD_TRIM_POSN_2_VLD_3F10,方向舵配平2有效性,NaN
+RUD_TRIM_MOT_1_PWR_ENBL_1400,方向舵配平马达1上电,NaN
+RUD_TRIM_MOT_1_PWR_ENBL_2400,方向舵配平马达1上电,NaN
+RUD_TRIM_MOT_1_PWR_ENBL_3400,方向舵配平马达1上电,NaN
+RUD_TRIM_MOT_2_PWR_ENBL_1500,方向舵配平马达2上电,NaN
+RUD_TRIM_MOT_2_PWR_ENBL_2500,方向舵配平马达2上电,NaN
+RUD_TRIM_MOT_2_PWR_ENBL_3500,方向舵配平马达2上电,NaN
+STAB_1_ADB_RATE_CMD_WA_MCE_4D49,水平安定面回绕配平速率（STAB1）,NaN
+STAB_2_ADB_RATE_CMD_WA_MCE_7D49,水平安定面回绕配平速率（STAB2）,NaN
+STAB_1_BRK_CURR_MCE_4D49,水平安定面马达1刹车电流（STAB1）,NaN
+STAB_2_BRK_CURR_MCE_7D49,水平安定面马达2刹车电流（STAB2）,NaN
+STAB_1_MOT_CURR_MCE_4D49,水平安定面马达1电流（STAB1）,NaN
+STAB_2_MOT_CURR_MCE_7D49,水平安定面马达2电流（STAB2）,NaN
+STAB_1_ADB_BUS_INVLD_FLT_MCE_4D49,水平安定面STAB1 BUS有效性,NaN
+STAB_2_ADB_BUS_INVLD_FLT_MCE_7D49,水平安定面STAB2 BUS有效性,NaN
+STAB_1_BRK_REL_DISC_MCE_4D49,水平安定面马达1刹车状态（STAB1）,NaN
+STAB_2_BRK_REL_DISC_MCE_7D49,水平安定面马达2刹车状态（STAB2）,NaN
+STAB_1_MOT_ENBL_DISC_MCE_4D49,水平安定面马达1状态（STAB1）,NaN
+STAB_2_MOT_ENBL_DISC_MCE_7D49,水平安定面马达2状态（STAB2）,NaN
+DMRS_1_PITCH_RATE_4D4A,DMRS1 q值,Degree/Sec
+DMRS_2_PITCH_RATE_5D4A,DMRS2 q值,Degree/Sec
+DMRS_3_PITCH_RATE_6D4A,DMRS3 q值,Degree/Sec
+DMRS_4_PITCH_RATE_7D4A,DMRS4 q值,Degree/Sec
+DMRS_1_ROLL_RATE_4D4A,DMRS1 p值,Degree/Sec
+DMRS_2_ROLL_RATE_5D4A,DMRS2 p值,Degree/Sec
+DMRS_3_ROLL_RATE_6D4A,DMRS3 p值,Degree/Sec
+DMRS_4_ROLL_RATE_7D4A,DMRS4 p值,Degree/Sec
+DMRS_1_YAW_RATE_4D4A,DMRS1 r值,Degree/Sec
+DMRS_2_YAW_RATE_5D4A,DMRS2 r值,Degree/Sec
+DMRS_3_YAW_RATE_6D4A,DMRS3 r值,Degree/Sec
+DMRS_4_YAW_RATE_7D4A,DMRS4 r值,Degree/Sec
+DMRS_PITCH_RATE_1_VTR_INP_VLD_1F10,DMRS1 q有效性,NaN
+DMRS_PITCH_RATE_1_VTR_INP_VLD_2F10,DMRS1 q有效性,NaN
+DMRS_PITCH_RATE_1_VTR_INP_VLD_3F10,DMRS1 q有效性,NaN
+DMRS_PITCH_RATE_2_VTR_INP_VLD_1F10,DMRS2 q有效性,NaN
+DMRS_PITCH_RATE_2_VTR_INP_VLD_2F10,DMRS2 q有效性,NaN
+DMRS_PITCH_RATE_2_VTR_INP_VLD_3F10,DMRS2 q有效性,NaN
+DMRS_PITCH_RATE_3_VTR_INP_VLD_1F10,DMRS3 q有效性,NaN
+DMRS_PITCH_RATE_3_VTR_INP_VLD_2F10,DMRS3 q有效性,NaN
+DMRS_PITCH_RATE_3_VTR_INP_VLD_3F10,DMRS3 q有效性,NaN
+DMRS_PITCH_RATE_4_VTR_INP_VLD_1F10,DMRS4 q有效性,NaN
+DMRS_PITCH_RATE_4_VTR_INP_VLD_2F10,DMRS4 q有效性,NaN
+DMRS_PITCH_RATE_4_VTR_INP_VLD_3F10,DMRS4 q有效性,NaN
+DMRS_ROLL_RATE_1_VTR_INP_VLD_1F10,DMRS1 p有效性,NaN
+DMRS_ROLL_RATE_1_VTR_INP_VLD_2F10,DMRS1 p有效性,NaN
+DMRS_ROLL_RATE_1_VTR_INP_VLD_3F10,DMRS1 p有效性,NaN
+DMRS_ROLL_RATE_2_VTR_INP_VLD_1F10,DMRS2 p有效性,NaN
+DMRS_ROLL_RATE_2_VTR_INP_VLD_2F10,DMRS2 p有效性,NaN
+DMRS_ROLL_RATE_2_VTR_INP_VLD_3F10,DMRS2 p有效性,NaN
+DMRS_ROLL_RATE_3_VTR_INP_VLD_1F10,DMRS3 p有效性,NaN
+DMRS_ROLL_RATE_3_VTR_INP_VLD_2F10,DMRS3 p有效性,NaN
+DMRS_ROLL_RATE_3_VTR_INP_VLD_3F10,DMRS3 p有效性,NaN
+DMRS_ROLL_RATE_4_VTR_INP_VLD_1F10,DMRS4 p有效性,NaN
+DMRS_ROLL_RATE_4_VTR_INP_VLD_2F10,DMRS4 p有效性,NaN
+DMRS_ROLL_RATE_4_VTR_INP_VLD_3F10,DMRS4 p有效性,NaN
+DMRS_YAW_RATE_1_VTR_INP_VLD_1F10,DMRS1 r有效性,NaN
+DMRS_YAW_RATE_1_VTR_INP_VLD_2F10,DMRS1 r有效性,NaN
+DMRS_YAW_RATE_1_VTR_INP_VLD_3F10,DMRS1 r有效性,NaN
+DMRS_YAW_RATE_2_VTR_INP_VLD_1F10,DMRS2 r有效性,NaN
+DMRS_YAW_RATE_2_VTR_INP_VLD_2F10,DMRS2 r有效性,NaN
+DMRS_YAW_RATE_2_VTR_INP_VLD_3F10,DMRS2 r有效性,NaN
+DMRS_YAW_RATE_3_VTR_INP_VLD_1F10,DMRS3 r有效性,NaN
+DMRS_YAW_RATE_3_VTR_INP_VLD_2F10,DMRS3 r有效性,NaN
+DMRS_YAW_RATE_3_VTR_INP_VLD_3F10,DMRS3 r有效性,NaN
+DMRS_YAW_RATE_4_VTR_INP_VLD_1F10,DMRS4 r有效性,NaN
+DMRS_YAW_RATE_4_VTR_INP_VLD_2F10,DMRS4 r有效性,NaN
+DMRS_YAW_RATE_4_VTR_INP_VLD_3F10,DMRS4 r有效性,NaN
+BODY_AOA_UPR_L_VLD_1F10,左上AOA有效性,NaN
+BODY_AOA_UPR_L_VLD_2F10,左上AOA有效性,NaN
+BODY_AOA_UPR_L_VLD_3F10,左上AOA有效性,NaN
+BODY_AOA_UPR_R_VLD_1F10,右上AOA有效性,NaN
+BODY_AOA_UPR_R_VLD_2F10,右上AOA有效性,NaN
+BODY_AOA_UPR_R_VLD_3F10,右上AOA有效性,NaN
+BODY_AOA_LWR_VLD_1F10,下AOA有效性,NaN
+BODY_AOA_LWR_VLD_2F10,下AOA有效性,NaN
+BODY_AOA_LWR_VLD_3F10,下AOA有效性,NaN
+IRS_1_IR_BODY_PITCH_RATE_VTR_INP_VLD_1F10,IRS1 q有效性,NaN
+IRS_1_IR_BODY_PITCH_RATE_VTR_INP_VLD_2F10,IRS1 q有效性,NaN
+IRS_1_IR_BODY_PITCH_RATE_VTR_INP_VLD_3F10,IRS1 q有效性,NaN
+IRS_2_IR_BODY_PITCH_RATE_VTR_INP_VLD_1F10,IRS2 q有效性,NaN
+IRS_2_IR_BODY_PITCH_RATE_VTR_INP_VLD_2F10,IRS2 q有效性,NaN
+IRS_2_IR_BODY_PITCH_RATE_VTR_INP_VLD_3F10,IRS2 q有效性,NaN
+IRS_3_IR_BODY_PITCH_RATE_VTR_INP_VLD_1F10,IRS2 q有效性,NaN
+IRS_3_IR_BODY_PITCH_RATE_VTR_INP_VLD_2F10,IRS2 q有效性,NaN
+IRS_3_IR_BODY_PITCH_RATE_VTR_INP_VLD_3F10,IRS2 q有效性,NaN
+RUD_TRIM_MOT_1_ANLG_RATE_CMD_1400,方向舵配平速率1,inch/sec
+RUD_TRIM_MOT_1_ANLG_RATE_CMD_2400,方向舵配平速率1,inch/sec
+RUD_TRIM_MOT_1_ANLG_RATE_CMD_3400,方向舵配平速率1,inch/sec
+RUD_TRIM_MOT_2_ANLG_RATE_CMD_1500,方向舵配平速率2,inch/sec
+RUD_TRIM_MOT_2_ANLG_RATE_CMD_2500,方向舵配平速率2,inch/sec
+RUD_TRIM_MOT_2_ANLG_RATE_CMD_3500,方向舵配平速率2,inch/sec
+DMRS_1_AGC_RNG_FAIL_4D4A,DMRS 1 AGC 故障,NaN
+DMRS_2_AGC_RNG_FAIL_5D4A,DMRS 2 AGC 故障,NaN
+DMRS_3_AGC_RNG_FAIL_6D4A,DMRS 3 AGC 故障,NaN
+DMRS_4_AGC_RNG_FAIL_7D4A,DMRS 4 AGC 故障,NaN
+DMRS_1_PLOCK_BIT_FAIL_4D4A,DMRS 1 Plock 故障,NaN
+DMRS_2_PLOCK_BIT_FAIL_5D4A,DMRS 2 Plock 故障,NaN
+DMRS_3_PLOCK_BIT_FAIL_6D4A,DMRS 3 Plock 故障,NaN
+DMRS_4_PLOCK_BIT_FAIL_7D4A,DMRS 4 Plock 故障,NaN
+FSECU_1_A429_Out_2_L107_FSCL_Detent_0_FSECU1_MON,FSCL Detent 0,NaN
+FSECU_1_A429_Out_2_L107_FSCL_Detent_1_FSECU1_MON,FSCL Detent 1,NaN
+FSECU_1_A429_Out_2_L107_FSCL_Detent_2_FSECU1_MON,FSCL Detent 2,NaN
+FSECU_1_A429_Out_2_L107_FSCL_Detent_3_FSECU1_MON,FSCL Detent 3,NaN
+FSECU_1_A429_Out_2_L107_FSCL_Detent_FULL_FSECU1_MON,FSCL Detent Full,NaN
+FSECU_2_A429_Out_1_L107_FSCL_Detent_0_FSECU2_CMD,FSCL Detent 0,NaN
+FSECU_2_A429_Out_1_L107_FSCL_Detent_1_FSECU2_CMD,FSCL Detent 1,NaN
+FSECU_2_A429_Out_1_L107_FSCL_Detent_2_FSECU2_CMD,FSCL Detent 2,NaN
+FSECU_2_A429_Out_1_L107_FSCL_Detent_3_FSECU2_CMD,FSCL Detent 3,NaN
+FSECU_2_A429_Out_1_L107_FSCL_Detent_FULL_FSECU2_CMD,FSCL Detent Full,NaN
+FSECU_2_A429_Out_2_L107_FSCL_Detent_0_FSECU2_MON,FSCL Detent 0,NaN
+FSECU_2_A429_Out_2_L107_FSCL_Detent_1_FSECU2_MON,FSCL Detent 1,NaN
+FSECU_2_A429_Out_2_L107_FSCL_Detent_2_FSECU2_MON,FSCL Detent 2,NaN
+FSECU_2_A429_Out_2_L107_FSCL_Detent_3_FSECU2_MON,FSCL Detent 3,NaN
+FSECU_2_A429_Out_2_L107_FSCL_Detent_FULL_FSECU2_MON,FSCL Detent Full,NaN
+FSECU_1_A429_Out_1_L107_Detent_Command_FULL_Asterisk_FSECU1_CMD,Detent_Command_FULL_Asterisk,NaN
+FSECU_1_A429_Out_2_L107_Detent_Command_0_FSECU1_MON,Detent Command 0,NaN
+FSECU_1_A429_Out_2_L107_Detent_Command_1_FSECU1_MON,Detent Command 1,NaN
+FSECU_1_A429_Out_2_L107_Detent_Command_1_PLUS_F_FSECU1_MON,Detent_Command_1_PLUS_F,NaN
+FSECU_1_A429_Out_2_L107_Detent_Command_2_FSECU1_MON,Detent Command 2,NaN
+FSECU_1_A429_Out_2_L107_Detent_Command_3_FSECU1_MON,Detent Command 3,NaN
+FSECU_1_A429_Out_2_L107_Detent_Command_FULL_Asterisk_FSECU1_MON,Detent_Command_FULL_Asterisk,NaN
+FSECU_1_A429_Out_2_L107_Detent_Command_FULL_FSECU1_MON,Detent Command Full,NaN
+FSECU_2_A429_Out_1_L107_Detent_Command_0_FSECU2_CMD,Detent Command 0,NaN
+FSECU_2_A429_Out_1_L107_Detent_Command_1_FSECU2_CMD,Detent Command 1,NaN
+FSECU_2_A429_Out_1_L107_Detent_Command_1_PLUS_F_FSECU2_CMD,Detent_Command_1_PLUS_F,NaN
+FSECU_2_A429_Out_1_L107_Detent_Command_2_FSECU2_CMD,Detent Command 2,NaN
+FSECU_2_A429_Out_1_L107_Detent_Command_3_FSECU2_CMD,Detent Command 3,NaN
+FSECU_2_A429_Out_1_L107_Detent_Command_FULL_Asterisk_FSECU2_CMD,Detent_Command_FULL_Asterisk,NaN
+FSECU_2_A429_Out_1_L107_Detent_Command_FULL_FSECU2_CMD,Detent Command Full,NaN
+FSECU_2_A429_Out_2_L107_Detent_Command_0_FSECU2_MON,Detent Command 0,NaN
+FSECU_2_A429_Out_2_L107_Detent_Command_1_FSECU2_MON,Detent Command 1,NaN
+FSECU_2_A429_Out_2_L107_Detent_Command_1_PLUS_F_FSECU2_MON,Detent_Command_1_PLUS_F,NaN
+FSECU_2_A429_Out_2_L107_Detent_Command_2_FSECU2_MON,Detent Command 2,NaN
+FSECU_2_A429_Out_2_L107_Detent_Command_3_FSECU2_MON,Detent Command 3,NaN
+FSECU_2_A429_Out_2_L107_Detent_Command_FULL_Asterisk_FSECU2_MON,Detent_Command_FULL_Asterisk,NaN
+FSECU_2_A429_Out_2_L107_Detent_Command_FULL_FSECU2_MON,Detent Command Full,NaN
+FSECU_1_A429_Out_1_L107_Slats_in_Motion_FSECU1_CMD,Slats in motion,NaN
+FSECU_1_A429_Out_1_L107_Flaps_in_Motion_FSECU1_CMD,Flaps in motion,NaN
+FSECU_1_A429_Out_1_L107_FLAPS_SLATS_Detent_Achieved_FSECU1_CMD,FLAPS & SLATS Detent Achieved,NaN
+FSECU_1_A429_Out_1_L107_SLATS_and_Detent_Agree_FSECU1_CMD,SLATS & Detent Agree,NaN
+FSECU_1_A429_Out_1_L107_FLAPS_and_Detent_Agree_FSECU1_CMD,FLAPS & Detent Agree,NaN
+FSECU_1_A429_Out_1_L354_Load_Relief_Active_FSECU1_CMD,Load_Relief_Active,NaN
+FSECU_1_A429_Out_1_L354_Configuration_Inhibit_Active_FSECU1_CMD,Configuration_Inhibit_Active,NaN
+FSECU_1_A429_Out_2_L107_Slats_in_Motion_FSECU1_MON,Slats in motion,NaN
+FSECU_1_A429_Out_2_L107_Flaps_in_Motion_FSECU1_MON,Flaps in motion,NaN
+FSECU_1_A429_Out_2_L107_FLAPS_SLATS_Detent_Achieved_FSECU1_MON,FLAPS & SLATS Detent Achieved,NaN
+FSECU_1_A429_Out_2_L107_SLATS_and_Detent_Agree_FSECU1_MON,SLATS & Detent Agree,NaN
+FSECU_1_A429_Out_2_L107_FLAPS_and_Detent_Agree_FSECU1_MON,FLAPS & Detent Agree,NaN
+FSECU_1_A429_Out_2_L354_Load_Relief_Active_FSECU1_MON,Load_Relief_Active,NaN
+FSECU_1_A429_Out_2_L354_Configuration_Inhibit_Active_FSECU1_MON,Configuration_Inhibit_Active,NaN
+FSECU_2_A429_Out_1_L107_Slats_in_Motion_FSECU2_CMD,Slats in motion,NaN
+FSECU_2_A429_Out_1_L107_Flaps_in_Motion_FSECU2_CMD,Flaps in motion,NaN
+FSECU_2_A429_Out_1_L107_FLAPS_SLATS_Detent_Achieved_FSECU2_CMD,FLAPS & SLATS Detent Achieved,NaN
+FSECU_2_A429_Out_1_L107_SLATS_and_Detent_Agree_FSECU2_CMD,SLATS & Detent Agree,NaN
+FSECU_2_A429_Out_1_L107_FLAPS_and_Detent_Agree_FSECU2_CMD,FLAPS & Detent Agree,NaN
+FSECU_2_A429_Out_1_L354_Load_Relief_Active_FSECU2_CMD,Load_Relief_Active,NaN
+FSECU_2_A429_Out_1_L354_Configuration_Inhibit_Active_FSECU2_CMD,Configuration_Inhibit_Active,NaN
+FSECU_2_A429_Out_2_L105_Slat_Position_FSECU2_MON,Slats in motion,NaN
+FSECU_2_A429_Out_2_L106_Flap_Position_FSECU2_MON,Flaps in motion,NaN
+FSECU_2_A429_Out_2_L107_FLAPS_SLATS_Detent_Achieved_FSECU2_MON,FLAPS & SLATS Detent Achieved,NaN
+FSECU_2_A429_Out_2_L107_SLATS_and_Detent_Agree_FSECU2_MON,SLATS & Detent Agree,NaN
+FSECU_2_A429_Out_2_L107_FLAPS_and_Detent_Agree_FSECU2_MON,FLAPS & Detent Agree,NaN
+FSECU_2_A429_Out_2_L354_Load_Relief_Active_FSECU2_MON,Load_Relief_Active,NaN
+FSECU_2_A429_Out_2_L354_Configuration_Inhibit_Active_FSECU2_MON,Configuration_Inhibit_Active,NaN
+FSECU_1_A429_Out_1_L351_SLAT_FAULT_FSECU1_CMD,SLATS_FAULT,NaN
+FSECU_1_A429_Out_1_L351_SLAT_AOA_INHIBIT_FSECU1_CMD,SLAT_AOA_INHIBIT,NaN
+FSECU_1_A429_Out_1_L351_SLAT_SLOW_FSECU1_CMD,SLATS_SLOW,NaN
+FSECU_1_A429_Out_1_L351_SLAT_DEGRADED_FSECU1_CMD,SLAT_DEGRADED,NaN
+FSECU_1_A429_Out_1_L351_FLAP_SLAT_MAINTENANCE_FSECU1_CMD,FLAP_SLAT_MAINTENANCE,NaN
+FSECU_1_A429_Out_2_L351_SLAT_FAULT_FSECU1_MON,SLATS_FAULT,NaN
+FSECU_1_A429_Out_2_L351_SLAT_AOA_INHIBIT_FSECU1_MON,SLAT_AOA_INHIBIT,NaN
+FSECU_1_A429_Out_2_L351_SLAT_SLOW_FSECU1_MON,SLATS_SLOW,NaN
+FSECU_1_A429_Out_2_L351_SLAT_DEGRADED_FSECU1_MON,SLAT_DEGRADED,NaN
+FSECU_1_A429_Out_2_L351_FLAP_SLAT_MAINTENANCE_FSECU1_MON,FLAP_SLAT_MAINTENANCE,NaN
+FSECU_2_A429_Out_1_L351_SLAT_FAULT_FSECU2_CMD,SLATS_FAULT,NaN
+FSECU_2_A429_Out_1_L351_SLAT_AOA_INHIBIT_FSECU2_CMD,SLAT_AOA_INHIBIT,NaN
+FSECU_2_A429_Out_1_L351_SLAT_SLOW_FSECU2_CMD,SLATS_SLOW,NaN
+FSECU_2_A429_Out_1_L351_SLAT_DEGRADED_FSECU2_CMD,SLAT_DEGRADED,NaN
+FSECU_2_A429_Out_1_L351_FLAP_SLAT_MAINTENANCE_FSECU2_CMD,FLAP_SLAT_MAINTENANCE,NaN
+FSECU_2_A429_Out_2_L351_SLAT_FAULT_FSECU2_MON,SLATS_FAULT,NaN
+FSECU_2_A429_Out_2_L351_SLAT_AOA_INHIBIT_FSECU2_MON,SLAT_AOA_INHIBIT,NaN
+FSECU_2_A429_Out_2_L351_SLAT_SLOW_FSECU2_MON,SLATS_SLOW,NaN
+FSECU_2_A429_Out_2_L351_SLAT_DEGRADED_FSECU2_MON,SLAT_DEGRADED,NaN
+FSECU_2_A429_Out_2_L351_FLAP_SLAT_MAINTENANCE_FSECU2_MON,FLAP_SLAT_MAINTENANCE,NaN
+LGCU1_A429_Out_1_L275_All_Gear_WOW,All Gear WOW,NaN
+LGCU1_A429_Out_1_L275_MLG_WOW_LH_RH,MLG WOW (LH and RH),NaN
+FSECU_1_A429_Out_1_L351_FLAP_FAULT_FSECU1_CMD,FLAPS_FAULT,NaN
+FSECU_1_A429_Out_1_L351_FLAP_INHIBIT_FSECU1_CMD,FLAP_INHIBIT,NaN
+FSECU_1_A429_Out_1_L351_FLAP_SLOW_FSECU1_CMD,FLAPS_SLOW,NaN
+FSECU_1_A429_Out_1_L351_FLAP_DEGRADED_FSECU1_CMD,FLAP_DEGRADED,NaN
+FSECU_1_A429_Out_1_L351_FLAP_PROT_FAULT_FSECU1_CMD,FLAP_PROT_FAULT,NaN
+FSECU_1_A429_Out_2_L351_FLAP_FAULT_FSECU1_MON,FLAPS_FAULT,NaN
+FSECU_1_A429_Out_2_L351_FLAP_INHIBIT_FSECU1_MON,FLAP_INHIBIT,NaN
+FSECU_1_A429_Out_2_L351_FLAP_SLOW_FSECU1_MON,FLAPS_SLOW,NaN
+FSECU_1_A429_Out_2_L351_FLAP_DEGRADED_FSECU1_MON,FLAP_DEGRADED,NaN
+FSECU_1_A429_Out_2_L351_FLAP_PROT_FAULT_FSECU1_MON,FLAP_PROT_FAULT,NaN
+FSECU_2_A429_Out_1_L351_FLAP_FAULT_FSECU2_CMD,FLAPS_FAULT,NaN
+FSECU_2_A429_Out_1_L351_FLAP_INHIBIT_FSECU2_CMD,FLAP_INHIBIT,NaN
+FSECU_2_A429_Out_1_L351_FLAP_SLOW_FSECU2_CMD,FLAPS_SLOW,NaN
+FSECU_2_A429_Out_1_L351_FLAP_DEGRADED_FSECU2_CMD,FLAP_DEGRADED,NaN
+FSECU_2_A429_Out_1_L351_FLAP_PROT_FAULT_FSECU2_CMD,FLAP_PROT_FAULT,NaN
+FSECU_2_A429_Out_2_L351_FLAP_FAULT_FSECU2_MON,FLAPS_FAULT,NaN
+FSECU_2_A429_Out_2_L351_FLAP_INHIBIT_FSECU2_MON,FLAP_INHIBIT,NaN
+FSECU_2_A429_Out_2_L351_FLAP_SLOW_FSECU2_MON,FLAPS_SLOW,NaN
+FSECU_2_A429_Out_2_L351_FLAP_DEGRADED_FSECU2_MON,FLAP_DEGRADED,NaN
+FSECU_2_A429_Out_2_L351_FLAP_PROT_FAULT_FSECU2_MON,FLAP_PROT_FAULT,NaN
+EPS1_L_BPCU_EMER_PWR_ONLY,L_BPCU_EMER_PWR_ONLY,NaN
+EPS1_R_BPCU_EMER_PWR_ONLY,R_BPCU_EMER_PWR_ONLY,NaN
+FSECU_1_A429_Out_1_L105_Slat_Position_FSECU1_CMD,Slat Position CMD,°
+FSECU_1_A429_Out_1_L105_SSM_FSECU1_CMD,Slat Position CMD SSM,NaN
+FSECU_1_A429_Out_1_L106_Flap_Position_FSECU1_CMD,Flap Position CMD,°
+FSECU_1_A429_Out_1_L106_SSM_FSECU1_CMD,Flap Position CMD SSM,NaN
+FSECU_1_A429_Out_2_L105_Slat_Position_FSECU1_MON,Slat Position MON,°
+FSECU_1_A429_Out_2_L105_Slat_Position_SSM_FSECU1_MON,Slat Position MON SSM,NaN
+FSECU_1_A429_Out_2_L106_Flap_Position_FSECU1_MON,Flap Position MON,°
+FSECU_1_A429_Out_2_L106_Flap_Position_SSM_FSECU1_MON,Flap Position MON SSM,NaN
+FSECU_2_A429_Out_1_L105_SSM_FSECU2_CMD,Slat Position CMD SSM,NaN
+FSECU_2_A429_Out_1_L106_SSM_FSECU2_CMD,Flap Position CMD SSM,NaN
+FSECU_2_A429_Out_2_L105_Slat_Position_SSM_FSECU2_MON,Slat Position MON SSM,NaN
+FSECU_2_A429_Out_2_L106_Flap_Position_SSM_FSECU2_MON,Flap Position MON SSM,NaN
+FSECU_1_A429_Out_1_L351_Local_R_Flap_Skew_LVDT_Monitor_Failed_FSECU1_CMD,Local_R_Flap_Skew_LVDT_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L351_Local_L_Flap_Skew_LVDT_Monitor_Failed_FSECU1_CMD,Local_L_Flap_Skew_LVDT_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L351_Local_R_Flap_Wingtip_Sensor_Monitor_Failed_FSECU1_CMD,Local_R_Flap_Wingtip_Sensor_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L351_Local_L_Flap_Wingtip_Sensor_Monitor_Failed_FSECU1_CMD,Local_L_Flap_Wingtip_Sensor_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L351_Local_R_Slat_S12_Sensor_Monitor_Failed_FSECU1_CMD,Local_R_Slat_S12_Sensor_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L351_Local_L_Slat_S12_Sensor_Monitor_Failed_FSECU1_CMD,Local_L_Slat_S12_Sensor_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L351_Local_FSCL_Position_Monitor_Failed_FSECU1_CMD,Local_FSCL_Position_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L352_Altitude_Monitor_Failed_FSECU1_CMD,Altitude_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L352_Local_Flap_Underspeed_UCM_Mon_Fail_FSECU1_CMD,Local_Flap_Underspeed_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_Slat_Underspeed_UCM_Mon_Fail_FSECU1_CMD,Local_Slat_Underspeed_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_Flap_Overspeed_UCM_Mon_Fail_FSECU1_CMD,Local_Flap_Overspeed_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_Slat_Overspeed_UCM_Mon_Fail_FSECU1_CMD,Local_Slat_Overspeed_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_Flap_Motor_Wrong_Direc_UCM_Mon_Fail_FSECU1_CMD,Local_Flap_Motor_Wrong_Direc_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_Slat_Motor_Wrong_Direc_UCM_Mon_Fail_FSECU1_CMD,Local_Slat_Motor_Wrong_Direc_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_Flap_Sys_Wrong_Direc_Mon_Fail_FSECU1_CMD,Local_Flap_Sys_Wrong_Direc_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_Slat_Sys_Wrong_Direc_Mon_Fail_FSECU1_CMD,Local_Slat_Sys_Wrong_Direc_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_Slat_Skew_L5_Monitor_Fail_FSECU1_CMD,Local_Slat_Skew_5_Monitor_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_Slat_Skew_4_Monitor_Fail_FSECU1_CMD,Local_Slat_Skew_4_Monitor_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_R_Slat_Skew_Lanyard_Mon_Fail_FSECU1_CMD,Local_R_Slat_Skew_Lanyard_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L352_Local_L_Slat_Skew_Lanyard_Mon_Fail_FSECU1_CMD,Local_L_Slat_Skew_Lanyard_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L353_Flap_Position_Com_Mon_Fail_FSECU1_CMD,Flap_Position_Com_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L353_Airspeed_Monitor_Failed_FSECU1_CMD,Airspeed_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L353_Slat_Position_Com_Mon_Fail_FSECU1_CMD,Slat_Position_Com_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L353_AOA_Monitor_Failed_FSECU1_CMD,AOA_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L353_Flap_Motor_Rate_Monitor_FSECU1_CMD,Flap_Motor_Rate_Monitor,NaN
+FSECU_1_A429_Out_1_L353_Slat_Motor_Rate_Monitor_FSECU1_CMD,Slat_Motor_Rate_Monitor,NaN
+FSECU_1_A429_Out_1_L353_Loss_of_CBDL_Communication_FSECU1_CMD,Loss_of_CBDL_Communication,NaN
+FSECU_1_A429_Out_1_L354_Flap_Asymmetry_FSECU1_CMD,Flap_Asymmetry,NaN
+FSECU_1_A429_Out_1_L354_Flap_Skew_FSECU1_CMD,Flap_Skew,NaN
+FSECU_1_A429_Out_1_L354_Slat_Asymmetry_FSECU1_CMD,Slat_Asymmetry,NaN
+FSECU_1_A429_Out_1_L354_Slat_Skew_FSECU1_CMD,Slat_Skew,NaN
+FSECU_1_A429_Out_1_L355_Left_Flap_WTB_SOV_Voltage_Monitor_Failed_FSECU1_CMD,Left_Flap_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L355_Right_Flap_WTB_SOV_Voltage_Monitor_Failed_FSECU1_CMD,Right_Flap_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L355_Left_Slat_WTB_SOV_Voltage_Monitor_Failed_FSECU1_CMD,Left_Slat_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L355_Right_Slat_WTB_SOV_Voltage_Monitor_Failed_FSECU1_CMD,Right_Slat_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_1_A429_Out_1_L355_Flap_System_Underspeed_Monitor_Failed_FSECU1_CMD,Flap_System_Underspeed_Monitor_Failed      ,NaN
+FSECU_1_A429_Out_1_L355_Slat_System_Underspeed_Monitor_Failed_FSECU1_CMD,Slat_System_Underspeed_Monitor_Failed      ,NaN
+FSECU_1_A429_Out_1_L355_Flap_System_Overspeed_Mon_Fail_FSECU1_CMD,Flap_System_Overspeed_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L355_Slat_System_Overspeed_Mon_Fail_FSECU1_CMD,Slat_System_Overspeed_Mon_Fail,NaN
+FSECU_1_A429_Out_1_L355_WOW_Monitor_CBDL_Backup_Fail_FSECU1_CMD,WOW_Monitor_CBDL_Backup_Fail,NaN
+FSECU_1_A429_Out_2_L351_Local_R_Flap_Skew_LVDT_Monitor_Failed_FSECU1_MON,Local_R_Flap_Skew_LVDT_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L351_Local_L_Flap_Skew_LVDT_Monitor_Failed_FSECU1_MON,Local_L_Flap_Skew_LVDT_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L351_Local_R_Flap_Wingtip_Sensor_Monitor_Failed_FSECU1_MON,Local_R_Flap_Wingtip_Sensor_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L351_Local_L_Flap_Wingtip_Sensor_Monitor_Failed_FSECU1_MON,Local_L_Flap_Wingtip_Sensor_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L351_Local_R_Slat_S12_Sensor_Monitor_Failed_FSECU1_MON,Local_R_Slat_S12_Sensor_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L351_Local_L_Slat_S12_Sensor_Monitor_Failed_FSECU1_MON,Local_L_Slat_S12_Sensor_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L351_Local_FSCL_Position_Monitor_Failed_FSECU1_MON,Local_FSCL_Position_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L352_Altitude_Monitor_Failed_FSECU1_MON,Altitude_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L352_Local_Flap_Underspeed_UCM_Mon_Fail_FSECU1_MON,Local_Flap_Underspeed_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_Slat_Underspeed_UCM_Mon_Fail_FSECU1_MON,Local_Slat_Underspeed_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_Flap_Overspeed_UCM_Mon_Fail_FSECU1_MON,Local_Flap_Overspeed_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_Slat_Overspeed_UCM_Mon_Fail_FSECU1_MON,Local_Slat_Overspeed_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_Flap_Motor_Wrong_Direc_UCM_Mon_Fail_FSECU1_MON,Local_Flap_Motor_Wrong_Direc_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_Slat_Motor_Wrong_Direc_UCM_Mon_Fail_FSECU1_MON,Local_Slat_Motor_Wrong_Direc_UCM_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_Flap_Sys_Wrong_Direc_Mon_Fail_FSECU1_MON,Local_Flap_Sys_Wrong_Direc_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_Slat_Sys_Wrong_Direc_Mon_Fail_FSECU1_MON,Local_Slat_Sys_Wrong_Direc_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_Slat_Skew_L5_Monitor_Fail_FSECU1_MON,Local_Slat_Skew_5_Monitor_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_Slat_Skew_4_Monitor_Fail_FSECU1_MON,Local_Slat_Skew_4_Monitor_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_R_Slat_Skew_Lanyard_Mon_Fail_FSECU1_MON,Local_R_Slat_Skew_Lanyard_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L352_Local_L_Slat_Skew_Lanyard_Mon_Fail_FSECU1_MON,Local_L_Slat_Skew_Lanyard_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L353_Flap_Position_Com_Mon_Fail_FSECU1_MON,Flap_Position_Com_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L353_Airspeed_Monitor_Failed_FSECU1_MON,Airspeed_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L353_Slat_Position_Com_Mon_Fail_FSECU1_MON,Slat_Position_Com_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L353_AOA_Monitor_Failed_FSECU1_MON,AOA_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L353_Flap_Motor_Rate_Monitor_FSECU1_MON,Flap_Motor_Rate_Monitor,NaN
+FSECU_1_A429_Out_2_L353_Slat_Motor_Rate_Monitor_FSECU1_MON,Slat_Motor_Rate_Monitor,NaN
+FSECU_1_A429_Out_2_L353_Loss_of_CBDL_Communication_FSECU1_MON,Loss_of_CBDL_Communication,NaN
+FSECU_1_A429_Out_2_L354_Flap_Asymmetry_FSECU1_MON,Flap_Asymmetry,NaN
+FSECU_1_A429_Out_2_L354_Flap_Skew_FSECU1_MON,Flap_Skew,NaN
+FSECU_1_A429_Out_2_L354_Slat_Asymmetry_FSECU1_MON,Slat_Asymmetry,NaN
+FSECU_1_A429_Out_2_L354_Slat_Skew_FSECU1_MON,Slat_Skew,NaN
+FSECU_1_A429_Out_2_L354_Flap_Inoperative_FSECU1_MON,Flap_Inoperative,NaN
+FSECU_1_A429_Out_2_L354_Slat_Inoperative_FSECU1_MON,Slat_Inoperative,NaN
+FSECU_1_A429_Out_2_L355_Left_Flap_WTB_SOV_Voltage_Monitor_Failed_FSECU1_MON,Left_Flap_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L355_Right_Flap_WTB_SOV_Voltage_Monitor_Failed_FSECU1_MON,Right_Flap_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L355_Left_Slat_WTB_SOV_Voltage_Monitor_Failed_FSECU1_MON,Left_Slat_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L355_Right_Slat_WTB_SOV_Voltage_Monitor_Failed_FSECU1_MON,Right_Slat_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_1_A429_Out_2_L355_Flap_System_Underspeed_Monitor_Failed_FSECU1_MON,Flap_System_Underspeed_Monitor_Failed      ,NaN
+FSECU_1_A429_Out_2_L355_Slat_System_Underspeed_Monitor_Failed_FSECU1_MON,Slat_System_Underspeed_Monitor_Failed      ,NaN
+FSECU_1_A429_Out_2_L355_Flap_System_Overspeed_Mon_Fail_FSECU1_MON,Flap_System_Overspeed_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L355_Slat_System_Overspeed_Mon_Fail_FSECU1_MON,Slat_System_Overspeed_Mon_Fail,NaN
+FSECU_1_A429_Out_2_L355_WOW_Monitor_CBDL_Backup_Fail_FSECU1_MON,WOW_Monitor_CBDL_Backup_Fail,NaN
+FSECU_2_A429_Out_1_L351_Local_R_Flap_Skew_LVDT_Monitor_Failed_FSECU2_CMD,Local_R_Flap_Skew_LVDT_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L351_Local_L_Flap_Skew_LVDT_Monitor_Failed_FSECU2_CMD,Local_L_Flap_Skew_LVDT_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L351_Local_R_Flap_Wingtip_Sensor_Monitor_Failed_FSECU2_CMD,Local_R_Flap_Wingtip_Sensor_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L351_Local_L_Flap_Wingtip_Sensor_Monitor_Failed_FSECU2_CMD,Local_L_Flap_Wingtip_Sensor_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L351_Local_R_Slat_S12_Sensor_Monitor_Failed_FSECU2_CMD,Local_R_Slat_S12_Sensor_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L351_Local_L_Slat_S12_Sensor_Monitor_Failed_FSECU2_CMD,Local_L_Slat_S12_Sensor_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L351_Local_FSCL_Position_Monitor_Failed_FSECU2_CMD,Local_FSCL_Position_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L352_Altitude_Monitor_Failed_FSECU2_CMD,Altitude_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L352_Local_Flap_Underspeed_UCM_Mon_Fail_FSECU2_CMD,Local_Flap_Underspeed_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_Slat_Underspeed_UCM_Mon_Fail_FSECU2_CMD,Local_Slat_Underspeed_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_Flap_Overspeed_UCM_Mon_Fail_FSECU2_CMD,Local_Flap_Overspeed_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_Slat_Overspeed_UCM_Mon_Fail_FSECU2_CMD,Local_Slat_Overspeed_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_Flap_Motor_Wrong_Direc_UCM_Mon_Fail_FSECU2_CMD,Local_Flap_Motor_Wrong_Direc_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_Slat_Motor_Wrong_Direc_UCM_Mon_Fail_FSECU2_CMD,Local_Slat_Motor_Wrong_Direc_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_Flap_Sys_Wrong_Direc_Mon_Fail_FSECU2_CMD,Local_Flap_Sys_Wrong_Direc_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_Slat_Sys_Wrong_Direc_Mon_Fail_FSECU2_CMD,Local_Slat_Sys_Wrong_Direc_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_Slat_Skew_L5_Monitor_Fail_FSECU2_CMD,Local_Slat_Skew_5_Monitor_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_Slat_Skew_4_Monitor_Fail_FSECU2_CMD,Local_Slat_Skew_4_Monitor_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_R_Slat_Skew_Lanyard_Mon_Fail_FSECU2_CMD,Local_R_Slat_Skew_Lanyard_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L352_Local_L_Slat_Skew_Lanyard_Mon_Fail_FSECU2_CMD,Local_L_Slat_Skew_Lanyard_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L353_Flap_Position_Com_Mon_Fail_FSECU2_CMD,Flap_Position_Com_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L353_Airspeed_Monitor_Failed_FSECU2_CMD,Airspeed_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L353_Slat_Position_Com_Mon_Fail_FSECU2_CMD,Slat_Position_Com_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L353_AOA_Monitor_Failed_FSECU2_CMD,AOA_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L353_Flap_Motor_Rate_Monitor_FSECU2_CMD,Flap_Motor_Rate_Monitor,NaN
+FSECU_2_A429_Out_1_L353_Slat_Motor_Rate_Monitor_FSECU2_CMD,Slat_Motor_Rate_Monitor,NaN
+FSECU_2_A429_Out_1_L353_Loss_of_CBDL_Communication_FSECU2_CMD,Loss_of_CBDL_Communication,NaN
+FSECU_2_A429_Out_1_L354_Flap_Asymmetry_FSECU2_CMD,Flap_Asymmetry,NaN
+FSECU_2_A429_Out_1_L354_Flap_Skew_FSECU2_CMD,Flap_Skew,NaN
+FSECU_2_A429_Out_1_L354_Slat_Asymmetry_FSECU2_CMD,Slat_Asymmetry,NaN
+FSECU_2_A429_Out_1_L354_Slat_Skew_FSECU2_CMD,Slat_Skew,NaN
+FSECU_2_A429_Out_1_L354_Flap_Inoperative_FSECU2_CMD,Flap_Inoperative,NaN
+FSECU_2_A429_Out_1_L354_Slat_Inoperative_FSECU2_CMD,Slat_Inoperative,NaN
+FSECU_2_A429_Out_1_L355_Left_Flap_WTB_SOV_Voltage_Monitor_Failed_FSECU2_CMD,Left_Flap_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L355_Right_Flap_WTB_SOV_Voltage_Monitor_Failed_FSECU2_CMD,Right_Flap_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L355_Left_Slat_WTB_SOV_Voltage_Monitor_Failed_FSECU2_CMD,Left_Slat_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L355_Right_Slat_WTB_SOV_Voltage_Monitor_Failed_FSECU2_CMD,Right_Slat_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_2_A429_Out_1_L355_Flap_System_Underspeed_Monitor_Failed_FSECU2_CMD,Flap_System_Underspeed_Monitor_Failed      ,NaN
+FSECU_2_A429_Out_1_L355_Slat_System_Underspeed_Monitor_Failed_FSECU2_CMD,Slat_System_Underspeed_Monitor_Failed      ,NaN
+FSECU_2_A429_Out_1_L355_Flap_System_Overspeed_Mon_Fail_FSECU2_CMD,Flap_System_Overspeed_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L355_Slat_System_Overspeed_Mon_Fail_FSECU2_CMD,Slat_System_Overspeed_Mon_Fail,NaN
+FSECU_2_A429_Out_1_L355_WOW_Monitor_CBDL_Backup_Fail_FSECU2_CMD,WOW_Monitor_CBDL_Backup_Fail,NaN
+FSECU_2_A429_Out_2_L351_Local_R_Flap_Skew_LVDT_Monitor_Failed_FSECU2_MON,Local_R_Flap_Skew_LVDT_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L351_Local_L_Flap_Skew_LVDT_Monitor_Failed_FSECU2_MON,Local_L_Flap_Skew_LVDT_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L351_Local_R_Flap_Wingtip_Sensor_Monitor_Failed_FSECU2_MON,Local_R_Flap_Wingtip_Sensor_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L351_Local_L_Flap_Wingtip_Sensor_Monitor_Failed_FSECU2_MON,Local_L_Flap_Wingtip_Sensor_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L351_Local_R_Slat_S12_Sensor_Monitor_Failed_FSECU2_MON,Local_R_Slat_S12_Sensor_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L351_Local_L_Slat_S12_Sensor_Monitor_Failed_FSECU2_MON,Local_L_Slat_S12_Sensor_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L351_Local_FSCL_Position_Monitor_Failed_FSECU2_MON,Local_FSCL_Position_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L352_Altitude_Monitor_Failed_FSECU2_MON,Altitude_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L352_Local_Flap_Underspeed_UCM_Mon_Fail_FSECU2_MON,Local_Flap_Underspeed_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_Slat_Underspeed_UCM_Mon_Fail_FSECU2_MON,Local_Slat_Underspeed_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_Flap_Overspeed_UCM_Mon_Fail_FSECU2_MON,Local_Flap_Overspeed_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_Slat_Overspeed_UCM_Mon_Fail_FSECU2_MON,Local_Slat_Overspeed_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_Flap_Motor_Wrong_Direc_UCM_Mon_Fail_FSECU2_MON,Local_Flap_Motor_Wrong_Direc_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_Slat_Motor_Wrong_Direc_UCM_Mon_Fail_FSECU2_MON,Local_Slat_Motor_Wrong_Direc_UCM_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_Flap_Sys_Wrong_Direc_Mon_Fail_FSECU2_MON,Local_Flap_Sys_Wrong_Direc_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_Slat_Sys_Wrong_Direc_Mon_Fail_FSECU2_MON,Local_Slat_Sys_Wrong_Direc_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_Slat_Skew_L5_Monitor_Fail_FSECU2_MON,Local_Slat_Skew_5_Monitor_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_Slat_Skew_4_Monitor_Fail_FSECU2_MON,Local_Slat_Skew_4_Monitor_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_R_Slat_Skew_Lanyard_Mon_Fail_FSECU2_MON,Local_R_Slat_Skew_Lanyard_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L352_Local_L_Slat_Skew_Lanyard_Mon_Fail_FSECU2_MON,Local_L_Slat_Skew_Lanyard_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L353_Flap_Position_Com_Mon_Fail_FSECU2_MON,Flap_Position_Com_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L353_Airspeed_Monitor_Failed_FSECU2_MON,Airspeed_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L353_Slat_Position_Com_Mon_Fail_FSECU2_MON,Slat_Position_Com_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L353_AOA_Monitor_Failed_FSECU2_MON,AOA_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L353_Flap_Motor_Rate_Monitor_FSECU2_MON,Flap_Motor_Rate_Monitor,NaN
+FSECU_2_A429_Out_2_L353_Slat_Motor_Rate_Monitor_FSECU2_MON,Slat_Motor_Rate_Monitor,NaN
+FSECU_2_A429_Out_2_L353_Loss_of_CBDL_Communication_FSECU2_MON,Loss_of_CBDL_Communication,NaN
+FSECU_2_A429_Out_2_L354_Flap_Asymmetry_FSECU2_MON,Flap_Asymmetry,NaN
+FSECU_2_A429_Out_2_L354_Flap_Skew_FSECU2_MON,Flap_Skew,NaN
+FSECU_2_A429_Out_2_L354_Slat_Asymmetry_FSECU2_MON,Slat_Asymmetry,NaN
+FSECU_2_A429_Out_2_L354_Slat_Skew_FSECU2_MON,Slat_Skew,NaN
+FSECU_2_A429_Out_2_L354_Flap_Inoperative_FSECU2_MON,Flap_Inoperative,NaN
+FSECU_2_A429_Out_2_L354_Slat_Inoperative_FSECU2_MON,Slat_Inoperative,NaN
+FSECU_2_A429_Out_2_L355_Left_Flap_WTB_SOV_Voltage_Monitor_Failed_FSECU2_MON,Left_Flap_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L355_Right_Flap_WTB_SOV_Voltage_Monitor_Failed_FSECU2_MON,Right_Flap_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L355_Left_Slat_WTB_SOV_Voltage_Monitor_Failed_FSECU2_MON,Left_Slat_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L355_Right_Slat_WTB_SOV_Voltage_Monitor_Failed_FSECU2_MON,Right_Slat_WTB_SOV_Voltage_Monitor_Failed,NaN
+FSECU_2_A429_Out_2_L355_Flap_System_Underspeed_Monitor_Failed_FSECU2_MON,Flap_System_Underspeed_Monitor_Failed      ,NaN
+FSECU_2_A429_Out_2_L355_Slat_System_Underspeed_Monitor_Failed_FSECU2_MON,Slat_System_Underspeed_Monitor_Failed      ,NaN
+FSECU_2_A429_Out_2_L355_Flap_System_Overspeed_Mon_Fail_FSECU2_MON,Flap_System_Overspeed_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L355_Slat_System_Overspeed_Mon_Fail_FSECU2_MON,Slat_System_Overspeed_Mon_Fail,NaN
+FSECU_2_A429_Out_2_L355_WOW_Monitor_CBDL_Backup_Fail_FSECU2_MON,WOW_Monitor_CBDL_Backup_Fail,NaN
+FSECU1_CMD_Tx_FSECU2_CMD_Rx_L330_Left_Flap_Skew_LVDT_Position,Left_Flap_Skew_LVDT_Position,mm
+FSECU1_MON_Tx_FSECU2_MON_Rx_L330_Left_Flap_Skew_LVDT_Position,Left_Flap_Skew_LVDT_Position,mm
+FSECU1_CMD_Rx_FSECU2_CMD_Tx_L330_Left_Flap_Skew_LVDT_Position,Left_Flap_Skew_LVDT_Position,mm
+FSECU1_MON_Rx_FSECU2_MON_Tx_L330_Left_Flap_Skew_LVDT_Position,Left_Flap_Skew_LVDT_Position,mm
+FSECU1_CMD_Tx_FSECU2_CMD_Rx_L331_Right_Flap_Skew_LVDT_Position,Right_Flap_Skew_LVDT_Position,mm
+FSECU1_MON_Tx_FSECU2_MON_Rx_L331_Right_Flap_Skew_LVDT_Position,Right_Flap_Skew_LVDT_Position,mm
+FSECU1_CMD_Rx_FSECU2_CMD_Tx_L331_Right_Flap_Skew_LVDT_Position,Right_Flap_Skew_LVDT_Position,mm
+FSECU1_MON_Rx_FSECU2_MON_Tx_L331_Right_Flap_Skew_LVDT_Position,Right_Flap_Skew_LVDT_Position,mm
+FSECU1_CMD_Tx_FSECU2_CMD_Rx_L150_Flap_Motor_Rate,Flap_Motor_Rate,rpm
+FSECU1_MON_Tx_FSECU2_MON_Rx_L150_Flap_Motor_Rate,Flap_Motor_Rate,rpm
+FSECU1_CMD_Rx_FSECU2_CMD_Tx_L150_Flap_Motor_Rate,Flap_Motor_Rate,rpm
+FSECU1_MON_Rx_FSECU2_MON_Tx_L150_Flap_Motor_Rate,Flap_Motor_Rate,rpm
+FSECU1_CMD_Tx_FSECU2_CMD_Rx_L130_Slat_Motor_Rate,Slat_Motor_Rate,rpm
+FSECU1_MON_Tx_FSECU2_MON_Rx_L130_Slat_Motor_Rate,Slat_Motor_Rate,rpm
+FSECU1_CMD_Rx_FSECU2_CMD_Tx_L130_Slat_Motor_Rate,Slat_Motor_Rate,rpm
+FSECU1_MON_Rx_FSECU2_MON_Tx_L130_Slat_Motor_Rate,Slat_Motor_Rate,rpm
+FSECU_1_A429_Out_1_L354_Flap_Inoperative_FSECU1_CMD,Flap_Inoperative,NaN
+FSECU_1_A429_Out_1_L354_Slat_Inoperative_FSECU1_CMD,Slat_Inoperative,NaN
+HYDIMC_A429_Out_1_L175_TEMP_SYS1_T1A,1#系统温度,°C
+HYDIMC_A429_Out_1_L175_TEMP_SYS2_T1A,2#系统温度,°C
+HYDIMC_A429_Out_1_L175_TEMP_SYS3_T1A,3#系统温度,°C
+HYDIMC_A429_Out_1_L173_QTY_SYS1_T1A,1#系统油量,%
+HYDIMC_A429_Out_1_L173_QTY_SYS2_T1A,2#系统油量,%
+HYDIMC_A429_Out_1_L173_QTY_SYS3_T1A,3#系统油量,%
+HYDIMC_A429_Out_1_L145_HYD_EDP_1A_FAIL_T1A,EDP 1A 失效,NaN
+HYDIMC_A429_Out_1_L145_HYD_PUMP_1B_FAIL_T1A,EMP 1B 失效,NaN
+HYDIMC_A429_Out_1_L145_HYD_EDP_2A_FAIL_T1A,EDP 2A 失效,NaN
+HYDIMC_A429_Out_1_L145_HYD_PUMP_3A_FAIL_T1A,EMP 3A 失效,NaN
+HYDIMC_A429_Out_1_L145_HYD_PUMP_3B_FAIL_T1A,EMP 3B 失效,NaN
+HYDIMC_A429_Out_1_L145_HYD_PTU_FAIL_T1A,PTU 失效,NaN
+HYDIMC_A429_Out_1_L147_SW_FWSOV_CLOSED_EDP1_T1A,Hydraulic System 1 EDP 1 Firewall Shutoff Valve Closed,NaN
+HYDIMC_A429_Out_1_L147_SW_FWSOV_OPEN_EDP1_T1A,Hydraulic System 1 EDP 1 Firewall Shutoff Valve Open,NaN
+HYDIMC_A429_Out_1_L147_SW_FWSOV_CLOSED_EDP2_T1A,Hydraulic System 2 EDP 2 Firewall Shutoff Valve Closed,NaN
+HYDIMC_A429_Out_1_L147_SW_FWSOV_OPEN_EDP2_T1A,Hydraulic System 2 EDP 2 Firewall Shutoff Valve Open,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_HI_EDP1_T1A,EDP 1 高压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_HI_EDP2_T1A,EDP 2 高压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_HI_EMP1B_T1A,EMP 1B 高压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_HI_EMP3A_T1A,EMP 3A 高压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_HI_EMP3B_T1A,EMP 3B 高压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_HI_PTU_T1A,PTU 高压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_LO_EDP1_T1A,EDP 1 低压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_LO_EDP2_T1A,EDP 2 低压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_LO_EMP1B_T1A,EMP 1B 低压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_LO_EMP3A_T1A,EMP 3A 低压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_LO_EMP3B_T1A,EMP 3B 低压,NaN
+HYDIMC_A429_Out_1_L147_SW_PRESS_LO_PTU_T1A,PTU 低压,NaN
+HYDIMC_A429_Out_1_L146_HYD_1_SOV_FAIL_T1A,SOV1失效,NaN
+HYDIMC_A429_Out_1_L146_HYD_2_SOV_FAIL_T1A,SOV2失效,NaN
+HYDIMC_A429_In_1_L273_LEFT_ENG_FIRE_EXT_SYS_ARMED_FPS_R1A,左发防火按压开关,NaN
+HYDIMC_A429_In_1_L273_RIGHT_ENG_FIRE_EXT_SYS_ARMED_FPS_R1A,右发防火按压开关,NaN
+HYDIMC_A429_In_1_L274_EDP1_CMD_DEPRESS_EEC1A_R1A,EDP1卸荷指令,NaN
+HYDIMC_A429_In_1_L274_EDP2_CMD_DEPRESS_EEC2A_R1A,EDP2卸荷指令,NaN
+HYDIMC_A429_In_1_L274_L_TLA_TAKEOFF_EEC1A_R1A,左发起飞油门杆位置信号,NaN
+HYDIMC_A429_In_1_L274_L_ENG_RUNNING_EEC1A_R1A,左发工作信号,NaN
+HYDIMC_A429_In_1_L274_R_TLA_TAKEOFF_EEC2A_R1A,右发起飞油门杆位置信号,NaN
+HYDIMC_A429_In_1_L274_R_ENG_RUNNING_EEC2A_R1A,右发工作信号,NaN
+HYDIMC_A429_In_1_L275_AG_WOW_LGCU1C_R1A,轮载信号,NaN
+HYDIMC_A429_In_1_L351_PARK_BRAKE_ON_BCMU_R1A,停留刹车,NaN
+HYDIMC_A429_In_1_L271_PTU_SW_ICCP_CAN_A_R1A,来自CAN_A总线的PTU开关,NaN
+HYDIMC_A429_In_1_L271_EMP1B_SW_ICCP_CAN_A_R1A,来自CAN_A总线的EMP1B开关,NaN
+HYDIMC_A429_In_1_L271_EMP3A_SW_ICCP_CAN_A_R1A,来自CAN_A总线的EMP3A开关,NaN
+HYDIMC_A429_In_1_L271_EMP3B_SW_ICCP_CAN_A_R1A,来自CAN_A总线的EMP3B开关,NaN
+HYDIMC_A429_In_1_L272_FWSOV1_SW_ICCP_R1A,防火切断阀1开关,NaN
+HYDIMC_A429_In_1_L272_FWSOV2_SW_ICCP_R1A,防火切断阀2开关,NaN
+HYDIMC_A429_In_1_L107_DETENT_CMD0_FSECU1C_R1A,襟翼操纵杆位置,NaN
+HYDIMC_A429_In_1_L107_DETENT_CMD1_FSECU1C_R1A,襟翼操纵杆位置,NaN
+HYDIMC_A429_In_1_L107_DETENT_CMD2_FSECU1C_R1A,襟翼操纵杆位置,NaN
+HYDIMC_A429_In_1_L107_DETENT_CMD3_FSECU1C_R1A,襟翼操纵杆位置,NaN
+HYDIMC_A429_In_1_L107_DETENT_CMD_FULL1_FSECU1C_R1A,襟翼操纵杆位置,NaN
+HYDIMC_A429_In_1_L74_EMP1B_TEMP_RDIU_R1A,EMP1B温度,NaN
+HYDIMC_A429_In_1_L75_EMP3A_TEMP_RDIU_R1A,EMP3A温度,NaN
+HYDIMC_A429_In_1_L76_EMP3B_TEMP_RDIU_R1A,EMP3B温度,NaN
+LGCU1_A429_Out_1_L275_DI_MON_AES_GND_DISC,备份放开关打开,NaN
+LGCU1_A429_Out_1_L272_NLG_LH_Door_Open_prx_Snsr,前起左舱门打开,NaN
+LGCU1_A429_Out_1_L272_NLG_LH_Door_Clsd_prx_Snsr,前起左舱门关闭,NaN
+LGCU1_A429_Out_1_L272_NLG_RH_Door_Open_prx_Snsr,前起右舱门打开,NaN
+LGCU1_A429_Out_1_L272_NLG_RH_Door_Clsd_prx_Snsr,前起右舱门关闭,NaN
+LGCU1_A429_Out_1_L272_MLG_LH_Door_Open_prx_Snsr,左主起舱门打开,NaN
+LGCU1_A429_Out_1_L272_MLG_LH_Door_Clsd_prx_Snsr,左主起舱门关闭,NaN
+LGCU1_A429_Out_1_L272_MLG_RH_Door_Open_prx_Snsr,右主起舱门打开,NaN
+LGCU1_A429_Out_1_L272_MLG_RH_Door_Clsd_prx_Snsr,右主起舱门关闭,NaN
+LGCU1_A429_Out_1_L140_Steering_Tiller_Cmd_Pilot,主驾驶转弯手轮角度,°
+LGCU1_A429_Out_1_L143_Steering_Tiller_Cmd_CoPilot,副驾驶转弯手轮角度,°
+LGCU1_A429_Out_1_L270_Pilot_Pedal_Disconnect,主驾驶脚蹬转弯断开,NaN
+LGCU1_A429_Out_1_L270_CoPilot_Pedal_Disconnect,副驾驶脚蹬转弯断开,NaN
+LGCU1_A429_Out_1_L162_Steering_Fdbk_from_MonCh,前轮转弯角,°
+FCM_1_429_LGCU1_L220_BNR_Steering_Command,方向舵脚蹬指令,°
+LGCU1_A429_Out_1_L270_Steering_Off,前轮转弯解除,NaN
+LGCU1_A429_Out_1_L270_NWS_Switch_On,前轮转弯接通,NaN
+LGCU1_A429_Out_1_L270_Steering_Fault,转弯失效,NaN
+BCMU_A429_Out_1_L170_Left_Pilot_Pedal_Position_BCMU,主驾驶左脚蹬刹车位置,%
+BCMU_A429_Out_1_L171_Right_Pilot_Pedal_Position_BCMU,主驾驶右脚蹬刹车位置,%
+BCMU_A429_Out_1_L172_Left_CO_Pilot_Pedal_Position_BCMU,副驾驶左脚蹬刹车位置,%
+BCMU_A429_Out_1_L173_Right_CO_Pilot_Pedal_Position_BCMU,副驾驶右脚蹬刹车位置,%
+BCMU_A429_Out_1_L174_NML_SOV_Voltage_Status_BCMU,正常系统SOV电压状态 ,NaN
+ABCU_A429_Out_2_L174_ALT_SOV_Voltage_Status_ABCU,备份系统SOV电压状态 ,NaN
+BCMU_A429_Out_1_L174_Left_INBD_Pressure_Command_BCMU,左内刹车指令,psi
+BCMU_A429_Out_1_L175_Right_INBD_Pressure_Command_BCMU,右内刹车指令,psi
+BCMU_A429_Out_1_L176_Left_OUTBD_Pressure_Command_BCMU,左外刹车指令,psi
+BCMU_A429_Out_1_L177_Right_OUTBD_Pressure_Command_BCMU,右外刹车指令,psi
+ABCU_A429_Out_2_L174_ALT_Left_INBD_Pressure_Command_ABCU,备份左刹车指令,psi
+ABCU_A429_Out_2_L175_ALT_Right_INBD_Pressure_Command_ABCU,备份右刹车指令,psi
+ABCU_A429_Out_2_L70_ALT_Left_Brake_Pressure_ABCU,备份左刹车压力,psi
+ABCU_A429_Out_2_L71_ALT_Right_Brake_Pressure_ABCU,备份右刹车压力,psi
+BCMU_A429_Out_1_L004_Left_INBD_Wheelspeed_BCMU,左内主起轮速,ft/sec
+BCMU_A429_Out_1_L006_Left_OUTBD_Wheelspeed_BCMU,左外主起轮速,ft/sec
+BCMU_A429_Out_1_L005_Right_INBD_Wheelspeed_BCMU,右内主起轮速,ft/sec
+BCMU_A429_Out_1_L007_Right_OUTBD_Wheelspeed_BCMU,右外主起轮速,ft/sec
+BCMU_A429_Out_1_L64_Left_Nose_Tire_Pressure_BCMU,前左轮胎压力,psig
+BCMU_A429_Out_1_L65_Right_Nose_Tire_Pressure_BCMU,前右轮胎压力,psig
+BCMU_A429_Out_1_L60_Left_INBD_Tire_Pressure_BCMU,左内轮胎压力,psig
+BCMU_A429_Out_1_L62_Left_OUTBD_Tire_Pressure_BCMU,左外轮胎压力,psig
+BCMU_A429_Out_1_L61_Right_INBD_Tire_Pressure_BCMU,右内轮胎压力,psig
+BCMU_A429_Out_1_L63_Right_OUTBD_Tire_Pressure_BCMU,右外轮胎压力,psig
+BCMU_A429_Out_1_L367_Normal_Accumulator_Pressure_BCMU,刹车蓄压器压力,PSI
+BCMU_A429_Out_1_L351_AUTO_BRK_RTO_BCMU,自动刹车RTO,NaN
+BCMU_A429_Out_1_L351_AUTO_BRK_HI_BCMU,自动刹车HI,NaN
+BCMU_A429_Out_1_L351_AUTO_BRK_MED_BCMU,自动刹车MED,NaN
+BCMU_A429_Out_1_L351_AUTO_BRK_LOW_BCMU,自动刹车LO,NaN
+BCMU_A429_Out_1_L051_ANTISKID_OFF_BCMU,防滑关闭,NaN
+ABCU_A429_Out_2_L051_BRK_ALT_ACTIVE_ABCU,BRK ALT ACTIVE,NaN
+BCMU_A429_Out_1_L051_AUTO_BRK_FAULT_BCMU,AUTO BRK FAULT,NaN
+BCMU_A429_Out_1_L351_PARK_BRK_ON_BCMU,停留刹车,NaN
+LGCU1_A429_Out_1_L273_NLG_Uplocked,NLG Uplocked,NaN
+LGCU1_A429_Out_1_L273_NLG_Dnlocked,NLG Downlocked ,NaN
+LGCU1_A429_Out_1_L273_All_Gear_Uplocked,All Gear Uplocked,NaN
+LGCU1_A429_Out_1_L273_All_Gear_Dnlocked,All Gear Downlocked,NaN
+LGCU1_A429_Out_1_L273_All_LG_Door_open,All LG Door open,NaN
+LGCU1_A429_Out_1_L273_All_LG_Door_Clsd,All LG Door closed,NaN

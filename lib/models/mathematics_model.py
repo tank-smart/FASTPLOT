@@ -18,13 +18,14 @@ import pandas as pd
 # =============================================================================
 from PyQt5.QtWidgets import (QPlainTextEdit, QMessageBox, QAction, QDialog,
                              QMenu)
-from PyQt5.QtGui import QSyntaxHighlighter, QTextCharFormat, QTextCursor
-from PyQt5.QtCore import Qt, QRegExp, QCoreApplication, pyqtSignal
+from PyQt5.QtGui import (QSyntaxHighlighter, QTextCharFormat, QTextCursor)
+from PyQt5.QtCore import (Qt, QRegExp, QCoreApplication, pyqtSignal)
 
 # =============================================================================
 # Package views imports
 # =============================================================================
 from models.datafile_model import Normal_DataFile
+from models.data_model import DataFactory
 from views.custom_dialog import SelParasDialog
 
 #用于将特定字符加高亮
@@ -59,6 +60,9 @@ class Highlighter(QSyntaxHighlighter):
 class MathematicsEditor(QPlainTextEdit):
 
     signal_compute_result = pyqtSignal(pd.DataFrame)
+#---------yanhua加    
+    signal_clc = pyqtSignal(bool)
+#---------yanhua
     
     def __init__(self, parent = None):
         
@@ -66,6 +70,11 @@ class MathematicsEditor(QPlainTextEdit):
 
         self._current_files = []
 #        存储上一条语句
+#---------        yanhua 加
+        self.scope={}
+        self.time_df=None
+        self.count=0
+#----------       yanhua 加结束
         self.pre_exper = ''
         self.RESERVED = 'RESERVED'
         self.PARA = 'PARA'
@@ -91,6 +100,9 @@ class MathematicsEditor(QPlainTextEdit):
         self.paras_on_expr = []
         
         self.setup()
+#---------   yanhua 加
+        self.scope_setup()
+#---------   yanhua 加
     
     def setup(self):
         
@@ -160,7 +172,7 @@ class MathematicsEditor(QPlainTextEdit):
                 text_cursor.insertText('>')
         self.setTextCursor(text_cursor)
         
-    def slot_exec_block(self, count):
+    def slot_exec_block_wxl(self, count):
         
 #        经过slot_cursor_pos和keyPressEvent函数，已保证了MATLAB那种代码交互效果
 #        所以当blockcount变化时，当前的block是新输入block，前一个block是需要执行的代码
@@ -175,22 +187,94 @@ class MathematicsEditor(QPlainTextEdit):
 #            解析exec_text，如果满足要求，则执行运算
             if self.lex(exec_text) and self.paras_on_expr:
                 reg_df = self.pretreat_paras()
-#                将参数的数据读入内存
-                for paraname in self.paras_on_expr:
-                    exper = paraname + ' = reg_df[\'' + paraname + '\']'
-                    exec(exper)
+                if type(reg_df) == pd.DataFrame:
+                    try:
+#                        将参数的数据读入内存
+                        for paraname in self.paras_on_expr:
+                            exper = paraname + ' = reg_df[\'' + paraname + '\']'
+                            exec(exper)
+#                        注意此时result是series对象
+                        result = eval(exec_text)
+#                        判断结果是否仍然是时间序列
+                        if len(result) == len(reg_df):
+                            df_result = pd.DataFrame({'Time' : reg_df.iloc[:, 0], 
+                                                      'Result': result}, columns = ['Time', 'Result'])
+#                        否则认为是一个数
+                        else:
+                            df_result = pd.DataFrame({'Label' : 1,
+                                                      'Result': result}, columns = ['Label', 'Result'])
+                        self.signal_compute_result.emit(df_result)
+                    except:
+                        QMessageBox.information(self,
+                                QCoreApplication.translate("MathematicsEditor", "提示"),
+                                QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
+                else:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("MathematicsEditor", "提示"),
+                            QCoreApplication.translate("MathematicsEditor", '参数维度不一致'))
+            else:
+                QMessageBox.information(self,
+                        QCoreApplication.translate("MathematicsEditor", "提示"),
+                        QCoreApplication.translate("MathematicsEditor", '语法错误'))
+
+#----------------yanhua改
+    def slot_exec_block(self, count):
+        
+#        经过slot_cursor_pos和keyPressEvent函数，已保证了MATLAB那种代码交互效果
+#        所以当blockcount变化时，当前的block是新输入block，前一个block是需要执行的代码
+        document = self.document()
+        current_block = document.lastBlock()
+        exec_block = current_block.previous()
+        exec_text = exec_block.text()
+        if (len(exec_text) > 2):
+#            剔除输入标志'>>'
+            exec_text = exec_text[2 : ]
+            self.pre_exper = exec_text
+#            解析exec_text，如果满足要求，则执行运算
+#            if self.lex(exec_text) and self.paras_on_expr:
+            flag=self.lex(exec_text)
+            if flag!=-1:
+                if flag==1:
+                    reg_df = self.pretreat_paras()
+                    self.time_df=reg_df.iloc[:, 0]#注：这边的时间其实并没有什么意义
+#                    self.scope['reg_df']=reg_df
+                    
+    #                将参数的数据读入内存
+                    for paraname in self.paras_on_expr:
+                        self.scope[paraname]=reg_df[paraname]
+#                        exper = paraname + ' = reg_df[\'' + paraname + '\']'
+#                        exec(exper,self.scope)
                 try:
-#                    注意此时result是series对象
-                    result = eval(exec_text)
-#                    判断结果是否仍然是时间序列
-                    if len(result) == len(reg_df):
-                        df_result = pd.DataFrame({'Time' : reg_df.iloc[:, 0], 
-                                                  'Result': result}, columns = ['Time', 'Result'])
-#                    否则认为是一个数
+                    if exec_text.find('=')!=-1:        
+                        exec(exec_text,self.scope)
+                        result_name=exec_text.split('=')[0]            
+                        result=eval(result_name,self.scope)
+#                        self.paras_on_expr.append(result_name)
+#                        print(result)
                     else:
-                        df_result = pd.DataFrame({'Label' : 1,
-                                                  'Result': result}, columns = ['Label', 'Result'])
-                    self.signal_compute_result.emit(df_result)
+#                       注意此时result是series对象
+                        result = eval(exec_text,self.scope)
+                        result_name='Result'+str(self.count+1)
+                        if result is not None:
+                            self.count = self.count+1
+#                       判断结果是否仍然是时间序列
+                    if result is not None:
+                        
+                        if self.time_df is not None and isinstance(result, type(self.time_df)) and (len(result) == len(self.time_df)):
+                            
+#                            print(self.time_df)
+                            df_result = pd.DataFrame({'Time' : self.time_df, 
+                                                      result_name: result}, columns = ['Time', result_name])
+#                        否则认为是一个数
+#                            
+                        else:
+                            
+                            df_result = pd.DataFrame({'Label' : [1],
+                                                      result_name: result}, columns = ['Label', result_name])
+#                            print(df_result)
+                        self.signal_compute_result.emit(df_result)
+                    else:
+                        pass
                 except:
                     QMessageBox.information(self,
                             QCoreApplication.translate("MathematicsEditor", "提示"),
@@ -200,6 +284,17 @@ class MathematicsEditor(QPlainTextEdit):
                         QCoreApplication.translate("MathematicsEditor", "提示"),
                         QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
 
+    def scope_setup(self):
+        self.scope['clear']=self.clc
+
+    def clc(self):
+        self.scope={}
+        self.scope_setup()
+        self.time_df=None
+        self.count=0
+        self.signal_clc.emit(True)
+#------------yanhua
+                
     def conmandline_context_menu(self, pos):
         
         menu = QMenu(self)
@@ -266,7 +361,7 @@ class MathematicsEditor(QPlainTextEdit):
 # 功能函数模块   
 # =============================================================================            
 #    需要保证charaters非空，找到这个charaters中包含的参数并且保证只执行taoken_exprs限制的运算
-    def lex(self, charaters):
+    def lex_wxl(self, charaters):
         
         pos = 0
         paranames = []
@@ -294,6 +389,41 @@ class MathematicsEditor(QPlainTextEdit):
 #        self.expression_consist_of_tokens = tokens
         self.paras_on_expr = paranames
         return True
+
+#------------yanhua改    
+#    修改返回值为int，表示三种状态：1有合法可载入的参数;0无需要载入的参数;-1非法字符    
+    def lex(self, charaters):
+        
+        pos = 0
+        paranames = []
+        while pos < len(charaters):
+            match = None
+            for token_expr in self.token_exprs:
+                pattern, tag = token_expr
+                regex = re.compile(pattern)
+                match = regex.match(charaters, pos)
+                if match:
+                    text = match.group(0)
+#                    if tag:
+                    if (tag == 'PARA') and not(text in paranames) and text not in self.scope:
+                        paranames.append(text)
+                    break
+            if not match:
+                QMessageBox.information(self,
+                        QCoreApplication.translate("MathematicsEditor", "提示"),
+                        QCoreApplication.translate("MathematicsEditor", '非法字符: %s' % charaters[pos]))
+#                self.expression_consist_of_tokens = []
+                self.paras_on_expr = []
+                return -1
+            else:
+                pos = match.end(0)
+#        self.expression_consist_of_tokens = tokens
+        self.paras_on_expr = paranames
+        if self.paras_on_expr == []:
+            return 0
+        else:
+            return 1
+#----------yanhua改
     
     def dict_current_files(self):
             
@@ -321,11 +451,18 @@ class MathematicsEditor(QPlainTextEdit):
                         dict_paras[file_dir].append(para)
                     break
 #        从文件中读取参数数据，并在不同文件读出来的dataframe中第一列加入时间
+        first_data = None
         for file_dir in dict_paras:
-            file = Normal_DataFile(file_dir)
-            dict_paras[file_dir].insert(0, file.paras_in_file[0])
-            df = file.cols_input(file_dir, dict_paras[file_dir], '\s+')
-            df_list.append(df)
+            if first_data:
+                df = DataFactory(file_dir, dict_paras[file_dir])
+                if df.is_concat(first_data):
+                    df_list.append(df.data[df.get_paralist()])
+                else:
+#                    这里进行同步处理，处理不了返回None
+                    return None
+            else:
+                first_data = DataFactory(file_dir, dict_paras[file_dir])
+                df_list.append(first_data.data)
             
         df_all = pd.concat(df_list,axis = 1,join = 'outer',
                            ignore_index = False)
