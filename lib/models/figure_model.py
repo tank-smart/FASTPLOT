@@ -40,7 +40,7 @@ import models.time_model as Time_Model
 from models.data_model import DataFactory
 from PyQt5.QtGui import QIcon
 import scipy.io as sio
-from mpl_toolkits.axisartist.parasite_axes import HostAxes, ParasiteAxes
+import numpy as np
 #------王--改动结束
 import matplotlib.pyplot as plt
 from datetime import datetime
@@ -835,9 +835,8 @@ class PlotCanvas(FigureCanvas):
                         dict_data_project[datasource] = data_label
 #                        total_data里存的就是当前绘图的参数数据，没有多余参数
                         self.total_data[data_label] = data_factory
-#                        把时间列读出来
-                        self.time_series_list[data_label] = pd.to_datetime(data_factory.data.iloc[:, 0],
-                                                                           format='%H:%M:%S:%f')
+#                        把时间列读出来，因为matplotlib只识别ndarray，所以进行类型转换
+                        self.time_series_list[data_label] = np.array(pd.to_datetime(data_factory.data.iloc[:, 0],format='%H:%M:%S:%f'))
                         self.count_created_data += 1
 
             exit_paras = []
@@ -989,11 +988,25 @@ class PlotCanvas(FigureCanvas):
 
     def plot_stack_paras(self, datalist, sorted_paras):
 
+#        y坐标的实际刻度数
+        num_ygrads = 22
+#        y轴标签间间隔的刻度数
+        num_ylabel_inter_grads = 3
+#        每个坐标用多少个实际刻度显示，取偶数
+        num_y_subgrads = 4
+#        坐标的刻度用几个实际刻度显示，目前只显示三个刻度值，所以除以2
+        grads_y_sub = num_y_subgrads / 2
         is_plot = self.process_data(datalist, sorted_paras)
         
         if is_plot:
+            
             self.fig.clf()
-            self.count_axes = 1
+            self.color_index = 0
+            count = len(self.sorted_paralist)
+            self.count_axes = count
+            if count > 7:
+                n = count - 7
+                num_ygrads = 22 + num_ylabel_inter_grads * (n - 1) + num_y_subgrads
             matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
             matplotlib.rcParams['ytick.direction'] = 'in'
 #            支持中文显示
@@ -1021,14 +1034,13 @@ class PlotCanvas(FigureCanvas):
             host.xaxis.set_major_formatter(FuncFormatter(self.my_format))
             host.xaxis.set_major_locator(MaxNLocator(nbins=6))
             host.xaxis.set_minor_locator(AutoMinorLocator(n=2))
-            host.yaxis.set_major_locator(LinearLocator(numticks=21))
+            host.yaxis.set_major_locator(LinearLocator(numticks=num_ygrads+1))
 #            plt.setp(host.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
             
             axeslist = []
             axeslist.append(host)
-            self.color_index = 0
-            count = len(self.sorted_paralist)
-            for i, para_tuple in enumerate(reversed(self.sorted_paralist)):
+
+            for i, para_tuple in enumerate(self.sorted_paralist):
                 self.signal_progress.emit(int(i/count*100))
                 paraname, index = para_tuple
 #                if axeslist:
@@ -1074,22 +1086,33 @@ class PlotCanvas(FigureCanvas):
                 ax.yaxis.tick_left()
                 ax.yaxis.set_label_position('left')
                 ax.spines['left'].set_color(self.curve_colors[self.color_index])
+                ax.spines['right'].set_visible(False)
+                ax.spines['top'].set_visible(False)
+                ax.spines['bottom'].set_visible(False)
                 llimit, ulimit = ax.get_ylim()
 #                delta = (ulimit - llimit) / 4
                 new_delta = self.num_adjust((ulimit - llimit) / 2)
-                mid = int((llimit + ulimit) / 2 / new_delta) * new_delta
+                base_mid = int((llimit + ulimit) / 2 / new_delta)
+                bias_mid = (llimit + ulimit) / 2 / new_delta - base_mid
+                if bias_mid > 0.5:
+                    base_mid += 1
+                mid = base_mid * new_delta
                 lb = mid - new_delta
                 ub = mid + new_delta
 #                lb = llimit +  3 * i * delta
 #                ub = lb + 4 * delta
-                if i % 2 == 1:
-                    ax.spines['left'].set_position(('axes', -0.12))
+                flag = i
+                if flag % 2 == 1:
+                    ax.spines['left'].set_position(('axes', -0.13))
                 else:
                     ax.spines['left'].set_position(('axes', -0.03))
                 ax.set_yticks([lb,(lb + ub) / 2, ub])
                 ax.spines['left'].set_bounds(lb, ub)
-                ax.set_ylabel(ax.get_ylabel(), y = (3 * i + 2) / 20, picker = 1)
-                ax.set_ylim(lb - 3 * i * new_delta / 2, ub + (16 - 3 * i) * new_delta / 2)
+                ax.set_ylabel(ax.get_ylabel(),
+                              y = 1 - (num_ylabel_inter_grads * flag + grads_y_sub) / num_ygrads,
+                              picker = 1)
+                ax.set_ylim(lb - (num_ygrads - num_ylabel_inter_grads * flag - num_y_subgrads) * new_delta / grads_y_sub, 
+                            ub + num_ylabel_inter_grads * flag * new_delta / grads_y_sub)
                 plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
 #                else:
 #                    ax = host
@@ -1390,7 +1413,7 @@ class PlotCanvas(FigureCanvas):
                 m += 1
             top_gap = round((h - 20 * m) / h, 2)
         if self.fig_style == 'stack_axis':
-            left_gap = round(70 * 3 / w, 2)
+            left_gap = round((100 * 1 + 80) / w, 2)
             top_gap = round((h - 40) / h, 2)
         if self.fig_style == 'user-defined_axis':
             left_gap = round(70 / w, 2)

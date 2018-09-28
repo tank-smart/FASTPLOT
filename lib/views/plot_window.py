@@ -466,7 +466,7 @@ class PlotWindow(QWidget):
             if self.current_canva.fig_style == 'sin_axis':
                 self.count_axis = 1
             if self.current_canva.fig_style == 'stack_axis':
-                self.count_axis = 1
+                self.count_axis = self.current_canva.count_axes
             if self.current_canva.fig_style == 'user-defined_axis':
                 self.count_axis = self.current_canva.count_axes
             
@@ -474,9 +474,19 @@ class PlotWindow(QWidget):
                 self.current_fig_win.setWidgetResizable(False)
 #                        乘以1.05是估计的，刚好能放下四张图，
 #                        减去的19是滚动条的宽度
-                height = int(self.current_fig_win.height() * 1.05) / 4
-                self.current_canva.resize(self.current_fig_win.width() - 19,
-                                       self.count_axis * height)
+                if self.current_canva.fig_style == 'stack_axis':
+                    if self.count_axis > 7:
+                        n = self.count_axis - 7
+                        d = 3 * (n - 1) + 4
+                        height = self.current_fig_win.height() + d * 20
+                        self.current_canva.resize(self.current_fig_win.width() - 19,
+                                                  height)
+                    else:
+                        self.current_fig_win.setWidgetResizable(True)
+                else:
+                    height = int(self.current_fig_win.height() * 1.05) / 4
+                    self.current_canva.resize(self.current_fig_win.width() - 19,
+                                           self.count_axis * height)
             else:
                 self.current_fig_win.setWidgetResizable(True)
             
@@ -725,7 +735,10 @@ class PlotWindow(QWidget):
             else:
                 axis_h = 100
 #            画布尺寸
-            h = self.count_axis * (axis_h + legend_h) + legend_h
+            if self.current_canva.fig_style != 'stack_axis':
+                h = self.count_axis * (axis_h + legend_h) + legend_h
+            else:
+                h = self.current_canva.height()
             w = 650
             bottom_gap = round(legend_h * 2 / h, 2)
             right_gap = round((w - 10) / w, 2)
@@ -739,7 +752,7 @@ class PlotWindow(QWidget):
                     m += 1
                 top_gap = round((h - legend_h * m) / h, 2)
             if self.current_canva.fig_style == 'stack_axis':
-                left_gap = round(50 * 3 / w, 2)
+                left_gap = round((75 * 1 + 55) / w, 2)
                 top_gap = round((h - legend_h) / h, 2)
             if self.current_canva.fig_style == 'user-defined_axis':
                 left_gap = round(50 / w, 2)
@@ -758,9 +771,19 @@ class PlotWindow(QWidget):
 #            将画布还原回查看状态下的尺寸
             if self.count_axis > 4:
                 self.current_fig_win.setWidgetResizable(False)
-                height = int(self.current_fig_win.height() * 1.05) / 4
-                self.current_canva.resize(self.current_fig_win.width() - 19,
-                                       self.count_axis * height)
+                if self.current_canva.fig_style == 'stack_axis':
+                    if self.count_axis > 7:
+                        n = self.count_axis - 7
+                        if n % 2 == 1:
+                            height = self.current_fig_win.height() + (int(n / 2) * 7 + 4) * 20
+                        else:
+                            height = self.current_fig_win.height() + (int(n / 2) * 7) * 20
+                    self.current_canva.resize(self.current_fig_win.width() - 19,
+                                              height)
+                else:
+                    height = int(self.current_fig_win.height() * 1.05) / 4
+                    self.current_canva.resize(self.current_fig_win.width() - 19,
+                                           self.count_axis * height)
             else:
                 self.current_fig_win.setWidgetResizable(True)
             self.current_canva.adjust_figure()
