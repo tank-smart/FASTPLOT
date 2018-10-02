@@ -78,7 +78,8 @@ class DataFactory(object):
             self.sample_frequency = fre
 
 #    time为datatime类型或字符串时间
-#    若paraname不为空，返回参数值；若为空，返回一个元组型的列表，第一个元素是时间
+#    返回一个元组（时间，参数值列表）
+#    对于参数值列表，若paraname不为空，返回参数值；若为空，返回一个元组型的列表，第一个元素是时间
     def get_time_paravalue(self, time = None, paraname = None):
         
         if Time_Model.is_in_range(self.time_range[0], self.time_range[1], time):
@@ -86,15 +87,16 @@ class DataFactory(object):
                                                        time, 
                                                        self.sample_frequency)
             para_data = self.data.iloc[time_index, :]
+            time_str = Time_Model.timestr_to_stdtimestr(para_data[0])
             if paraname:
-                return para_data[paraname]
+                return (time_str, para_data[paraname])
             else:
                 paravalue = []
                 for paraname in self.data_paralist:
                     paravalue.append((paraname, para_data[paraname]))
-                return paravalue
+                return (time_str, paravalue)
         else:
-            return None
+            return ('', None)
         
     def get_paralist(self):
         
@@ -148,6 +150,7 @@ class DataFactory(object):
         else:
             return False
         
+#    返回的是实际时间段及其数据
     def get_trange_data(self, stime = None, etime = None, paralist = [], is_with_time = True):
         
         if stime and etime:
@@ -166,34 +169,46 @@ class DataFactory(object):
                 if Time_Model.compare(st, lim_stime) == -1:
                     st = lim_stime
                     if Time_Model.compare(et, lim_stime) == -1:
-                        return None
+                        return (None, None)
                     else:
                         if Time_Model.compare(et, lim_etime) == 1:
                             et = lim_etime
                 else:
                     if Time_Model.compare(st, lim_etime) == 1:
-                        return None
+                        return (None, None)
                     else:
                         if Time_Model.compare(et, lim_etime) == 1:
                             et = lim_etime
-            stime_index = Time_Model.count_between_time(lim_stime,
-                                                        st,
-                                                        self.sample_frequency)
-            etime_index = Time_Model.count_between_time(lim_stime,
-                                                        et,
-                                                        self.sample_frequency)
-            if paralist:
-                if is_with_time:
-                    paralist.insert(0, self.get_time_index())
-#                按下面的dataframe访问方式是左闭右开，所以右边要加1
-                return self.data[paralist][stime_index : (etime_index + 1)]
-            else:
-                if is_with_time:
-                    return self.data[stime_index : (etime_index + 1)]
+#                因为是以采样点为起始时间，则得到的index是最靠近且小于终止时间的那个采样点的index
+                stime_index = Time_Model.count_between_time(lim_stime,
+                                                            st,
+                                                            self.sample_frequency)
+                etime_index = Time_Model.count_between_time(lim_stime,
+                                                            et,
+                                                            self.sample_frequency)
+#                更新起始时间，保证只取在选择时间范围的数据
+                getted_stime = self.data.iloc[stime_index, 0]
+                if Time_Model.compare(getted_stime, st) == -1:
+                    stime_index += 1
+                std_stime = Time_Model.timestr_to_stdtimestr(self.data.iloc[stime_index, 0])
+                std_etime = Time_Model.timestr_to_stdtimestr(self.data.iloc[etime_index, 0])
+                if paralist:
+                    if is_with_time:
+                        paralist.insert(0, self.get_time_index())
+    #                按下面的dataframe访问方式是左闭右开，所以右边要加1
+                    return ((std_stime, std_etime), 
+                            self.data[paralist][stime_index : (etime_index + 1)])
                 else:
-                    return self.data[self.get_paralist()][stime_index : (etime_index + 1)]
+                    if is_with_time:
+                        return ((std_stime, std_etime), 
+                                self.data[stime_index : (etime_index + 1)])
+                    else:
+                        return ((std_stime, std_etime), 
+                                self.data[self.get_paralist()][stime_index : (etime_index + 1)])
+            else:
+                return (None, None)
         else:
-            return None
+            return (None, None)
 
 #---------yanhua加        
     def get_shape(self):

@@ -30,7 +30,7 @@ from PyQt5.QtGui import QIcon
 # Package views imports
 # =============================================================================
 from models.figure_model import PlotCanvas
-from views.custom_dialog import SelParasDialog
+from views.custom_dialog import DisplayParaValuesDialog
 import views.config_info as CONFIG
 # =============================================================================
 # FigureWindow
@@ -228,31 +228,31 @@ class PlotWindow(QWidget):
         self.button_clear_canvas.setIconSize(QSize(22, 22))
         self.button_clear_canvas.setIcon(QIcon(CONFIG.ICON_CLEAR))
         self.verticalLayout.addWidget(self.button_clear_canvas)
-        self.button_add_sa_fig = QToolButton(self.widget_plot_tools)
-        self.button_add_sa_fig.setMinimumSize(QSize(30, 30))
-        self.button_add_sa_fig.setMaximumSize(QSize(30, 30))
-        self.button_add_sa_fig.setIconSize(QSize(22, 22))
-        self.button_add_sa_fig.setIcon(QIcon(CONFIG.ICON_SINGLE_AXIS))
-        self.verticalLayout.addWidget(self.button_add_sa_fig)
-        self.button_add_ma_fig = QToolButton(self.widget_plot_tools)
-        self.button_add_ma_fig.setMinimumSize(QSize(30, 30))
-        self.button_add_ma_fig.setMaximumSize(QSize(30, 30))
-        self.button_add_ma_fig.setIconSize(QSize(22, 22))
-        self.button_add_ma_fig.setIcon(QIcon(CONFIG.ICON_MULT_AXIS))
-        self.verticalLayout.addWidget(self.button_add_ma_fig)
-        self.button_add_sta_fig = QToolButton(self.widget_plot_tools)
-        self.button_add_sta_fig.setMinimumSize(QSize(30, 30))
-        self.button_add_sta_fig.setMaximumSize(QSize(30, 30))
-        self.button_add_sta_fig.setIconSize(QSize(22, 22))
-        self.button_add_sta_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
-        self.verticalLayout.addWidget(self.button_add_sta_fig)
-        
-        self.button_add_ux_fig = QToolButton(self.widget_plot_tools)
-        self.button_add_ux_fig.setMinimumSize(QSize(30, 30))
-        self.button_add_ux_fig.setMaximumSize(QSize(30, 30))
-        self.button_add_ux_fig.setIconSize(QSize(22, 22))
-        self.button_add_ux_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
-        self.verticalLayout.addWidget(self.button_add_ux_fig)
+#        self.button_add_sa_fig = QToolButton(self.widget_plot_tools)
+#        self.button_add_sa_fig.setMinimumSize(QSize(30, 30))
+#        self.button_add_sa_fig.setMaximumSize(QSize(30, 30))
+#        self.button_add_sa_fig.setIconSize(QSize(22, 22))
+#        self.button_add_sa_fig.setIcon(QIcon(CONFIG.ICON_SINGLE_AXIS))
+#        self.verticalLayout.addWidget(self.button_add_sa_fig)
+#        self.button_add_ma_fig = QToolButton(self.widget_plot_tools)
+#        self.button_add_ma_fig.setMinimumSize(QSize(30, 30))
+#        self.button_add_ma_fig.setMaximumSize(QSize(30, 30))
+#        self.button_add_ma_fig.setIconSize(QSize(22, 22))
+#        self.button_add_ma_fig.setIcon(QIcon(CONFIG.ICON_MULT_AXIS))
+#        self.verticalLayout.addWidget(self.button_add_ma_fig)
+#        self.button_add_sta_fig = QToolButton(self.widget_plot_tools)
+#        self.button_add_sta_fig.setMinimumSize(QSize(30, 30))
+#        self.button_add_sta_fig.setMaximumSize(QSize(30, 30))
+#        self.button_add_sta_fig.setIconSize(QSize(22, 22))
+#        self.button_add_sta_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
+#        self.verticalLayout.addWidget(self.button_add_sta_fig)
+#        
+#        self.button_add_ux_fig = QToolButton(self.widget_plot_tools)
+#        self.button_add_ux_fig.setMinimumSize(QSize(30, 30))
+#        self.button_add_ux_fig.setMaximumSize(QSize(30, 30))
+#        self.button_add_ux_fig.setIconSize(QSize(22, 22))
+#        self.button_add_ux_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
+#        self.verticalLayout.addWidget(self.button_add_ux_fig)
         
         self.button_add_text = QToolButton(self.widget_plot_tools)
         self.button_add_text.setMinimumSize(QSize(30, 30))
@@ -281,65 +281,65 @@ class PlotWindow(QWidget):
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         
-        self.para_value_window = QWidget(self)
-        self.para_value_window.setMinimumSize(QSize(250, 0))
-        self.para_value_window.setMaximumSize(QSize(250, 16777215))
-        
-        self.vl_para_window = QVBoxLayout(self.para_value_window)
-        self.vl_para_window.setContentsMargins(2, 2, 2, 0)
-        self.vl_para_window.setSpacing(2)
-        self.group_box_time_interval = QGroupBox(self.para_value_window)
-        self.vl_gbtr = QVBoxLayout(self.group_box_time_interval)
-        self.vl_gbtr.setContentsMargins(2, 2, 2, 2)
-        self.vl_gbtr.setSpacing(2)
-        self.hl_combo = QHBoxLayout()
-        self.hl_combo.setSpacing(4)
-        self.combo_box_time_intervals = QComboBox(self.group_box_time_interval)
-        self.combo_box_time_intervals.setMinimumSize(QSize(0, 24))
-        self.combo_box_time_intervals.setMaximumSize(QSize(16777215, 24))
-        self.hl_combo.addWidget(self.combo_box_time_intervals)
-        self.tool_btn_time_interval = QToolButton(self.group_box_time_interval)
-        self.tool_btn_time_interval.setMinimumSize(QSize(24, 24))
-        self.tool_btn_time_interval.setMaximumSize(QSize(24, 24))
-        self.hl_combo.addWidget(self.tool_btn_time_interval)
-        self.vl_gbtr.addLayout(self.hl_combo)
-        self.hl_combo_2 = QHBoxLayout()
-        self.hl_combo_2.setSpacing(4)
-        self.combo_box_time = QComboBox(self.group_box_time_interval)
-        self.combo_box_time.setMinimumSize(QSize(0, 24))
-        self.combo_box_time.setMaximumSize(QSize(16777215, 24))
-        self.hl_combo_2.addWidget(self.combo_box_time)
-        self.tool_btn_time = QToolButton(self.group_box_time_interval)
-        self.tool_btn_time.setMinimumSize(QSize(24, 24))
-        self.tool_btn_time.setMaximumSize(QSize(24, 24))
-        self.hl_combo_2.addWidget(self.tool_btn_time)
-        self.vl_gbtr.addLayout(self.hl_combo_2)
-        self.vl_para_window.addWidget(self.group_box_time_interval)
-        self.group_box_time = QGroupBox(self.para_value_window)
-        self.vl_gbt = QVBoxLayout(self.group_box_time)
-        self.vl_gbt.setContentsMargins(2, 2, 2, 0)
-        self.vl_gbt.setSpacing(2)
-        self.label_time = QLabel(self.group_box_time)
-        self.label_time.setMinimumSize(QSize(0, 24))
-        self.label_time.setMaximumSize(QSize(16777215, 24))
-        self.vl_gbt.addWidget(self.label_time)
-        self.table_widget_value = QTableWidget(self.group_box_time)
-        self.table_widget_value.setColumnCount(2)
-        self.table_widget_value.setRowCount(0)
-        item = QTableWidgetItem()
-        self.table_widget_value.setHorizontalHeaderItem(0, item)
-        item = QTableWidgetItem()
-        self.table_widget_value.setHorizontalHeaderItem(1, item)
-        self.table_widget_value.horizontalHeader().setDefaultSectionSize(119)
-        self.table_widget_value.verticalHeader().setVisible(False)
-        self.vl_gbt.addWidget(self.table_widget_value)
-        self.vl_para_window.addWidget(self.group_box_time)
+#        self.para_value_window = QWidget(self)
+#        self.para_value_window.setMinimumSize(QSize(250, 0))
+#        self.para_value_window.setMaximumSize(QSize(250, 16777215))
+#        
+#        self.vl_para_window = QVBoxLayout(self.para_value_window)
+#        self.vl_para_window.setContentsMargins(2, 2, 2, 0)
+#        self.vl_para_window.setSpacing(2)
+#        self.group_box_time_interval = QGroupBox(self.para_value_window)
+#        self.vl_gbtr = QVBoxLayout(self.group_box_time_interval)
+#        self.vl_gbtr.setContentsMargins(2, 2, 2, 2)
+#        self.vl_gbtr.setSpacing(2)
+#        self.hl_combo = QHBoxLayout()
+#        self.hl_combo.setSpacing(4)
+#        self.combo_box_time_intervals = QComboBox(self.group_box_time_interval)
+#        self.combo_box_time_intervals.setMinimumSize(QSize(0, 24))
+#        self.combo_box_time_intervals.setMaximumSize(QSize(16777215, 24))
+#        self.hl_combo.addWidget(self.combo_box_time_intervals)
+#        self.tool_btn_time_interval = QToolButton(self.group_box_time_interval)
+#        self.tool_btn_time_interval.setMinimumSize(QSize(24, 24))
+#        self.tool_btn_time_interval.setMaximumSize(QSize(24, 24))
+#        self.hl_combo.addWidget(self.tool_btn_time_interval)
+#        self.vl_gbtr.addLayout(self.hl_combo)
+#        self.hl_combo_2 = QHBoxLayout()
+#        self.hl_combo_2.setSpacing(4)
+#        self.combo_box_time = QComboBox(self.group_box_time_interval)
+#        self.combo_box_time.setMinimumSize(QSize(0, 24))
+#        self.combo_box_time.setMaximumSize(QSize(16777215, 24))
+#        self.hl_combo_2.addWidget(self.combo_box_time)
+#        self.tool_btn_time = QToolButton(self.group_box_time_interval)
+#        self.tool_btn_time.setMinimumSize(QSize(24, 24))
+#        self.tool_btn_time.setMaximumSize(QSize(24, 24))
+#        self.hl_combo_2.addWidget(self.tool_btn_time)
+#        self.vl_gbtr.addLayout(self.hl_combo_2)
+#        self.vl_para_window.addWidget(self.group_box_time_interval)
+#        self.group_box_time = QGroupBox(self.para_value_window)
+#        self.vl_gbt = QVBoxLayout(self.group_box_time)
+#        self.vl_gbt.setContentsMargins(2, 2, 2, 0)
+#        self.vl_gbt.setSpacing(2)
+#        self.label_time = QLabel(self.group_box_time)
+#        self.label_time.setMinimumSize(QSize(0, 24))
+#        self.label_time.setMaximumSize(QSize(16777215, 24))
+#        self.vl_gbt.addWidget(self.label_time)
+#        self.table_widget_value = QTableWidget(self.group_box_time)
+#        self.table_widget_value.setColumnCount(2)
+#        self.table_widget_value.setRowCount(0)
+#        item = QTableWidgetItem()
+#        self.table_widget_value.setHorizontalHeaderItem(0, item)
+#        item = QTableWidgetItem()
+#        self.table_widget_value.setHorizontalHeaderItem(1, item)
+#        self.table_widget_value.horizontalHeader().setDefaultSectionSize(119)
+#        self.table_widget_value.verticalHeader().setVisible(False)
+#        self.vl_gbt.addWidget(self.table_widget_value)
+#        self.vl_para_window.addWidget(self.group_box_time)
         
 #        先添加工具栏在添加包括画布/滑块的水平子布局器
         self.horizontalLayout_2.addWidget(self.widget_plot_tools)
         self.horizontalLayout_2.addWidget(self.tab_widget_figure)
-        self.horizontalLayout_2.addWidget(self.para_value_window)
-        self.para_value_window.setHidden(True)
+#        self.horizontalLayout_2.addWidget(self.para_value_window)
+#        self.para_value_window.setHidden(True)
 
         self.retranslateUi()
 # =======连接信号与槽
@@ -351,20 +351,20 @@ class PlotWindow(QWidget):
 #        self.button_save_temp.clicked.connect(self.slot_save_temp)
         self.button_clear_canvas.clicked.connect(self.slot_clear_canvas)
         self.button_get_paravalue.clicked.connect(self.slot_paravalue_btn_clicked)
-        self.button_add_sa_fig.clicked.connect(self.slot_add_sa_fig)
-        self.button_add_ma_fig.clicked.connect(self.slot_add_ma_fig)
-        self.button_add_sta_fig.clicked.connect(self.slot_add_stack_fig)
-        self.button_add_ux_fig.clicked.connect(self.slot_add_ux_fig)
+#        self.button_add_sa_fig.clicked.connect(self.slot_add_sa_fig)
+#        self.button_add_ma_fig.clicked.connect(self.slot_add_ma_fig)
+#        self.button_add_sta_fig.clicked.connect(self.slot_add_stack_fig)
+#        self.button_add_ux_fig.clicked.connect(self.slot_add_ux_fig)
         self.button_add_text.clicked.connect(self.slot_add_text)
         self.button_add_hl.clicked.connect(self.slot_add_hline)
         self.button_add_vl.clicked.connect(self.slot_add_vline)
         self.button_add_line.clicked.connect(self.slot_add_line)
 
-        self.combo_box_time.activated.connect(self.slot_display_paravalue_ontime)
-        self.tool_btn_time.clicked.connect(self.slot_import_paravalue)
+#        self.combo_box_time.activated.connect(self.slot_display_paravalue_ontime)
+#        self.tool_btn_time.clicked.connect(self.slot_import_paravalue)
         
-        self.combo_box_time_intervals.activated.connect(self.slot_display_tinterval)
-        self.tool_btn_time_interval.clicked.connect(self.slot_save_interval_data)
+#        self.combo_box_time_intervals.activated.connect(self.slot_display_tinterval)
+#        self.tool_btn_time_interval.clicked.connect(self.slot_save_interval_data)
         
         self.tab_widget_figure.tabCloseRequested.connect(self.slot_close_tab)
         self.tab_widget_figure.currentChanged.connect(self.slot_fig_win_change)
@@ -387,9 +387,9 @@ class PlotWindow(QWidget):
 #        画布的右键菜单
         self.signal_is_display_menu.connect(self.current_canva.slot_set_display_menu)
         
-        self.current_canva.signal_cursor_xdata.connect(self.slot_display_paravalue)
-        self.current_canva.signal_send_time.connect(self.slot_save_time)
-        self.current_canva.signal_send_tinterval.connect(self.slot_save_tinterval)
+#        self.current_canva.signal_cursor_xdata.connect(self.slot_display_paravalue)
+#        self.current_canva.signal_send_time.connect(self.slot_save_time)
+#        self.current_canva.signal_send_tinterval.connect(self.slot_save_tinterval)
  
 #    断开与绘图窗口有关的信号槽       
     def diconnect_cfw_sink_signal(self):
@@ -405,9 +405,9 @@ class PlotWindow(QWidget):
 #        画布的右键菜单
         self.signal_is_display_menu.disconnect(self.current_canva.slot_set_display_menu)
         
-        self.current_canva.signal_cursor_xdata.disconnect(self.slot_display_paravalue)
-        self.current_canva.signal_send_time.disconnect(self.slot_save_time)
-        self.current_canva.signal_send_tinterval.disconnect(self.slot_save_tinterval)
+#        self.current_canva.signal_cursor_xdata.disconnect(self.slot_display_paravalue)
+#        self.current_canva.signal_send_time.disconnect(self.slot_save_time)
+#        self.current_canva.signal_send_tinterval.disconnect(self.slot_save_tinterval)
 
 # =============================================================================
 # slots模块
@@ -601,106 +601,111 @@ class PlotWindow(QWidget):
 #                    QCoreApplication.translate('DataExportWindow', '没有发现图表')) 
         
     def slot_paravalue_btn_clicked(self):
-        
-        if self.para_value_window.isHidden():
-            self.para_value_window.setHidden(False)
+
+#        在调用该槽函数时，按钮已处于被选中状态（不知为何）
+        if self.button_get_paravalue.isChecked():
+            dialog = DisplayParaValuesDialog(self)
+            dialog.move(30,100)
             self.current_canva._data_dict = self._data_dict
             self.current_canva.slot_connect_display_paravalue()
+            self.current_canva.signal_cursor_xdata.connect(dialog.slot_display_paravalue)
+            self.button_get_paravalue.clicked.connect(dialog.accept)
+            dialog.rejected.connect(self.button_get_paravalue.click)
+            dialog.show()
         else:
-            self.para_value_window.setHidden(True)
             self.current_canva.slot_diaconnect_display_paravalue()
             
-    def slot_save_time(self):
-
-        self.timestamps.append(self.label_time.text())
-        self.combo_box_time.addItem(self.label_time.text())
-        self.combo_box_time.setCurrentIndex(self.combo_box_time.count() - 1)
+#    def slot_save_time(self):
+#
+#        self.timestamps.append(self.label_time.text())
+#        self.combo_box_time.addItem(self.label_time.text())
+#        self.combo_box_time.setCurrentIndex(self.combo_box_time.count() - 1)
         
-    def slot_save_tinterval(self, timeinterval : tuple):
+#    def slot_save_tinterval(self, timeinterval : tuple):
+#        
+#        name, stime, etime = timeinterval
+#        tinterval = name + '(' + stime + ' - ' + etime + ')'
+#        self.combo_box_time_intervals.addItem(tinterval, name)
+#        self.combo_box_time_intervals.setCurrentIndex(self.combo_box_time_intervals.count() - 1)
         
-        name, stime, etime = timeinterval
-        tinterval = name + '(' + stime + ' - ' + etime + ')'
-        self.combo_box_time_intervals.addItem(tinterval, name)
-        self.combo_box_time_intervals.setCurrentIndex(self.combo_box_time_intervals.count() - 1)
-        
-    def slot_import_paravalue(self):
-        
-        dict_paravalue = {}
-        paralist = ['TIME']
-        for time in self.timestamps:
-            dt = datetime.strptime(time, '%H:%M:%S.%f')
-            paravalue = self.current_canva.get_paravalue(dt)
-            for para_tuple in paravalue:
-                paraname, value = para_tuple
-                if paraname in dict_paravalue:
-                    dict_paravalue[paraname].append(value)
-                else:
-                    dict_paravalue[paraname] = []
-                    dict_paravalue[paraname].append(value)
-                if not(paraname in paralist):
-                    paralist.append(paraname)
-            if 'TIME' in dict_paravalue:
-                dict_paravalue['TIME'].append(time)
-            else:
-                dict_paravalue['TIME'] = []
-                dict_paravalue['TIME'].append(time)
-        if dict_paravalue:
-            df = pd.DataFrame(dict_paravalue)
-#            按指定顺序放置列
-            df = df[paralist]
-            file_dir, flag = QFileDialog.getSaveFileName(self, 
-                                                         QCoreApplication.translate('PlotWindow', '保存参数值'),
-                                                         CONFIG.SETUP_DIR,
-                                                         QCoreApplication.translate('PlotWindow', 'Text Files (*.txt);;CSV Files (*.csv);;Matlab Files (*.mat)'))
-            if file_dir:
-                if flag == 'Text Files (*.txt)':
-                    df.to_csv(file_dir, '\t' , index=False, encoding='utf-8')
-                if flag == 'CSV Files (*.csv)':
-                    df.to_csv(file_dir, ',' , index=False, encoding='utf-8')
-                if flag == 'Matlab Files (*.mat)':
-                    sio.savemat(file_dir, df.to_dict('list'))
-                QMessageBox.information(self,
-                        QCoreApplication.translate('PlotWindow', '保存提示'),
-                        QCoreApplication.translate('PlotWindow', '保存成功'))
+#    def slot_import_paravalue(self):
+#        
+#        dict_paravalue = {}
+#        paralist = ['TIME']
+#        for time in self.timestamps:
+#            dt = datetime.strptime(time, '%H:%M:%S.%f')
+#            paravalue = self.current_canva.get_paravalue(dt)
+#            for para_tuple in paravalue:
+#                paraname, value = para_tuple
+#                if paraname in dict_paravalue:
+#                    dict_paravalue[paraname].append(value)
+#                else:
+#                    dict_paravalue[paraname] = []
+#                    dict_paravalue[paraname].append(value)
+#                if not(paraname in paralist):
+#                    paralist.append(paraname)
+#            if 'TIME' in dict_paravalue:
+#                dict_paravalue['TIME'].append(time)
+#            else:
+#                dict_paravalue['TIME'] = []
+#                dict_paravalue['TIME'].append(time)
+#        if dict_paravalue:
+#            df = pd.DataFrame(dict_paravalue)
+##            按指定顺序放置列
+#            df = df[paralist]
+#            file_dir, flag = QFileDialog.getSaveFileName(self, 
+#                                                         QCoreApplication.translate('PlotWindow', '保存参数值'),
+#                                                         CONFIG.SETUP_DIR,
+#                                                         QCoreApplication.translate('PlotWindow', 'Text Files (*.txt);;CSV Files (*.csv);;Matlab Files (*.mat)'))
+#            if file_dir:
+#                if flag == 'Text Files (*.txt)':
+#                    df.to_csv(file_dir, '\t' , index=False, encoding='utf-8')
+#                if flag == 'CSV Files (*.csv)':
+#                    df.to_csv(file_dir, ',' , index=False, encoding='utf-8')
+#                if flag == 'Matlab Files (*.mat)':
+#                    sio.savemat(file_dir, df.to_dict('list'))
+#                QMessageBox.information(self,
+#                        QCoreApplication.translate('PlotWindow', '保存提示'),
+#                        QCoreApplication.translate('PlotWindow', '保存成功'))
                                                  
 #    显示复选框中选中时刻对应的参数值
-    def slot_display_paravalue_ontime(self, index):
-        
-        str_time = self.combo_box_time.itemText(index)
-        if str_time:
-            self.label_time.setText(str_time)
-            dt = datetime.strptime(str_time, '%H:%M:%S.%f')
-            paravalue = self.current_canva.get_paravalue(dt)
-            count = len(paravalue)
-            self.table_widget_value.clearContents()
-            self.table_widget_value.setRowCount(count)
-            for row, para_tuple in enumerate(paravalue):
-                paraname, value = para_tuple
-                item1 = QTableWidgetItem(paraname)
-                self.table_widget_value.setItem(row, 0, item1)
-                item2 = QTableWidgetItem(str(value))
-                self.table_widget_value.setItem(row, 1, item2)
-                
-    def slot_display_tinterval(self, index):
-        
-        name = self.combo_box_time_intervals.itemData(index)
-        self.current_canva.slot_set_tlim(name)
+#    def slot_display_paravalue_ontime(self, index):
+#        
+#        str_time = self.combo_box_time.itemText(index)
+#        if str_time:
+#            self.label_time.setText(str_time)
+#            dt = datetime.strptime(str_time, '%H:%M:%S.%f')
+#            paravalue = self.current_canva.get_paravalue(dt)
+#            count = len(paravalue)
+#            self.table_widget_value.clearContents()
+#            self.table_widget_value.setRowCount(count)
+#            for row, para_tuple in enumerate(paravalue):
+#                paraname, value = para_tuple
+#                item1 = QTableWidgetItem(paraname)
+#                self.table_widget_value.setItem(row, 0, item1)
+#                item2 = QTableWidgetItem(str(value))
+#                self.table_widget_value.setItem(row, 1, item2)
+#                
+#    def slot_display_tinterval(self, index):
+#        
+#        name = self.combo_box_time_intervals.itemData(index)
+#        self.current_canva.slot_set_tlim(name)
             
 #    实时显示参数值
-    def slot_display_paravalue(self, time : str, paravalue : list):
-        
-#        显示时间
-        self.label_time.setText(time)
-        
-        count = len(paravalue)
-        self.table_widget_value.clearContents()
-        self.table_widget_value.setRowCount(count)
-        for row, para_tuple in enumerate(paravalue):
-            paraname, value = para_tuple
-            item1 = QTableWidgetItem(paraname)
-            self.table_widget_value.setItem(row, 0, item1)
-            item2 = QTableWidgetItem(str(value))
-            self.table_widget_value.setItem(row, 1, item2)
+#    def slot_display_paravalue(self, time : str, paravalue : list):
+#        
+##        显示时间
+#        self.label_time.setText(time)
+#        
+#        count = len(paravalue)
+#        self.table_widget_value.clearContents()
+#        self.table_widget_value.setRowCount(count)
+#        for row, para_tuple in enumerate(paravalue):
+#            paraname, value = para_tuple
+#            item1 = QTableWidgetItem(paraname)
+#            self.table_widget_value.setItem(row, 0, item1)
+#            item2 = QTableWidgetItem(str(value))
+#            self.table_widget_value.setItem(row, 1, item2)
 
     def slot_clear_canvas(self):
         
@@ -716,11 +721,11 @@ class PlotWindow(QWidget):
                 self.count_axis = 0
                 self.timestamps = []
                 self.current_canva.time_intervals = {}
-                self.combo_box_time.clear()
-                self.combo_box_time_intervals.clear()
-                self.label_time.setText('00:00:00.000')
-                self.table_widget_value.clearContents()
-                self.table_widget_value.setRowCount(0)
+#                self.combo_box_time.clear()
+#                self.combo_box_time_intervals.clear()
+#                self.label_time.setText('00:00:00.000')
+#                self.table_widget_value.clearContents()
+#                self.table_widget_value.setRowCount(0)
         
     def slot_save_figure(self):
         
@@ -752,7 +757,7 @@ class PlotWindow(QWidget):
                     m += 1
                 top_gap = round((h - legend_h * m) / h, 2)
             if self.current_canva.fig_style == 'stack_axis':
-                left_gap = round((75 * 1 + 55) / w, 2)
+                left_gap = 0.21
                 top_gap = round((h - legend_h) / h, 2)
             if self.current_canva.fig_style == 'user-defined_axis':
                 left_gap = round(50 / w, 2)
@@ -805,9 +810,9 @@ class PlotWindow(QWidget):
         
         self.signal_send_status.emit(message, timeout)
         
-    def slot_save_interval_data(self):
-        
-        self.current_canva.slot_sel_function(self._current_files)
+#    def slot_save_interval_data(self):
+#        
+#        self.current_canva.slot_sel_function(self._current_files)
         
     def slot_fig_win_change(self, index):
         
@@ -927,21 +932,21 @@ class PlotWindow(QWidget):
 #        self.button_sel_temp.setToolTip(_translate('PlotWindow', '选择模板'))
         self.button_clear_canvas.setToolTip(_translate('PlotWindow', '清空画布'))
         self.button_get_paravalue.setToolTip(_translate('PlotWindow', '取参数值'))
-        self.button_add_sa_fig.setToolTip(_translate('PlotWindow', '单坐标图'))
-        self.button_add_ma_fig.setToolTip(_translate('PlotWindow', '多坐标图'))
-        self.button_add_sta_fig.setToolTip(_translate('PlotWindow', '重叠图'))
-        self.button_add_ux_fig.setToolTip(_translate('PlotWindow', '自定义坐标图'))
+#        self.button_add_sa_fig.setToolTip(_translate('PlotWindow', '单坐标图'))
+#        self.button_add_ma_fig.setToolTip(_translate('PlotWindow', '多坐标图'))
+#        self.button_add_sta_fig.setToolTip(_translate('PlotWindow', '重叠图'))
+#        self.button_add_ux_fig.setToolTip(_translate('PlotWindow', '自定义坐标图'))
         self.button_add_text.setToolTip(_translate('PlotWindow', '添加文字标注'))
         self.button_add_hl.setToolTip(_translate('PlotWindow', '添加水平标记线'))
         self.button_add_vl.setToolTip(_translate('PlotWindow', '添加垂直标记线'))
         self.button_add_line.setToolTip(_translate('PlotWindow', '添加任意标记线'))
         
-        self.group_box_time_interval.setTitle(_translate('PlotWindow', '时间查看器'))
-        self.tool_btn_time_interval.setText(_translate('PlotWindow', '...'))
-        self.tool_btn_time.setText(_translate('PlotWindow', '...'))
-        self.group_box_time.setTitle(_translate('PlotWindow', '参数值'))
-        self.label_time.setText(_translate('PlotWindow', '00:00:00.000'))
-        item = self.table_widget_value.horizontalHeaderItem(0)
-        item.setText(_translate('PlotWindow', '参数名'))
-        item = self.table_widget_value.horizontalHeaderItem(1)
-        item.setText(_translate('PlotWindow', '参数值'))
+#        self.group_box_time_interval.setTitle(_translate('PlotWindow', '时间查看器'))
+#        self.tool_btn_time_interval.setText(_translate('PlotWindow', '...'))
+#        self.tool_btn_time.setText(_translate('PlotWindow', '...'))
+#        self.group_box_time.setTitle(_translate('PlotWindow', '参数值'))
+#        self.label_time.setText(_translate('PlotWindow', '00:00:00.000'))
+#        item = self.table_widget_value.horizontalHeaderItem(0)
+#        item.setText(_translate('PlotWindow', '参数名'))
+#        item = self.table_widget_value.horizontalHeaderItem(1)
+#        item.setText(_translate('PlotWindow', '参数值'))

@@ -17,7 +17,14 @@ DIR_HELP_VIDEO = SETUP_DIR + r'\data\videos'
 OPTION = {'dir of importing' : '',
           'data dict scope paralist' : True,
           'data dict scope plot' : True,
-          'data dict scope style' : 1}#0-参数名，1-软件标识符(参数名)，2-参数名(软件标识符)
+          'data dict scope style' : 1,#0-参数名，1-软件标识符(参数名)，2-参数名(软件标识符)
+          'work dir' : SETUP_DIR,
+          'plot fontsize' : 8,
+          'plot fontcolor' : 'black',
+          'plot font arrow' : False,
+          'plot markline style' : '--',
+          'plot markline color' : 'red',
+          'plot markline marker' : 'None'}
 # =============================================================================
 # 字体
 # =============================================================================

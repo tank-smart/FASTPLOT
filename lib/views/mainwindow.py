@@ -155,8 +155,8 @@ class MainWindow(QMainWindow):
 #        创建工具栏
         self.toolbar = QToolBar(self)
         self.addToolBar(Qt.TopToolBarArea, self.toolbar)
-#        self.toolbar1 = QToolBar(self)
-#        self.addToolBar(Qt.TopToolBarArea, self.toolbar1)
+        self.toolbar_plot = QToolBar(self)
+        self.addToolBar(Qt.TopToolBarArea, self.toolbar_plot)
 
         
 #        创建动作
@@ -189,6 +189,15 @@ class MainWindow(QMainWindow):
         self.action_show_syn_window.setChecked(True)
         self.action_help_doc = QAction(self)
         self.action_help_video = QAction(self)
+        
+        self.action_add_sa_fig = QAction(self)
+        self.action_add_sa_fig.setIcon(QIcon(CONFIG.ICON_SINGLE_AXIS))
+        self.action_add_ma_fig = QAction(self)
+        self.action_add_ma_fig.setIcon(QIcon(CONFIG.ICON_MULT_AXIS))
+        self.action_add_sta_fig = QAction(self)
+        self.action_add_sta_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
+        self.action_add_ux_fig = QAction(self)
+        self.action_add_ux_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
         
 #        将动作添加到对应的菜单下       
 #        self.menu_open.addAction(self.action_open_normal_datafile)
@@ -234,8 +243,13 @@ class MainWindow(QMainWindow):
         self.toolbar.addSeparator()
         self.toolbar.addActions([self.action_para_templates,
                                           self.action_data_dict])
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.action_about)
+#        self.toolbar.addSeparator()
+#        self.toolbar.addAction(self.action_about)
+        
+        self.toolbar_plot.addActions([self.action_add_sa_fig,
+                                      self.action_add_ma_fig,
+                                      self.action_add_sta_fig,
+                                      self.action_add_ux_fig])
         
 #        将绘图页面显示为初始页面
         self.stacked_window.setCurrentIndex(2)
@@ -274,6 +288,11 @@ class MainWindow(QMainWindow):
         self.action_exit.triggered.connect(self.slot_exit)
 #        设置
         self.action_options.triggered.connect(self.slot_options)
+#        增加画布窗口
+        self.action_add_sa_fig.triggered.connect(self.plot_page.slot_add_sa_fig)
+        self.action_add_ma_fig.triggered.connect(self.plot_page.slot_add_ma_fig)
+        self.action_add_sta_fig.triggered.connect(self.plot_page.slot_add_stack_fig)
+        self.action_add_ux_fig.triggered.connect(self.plot_page.slot_add_ux_fig)
         
         self.signal_import_datafiles.connect(
                 self.paralist_window.slot_import_datafiles)
@@ -586,7 +605,10 @@ class MainWindow(QMainWindow):
     def slot_options(self):
         
         dialog = OptionDialog(self)
-        dialog.exec_()
+        return_signal = dialog.exec_()
+        if (return_signal == QDialog.Accepted):
+            for index in range(self.plot_page.tab_widget_figure.count()):
+                self.plot_page.tab_widget_figure.widget(index).canva.update_config_info()
 
 # =============================================================================
 # 功能函数模块
@@ -596,7 +618,10 @@ class MainWindow(QMainWindow):
 #        导入配置信息
         try:
             with open(CONFIG.SETUP_DIR + r'\data\configuration.json', 'r') as file:
-                CONFIG.OPTION = json.load(file)
+                OPTION = json.load(file)
+#                便于开发人员增加配置变量，
+                for option_info in OPTION:
+                    CONFIG.OPTION[option_info] = OPTION[option_info]
 #                while file.readline():
 #    #                readline函数会把'\n'也读进来
 #                     name = file.readline()
