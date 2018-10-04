@@ -1584,95 +1584,6 @@ class StackAxisSettingDialog(AxisSettingDialog):
             curve['line'].set_marker(curve['line_marker'])
         
         QDialog.accept(self)
-
-class FigureCanvasSetiingDialog(QDialog):
-
-    def __init__(self, parent = None, axes : Axes = None):
-        
-        super().__init__(parent)
-        
-        self.axes = axes
-        self.axis_fontsize = axes[0].get_yticklabels()[0].get_fontsize()
-        self.legend_fontsize = axes[0].get_legend()._fontsize
-        
-        self.setup()
-        
-    def setup(self):
-        
-        font = QFont()
-        font.setFamily('微软雅黑')
-        self.setFont(font)
-        self.resize(260, 140)
-        self.verticalLayout_2 = QVBoxLayout(self)
-        self.verticalLayout_2.setContentsMargins(4, 4, 4, 4)
-        self.verticalLayout_2.setSpacing(4)
-        self.group_box_fontsize = QGroupBox(self)
-        self.verticalLayout = QVBoxLayout(self.group_box_fontsize)
-        self.verticalLayout.setContentsMargins(2, 2, 2, 2)
-        self.verticalLayout.setSpacing(2)
-        self.horizontalLayout = QHBoxLayout()
-        self.label_axis_fn = QLabel(self.group_box_fontsize)
-        self.label_axis_fn.setMinimumSize(QSize(75, 24))
-        self.label_axis_fn.setMaximumSize(QSize(75, 24))
-        self.horizontalLayout.addWidget(self.label_axis_fn)
-        self.line_edit_axis_fn = QLineEdit(self.group_box_fontsize)
-        self.line_edit_axis_fn.setText(str(self.axis_fontsize))
-        self.line_edit_axis_fn.setMinimumSize(QSize(0, 24))
-        self.line_edit_axis_fn.setMaximumSize(QSize(16777215, 24))
-        self.horizontalLayout.addWidget(self.line_edit_axis_fn)
-        self.verticalLayout.addLayout(self.horizontalLayout)
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.label_legend_fn = QLabel(self.group_box_fontsize)
-        self.label_legend_fn.setMinimumSize(QSize(75, 24))
-        self.label_legend_fn.setMaximumSize(QSize(75, 24))
-        self.horizontalLayout_2.addWidget(self.label_legend_fn)
-        self.line_edit_legend_fn = QLineEdit(self.group_box_fontsize)
-        self.line_edit_legend_fn.setText(str(self.legend_fontsize))
-        self.line_edit_legend_fn.setMinimumSize(QSize(0, 24))
-        self.line_edit_legend_fn.setMaximumSize(QSize(16777215, 24))
-        self.horizontalLayout_2.addWidget(self.line_edit_legend_fn)
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
-        self.verticalLayout_2.addWidget(self.group_box_fontsize)
-        self.horizontalLayout_3 = QHBoxLayout()
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem)
-        self.push_btn_confirm = QPushButton(self)
-        self.push_btn_confirm.setMinimumSize(QSize(0, 24))
-        self.push_btn_confirm.setMaximumSize(QSize(16777215, 24))
-        self.horizontalLayout_3.addWidget(self.push_btn_confirm)
-        self.push_btn_cancel = QPushButton(self)
-        self.push_btn_cancel.setMinimumSize(QSize(0, 24))
-        self.push_btn_cancel.setMaximumSize(QSize(16777215, 24))
-        self.horizontalLayout_3.addWidget(self.push_btn_cancel)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
-
-        self.retranslateUi()
-        
-        self.push_btn_confirm.clicked.connect(self.accept)
-        self.push_btn_cancel.clicked.connect(self.reject)
-
-    def accept(self):
-        
-        try:
-            self.legend_fontsize = float(self.line_edit_legend_fn.text())
-            self.axis_fontsize = float(self.line_edit_axis_fn.text())
-        except:
-            pass
-        for axis in self.axes:
-            axis.tick_params(labelsize = self.axis_fontsize)
-            axis.legend(fontsize=self.legend_fontsize, loc=(0,1),
-                        frameon=False, borderpad = 0.15)
-        
-        QDialog.accept(self)
-
-    def retranslateUi(self):
-        _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate('FigureCanvasSetiingDialog', '画布设置'))
-        self.group_box_fontsize.setTitle(_translate('FigureCanvasSetiingDialog', '文字大小'))
-        self.label_axis_fn.setText(_translate('FigureCanvasSetiingDialog', '刻度文字'))
-        self.label_legend_fn.setText(_translate('FigureCanvasSetiingDialog', '图注文字'))
-        self.push_btn_confirm.setText(_translate('FigureCanvasSetiingDialog', '确定'))
-        self.push_btn_cancel.setText(_translate('FigureCanvasSetiingDialog', '取消'))
             
 class ParameterExportDialog(QDialog):
     
@@ -3093,6 +3004,16 @@ class OptionDialog(QDialog):
         CONFIG.OPTION['plot markline style'] = self.cb_ls.currentData()
         CONFIG.OPTION['plot markline color'] = self.line_color
         CONFIG.OPTION['plot markline marker'] = self.cb_lm.currentData()
+        
+        try:
+    #        打开保存模板的文件（将从头写入，覆盖之前的内容）
+            with open(CONFIG.SETUP_DIR + r'\data\configuration.json', 'w') as file:
+                json.dump(CONFIG.OPTION, file)
+        except IOError:
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('OptionDialog', '软件配置提示'),
+                                    QCoreApplication.translate('OptionDialog', '无法保存软件配置！'))
+        
         QDialog.accept(self)
         
     def reset(self):
