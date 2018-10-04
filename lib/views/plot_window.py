@@ -19,7 +19,7 @@ import scipy.io as sio
 # =============================================================================
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
-                             QMessageBox, QScrollArea, QTableWidget,
+                             QMessageBox, QScrollArea, QTableWidget, QDialog,
                              QFileDialog, QTableWidgetItem, QProgressDialog,
                              QComboBox, QGroupBox, QLabel, QTabWidget, QApplication)
 from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
@@ -30,7 +30,7 @@ from PyQt5.QtGui import QIcon
 # Package views imports
 # =============================================================================
 from models.figure_model import PlotCanvas
-from views.custom_dialog import SelParasDialog
+from views.custom_dialog import SelParasDialog, ParaSetup_Dialog
 import views.config_info as CONFIG
 # =============================================================================
 # FigureWindow
@@ -117,6 +117,7 @@ class PlotWindow(QWidget):
         
         self._current_files = None
         self._data_dict = None
+        self.xpara = None
 
 # =============================================================================
 # UI模块        
@@ -412,6 +413,7 @@ class PlotWindow(QWidget):
 # =============================================================================
 # slots模块
 # =============================================================================   
+# 增加绘图进度条
     def add_PDialog(self):
         self.pdialog = QProgressDialog(self)
         self.pdialog.setWindowTitle('绘图中...')
@@ -428,7 +430,7 @@ class PlotWindow(QWidget):
     def pDialog_close(self):
         if self.pdialog:
             self.pdialog.close()
-            print(self.pdialog)
+            
 
 #    def slot_plot(self, filegroup):
 #        
@@ -451,13 +453,19 @@ class PlotWindow(QWidget):
 #    这样定义数据类型的原因是绘图既需要读取数据也需要参数排列顺序
     def slot_plot(self, datadict_and_paralist : tuple):
         
-        datadict, sorted_paras = datadict_and_paralist
+        if len(datadict_and_paralist) == 3:
+            datadict, sorted_paras, xpara = datadict_and_paralist
+        elif len(datadict_and_paralist) == 2:
+            datadict, sorted_paras = datadict_and_paralist
+            xpara = None
+        else:
+            return
         if datadict and sorted_paras:
             self.current_canva._data_dict = self._data_dict
             
             self.signal_send_status.emit('绘图中...', 0)
             self.add_PDialog()
-            self.current_canva.plot_paras(datadict, sorted_paras)
+            self.current_canva.plot_paras(datadict, sorted_paras, xpara)
             self.pDialog_close()
             self.signal_send_status.emit('绘图完成！', 1500)
             
@@ -812,14 +820,32 @@ class PlotWindow(QWidget):
     def slot_add_ux_fig(self):
         
         ux_fig_win = FigureWindow(self.tab_widget_figure, 'user-defined_axis')
+#        禁止直接拖入绘图区域方式画图
+        ux_fig_win.setAcceptDrops(False)
         self.tab_widget_figure.addTab(ux_fig_win,
                                       QIcon(CONFIG.ICON_MULT_AXIS),
                                       QCoreApplication.translate('PlotWindow',
                                                                  '自定义坐标图'))
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(ux_fig_win))
         ux_fig_win.canva.signal_progress.connect(self.set_value)
-#        uxplot_dialog = SelParasDialog(self)
-#        return_signal = uxplot_dialog.exec_()
+        uxplot_dialog = ParaSetup_Dialog(ux_fig_win.canva)
+        uxplot_dialog.set_maindata(self._current_files, self._data_dict)
+        uxplot_dialog.show()
+#        将dialog accept函数发出的信号连接画图函数
+        uxplot_dialog.signal_accept.connect(self.slot_plot)
+        
+
+        
+    def slot_add_para(self):
+        
+#        采用单选模式
+        dialog = SelParasDialog(self, self._current_files, 0)
+        return_signal = dialog.exec_()
+        if (return_signal == QDialog.Accepted):
+            paras = dialog.get_list_sel_paras()
+            if paras:
+                self.plain_text_edit_expression.insertPlainText(paras[0])
+                self.sift_search_paras.append(paras[0])
         
     def slot_add_text(self):
         

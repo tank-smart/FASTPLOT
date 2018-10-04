@@ -316,8 +316,8 @@ class Normal_DataFile(DataFile):
                 else:
                     df=pd.read_table(f,sep=sep,header=None,nrows=1,engine='c',dtype=object)
             if filedir.endswith(('.xls','.xlsx')):
-                df=pd.read_excel(f,header=None)
-                df=df.iloc[0,:]  #select the first row
+                df=pd.read_excel(f,header=None,nrows=1)
+#                df=df.iloc[0,:]  #deprecated as pandas version updated 
         return df       
 
 #cols_input: 按列读取数据文件，cols指定参数名列表，按cols指定的参数名列读取数据    

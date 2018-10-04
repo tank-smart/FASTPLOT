@@ -553,6 +553,7 @@ class PlotCanvas(FigureCanvas):
         self.time_series_list = {}
         self.color_index = 0
         self.count_created_data = 0
+        self.xaxes_flag = None
         
     def slot_plot_setting(self):
         
@@ -836,7 +837,7 @@ class PlotCanvas(FigureCanvas):
         if self.fig_style == 'mult_axis':
             self.subplot_para_wxl(datalist, sorted_paras)
         if self.fig_style == 'sin_axis':
-            self.an_plot_paras(datalist, sorted_paras)
+            self.an_plot_paras(datalist, sorted_paras, xpara)
         if self.fig_style == 'stack_axis':
             self.plot_stack_paras(datalist, sorted_paras)
         if self.fig_style == 'user-defined_axis':
@@ -1081,9 +1082,32 @@ class PlotCanvas(FigureCanvas):
             self.fig.subplots_adjust(left = 0.21, right = 0.95, top = 0.95, bottom = 0.05)
             self.draw()
     
-    def an_plot_paras(self, datalist, sorted_paras):
+    def an_plot_paras(self, datalist, sorted_paras, xpara):
 
         is_plot = self.process_data(datalist, sorted_paras)
+        xpara = None
+#        for index in self.total_data:
+#            
+#            if xpara not in self.total_data[index].data_paralist:
+#                
+#                print_message = self.total_data[index].filedir
+#                QMessageBox.information(self,
+#                        QCoreApplication.translate('PlotCanvas', '绘图提示'),
+#                        QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
+#                return
+        if xpara == None:
+            xdata = "self.time_series_list[index]"
+        else:
+            for index in self.total_data:
+            
+                if xpara not in self.total_data[index].data_paralist:
+                    
+                    print_message = self.total_data[index].filedir
+                    QMessageBox.information(self,
+                            QCoreApplication.translate('PlotCanvas', '绘图提示'),
+                            QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
+                    return
+            xdata = "self.total_data[index].data[xpara]"
         
         if is_plot:
             self.fig.clf()
@@ -1106,18 +1130,18 @@ class PlotCanvas(FigureCanvas):
                     if pn != 'NaN':
                         if unit != 'NaN' and unit != '1':
                             pn = pn + '(' + unit + ')'
-                        ax.plot(self.time_series_list[index], 
+                        ax.plot(eval(xdata), 
                                 self.total_data[index].data[paraname],
                                 label = pn,
                                 color = self.curve_colors[self.color_index],
                                 lw = 1)
                     else:
-                        ax.plot(self.time_series_list[index], 
+                        ax.plot(eval(xdata), 
                                 self.total_data[index].data[paraname],
                                 color = self.curve_colors[self.color_index],
                                 lw = 1)
                 else:
-                    ax.plot(self.time_series_list[index], 
+                    ax.plot(eval(xdata), 
                             self.total_data[index].data[paraname],
                             color = self.curve_colors[self.color_index],
                             lw = 1)
@@ -1127,16 +1151,33 @@ class PlotCanvas(FigureCanvas):
                 else:
                     self.color_index += 1
             
-            ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
+                
+            if xpara is None:
+                xlabel = "时间"
+            else:
+                xlabel = xpara
+                if (self._data_dict and 
+                CONFIG.OPTION['data dict scope plot'] and
+                paraname in self._data_dict):
+                    xlabel = self._data_dict[xpara][0]
+                    xunit = self._data_dict[xpara][1]
+                if xlabel != 'NaN':
+                    if xunit != 'NaN' and xunit != '1':
+                        xlabel = xlabel + '(' + xunit + ')'
+            
+            ax.set_xlabel(xlabel, fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
+    
+#            ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
 #            若已指定fontproperties属性，则fontsize不起作用
             plt.setp(ax.get_xticklabels(),
-                     horizontalalignment = 'center',
-                     rotation = 'horizontal',
-                     fontproperties = CONFIG.FONT_MSYH)
+                 horizontalalignment = 'center',
+                 rotation = 'horizontal',
+                 fontproperties = CONFIG.FONT_MSYH)
             plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
             ax.legend(loc=(0,1), ncol=4, frameon=False, borderpad = 0.15,
                       prop = CONFIG.FONT_MSYH)
-            ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+            if xpara is None:
+                ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
             ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
             ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
             ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
@@ -1145,25 +1186,35 @@ class PlotCanvas(FigureCanvas):
             ax.grid(which='minor',linestyle='--',color = '0.75')
                 
             self.set_subplot_adjust()
+            self.xaxes_flag = xpara #标志x轴是否为时间
 
     def plot_userx_paras(self, datalist, sorted_paras, xpara):
 
         is_plot = self.process_data(datalist, sorted_paras)
-        xpara = "FADEC_LA_Corrected_N1_Speed"
-        for index in self.total_data:
-            
-            if xpara not in self.total_data[index].data_paralist:
-                
-                print_message = self.total_data[index].filedir
-                QMessageBox.information(self,
-                        QCoreApplication.translate('PlotCanvas', '绘图提示'),
-                        QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
-                return
-                
+
+#        for index in self.total_data:
+#            
+#            if xpara not in self.total_data[index].data_paralist:
+#                
+#                print_message = self.total_data[index].filedir
+#                QMessageBox.information(self,
+#                        QCoreApplication.translate('PlotCanvas', '绘图提示'),
+#                        QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
+#                return
+#                
         
         if xpara == None:
             xdata = "self.time_series_list[index]"
         else:
+            for index in self.total_data:
+            
+                if xpara not in self.total_data[index].data_paralist:
+                    
+                    print_message = self.total_data[index].filedir
+                    QMessageBox.information(self,
+                            QCoreApplication.translate('PlotCanvas', '绘图提示'),
+                            QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
+                    return
             xdata = "self.total_data[index].data[xpara]"
             
         
@@ -1217,15 +1268,18 @@ class PlotCanvas(FigureCanvas):
                 if i != (count - 1):
                     plt.setp(ax.get_xticklabels(), visible = False)
                 else:
-                    xlabel = xpara
-                    if (self._data_dict and 
-                    CONFIG.OPTION['data dict scope plot'] and
-                    paraname in self._data_dict):
-                        xlabel = self._data_dict[xpara][0]
-                        xunit = self._data_dict[xpara][1]
-                    if xlabel != 'NaN':
-                        if xunit != 'NaN' and xunit != '1':
-                            xlabel = xlabel + '(' + xunit + ')'
+                    if xpara is None:
+                        xlabel = "时间"
+                    else:
+                        xlabel = xpara
+                        if (self._data_dict and 
+                        CONFIG.OPTION['data dict scope plot'] and
+                        paraname in self._data_dict):
+                            xlabel = self._data_dict[xpara][0]
+                            xunit = self._data_dict[xpara][1]
+                        if xlabel != 'NaN':
+                            if xunit != 'NaN' and xunit != '1':
+                                xlabel = xlabel + '(' + xunit + ')'
                     
                     ax.set_xlabel(xlabel, fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
 #                    若已指定fontproperties属性，则fontsize不起作用
@@ -1240,7 +1294,8 @@ class PlotCanvas(FigureCanvas):
 #                          prop = CONFIG.FONT_MSYH)
                 ax.legend(loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
                           prop = CONFIG.FONT_MSYH)
-#                ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+                if xpara is None:
+                    ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
                 ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
                 ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
                 ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
