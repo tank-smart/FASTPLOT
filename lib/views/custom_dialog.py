@@ -278,7 +278,8 @@ class SelParasDialog(QDialog):
         self.btn_confirm.setMinimumSize(QSize(0, 24))
         self.btn_confirm.setMaximumSize(QSize(16777215, 24))
         self.horizontalLayout.addWidget(self.btn_confirm)
-        if self.sel_mode == QAbstractItemView.ExtendedSelection:
+#        暂时屏蔽添加按钮，预留！！！！！！！！！
+        if self.sel_mode == QAbstractItemView.ExtendedSelection & 0==1:
             self.btn_add = QPushButton(self)
             self.btn_add.setMinimumSize(QSize(0, 24))
             self.btn_add.setMaximumSize(QSize(16777215, 24))
@@ -291,7 +292,8 @@ class SelParasDialog(QDialog):
 
         self.btn_confirm.clicked.connect(self.accept)
         self.btn_cancel.clicked.connect(self.reject)
-        if self.sel_mode == QAbstractItemView.ExtendedSelection:
+#        暂时屏蔽添加按钮，预留！！！！！！！！！同上
+        if self.sel_mode == QAbstractItemView.ExtendedSelection & 0==1:
             self.btn_add.clicked.connect(self.signal_add_paras)
         if self.sel_mode == QAbstractItemView.SingleSelection:
             self.list_paras.itemDoubleClicked.connect(self.accept)
@@ -323,6 +325,8 @@ class SelParasDialog(QDialog):
         
 #    不显示时间
     def display_paras(self, files):
+        if files is None:
+            return
         
         for file_dir in files:
             time_hide = False
@@ -372,9 +376,44 @@ class SelParasDialog(QDialog):
         self.setWindowTitle(_translate('SelParasDialog', '选择参数'))
         self.line_edit_search.setPlaceholderText(_translate('SelParasDialog', '过滤器'))
         self.btn_confirm.setText(_translate('SelParasDialog', '确定'))
-        if self.sel_mode == QAbstractItemView.ExtendedSelection:
+#        暂时屏蔽添加按钮，预留！！！！！！！！！,同上
+        if self.sel_mode == QAbstractItemView.ExtendedSelection and 0==1:
             self.btn_add.setText(_translate('SelParasDialog', '添加'))
         self.btn_cancel.setText(_translate('SelParasDialog', '取消'))
+
+class SelParasDialog_xparasetting(SelParasDialog):
+    def __init__(self, parent = None, files = [], sel_mode = 0):
+        super().__init__(parent, files, sel_mode)
+        
+    def display_paras(self, files):
+        if files is None:
+            return
+        
+        for file_dir in files:
+            time_hide = False
+            file = Normal_DataFile(file_dir)
+            paras = file.paras_in_file
+            for para in paras:
+                if time_hide:
+                    if para not in self.get_list_paras():
+                        item = QListWidgetItem(para, self.list_paras)
+                        item.setIcon(self.paraicon)
+                        if (self._data_dict and 
+                            CONFIG.OPTION['data dict scope paralist'] and
+                            para in self._data_dict):
+                            if CONFIG.OPTION['data dict scope style'] == 0:
+                                temp_str = para + '(' + self._data_dict[para][0] + ')'
+                            if CONFIG.OPTION['data dict scope style'] == 1:
+                                temp_str = para + '(' + self._data_dict[para][0] + ')'
+                            if CONFIG.OPTION['data dict scope style'] == 2:
+                                temp_str = self._data_dict[para][0] + '(' + para + ')'
+                            item.setText(temp_str)
+                        else:
+                            item.setText(para)
+                        item.setData(Qt.UserRole, (para, file_dir))
+#                跳过第一个参数，这里默认第一个参数时间
+                else:
+                    time_hide = True
         
 class ParasList_DropEvent(QListWidget):
 
@@ -451,7 +490,7 @@ class ParaSetup_Dialog(QDialog):
 #        self.setAcceptDrops(True)
         self.setup()
         self.setWindowModality(Qt.NonModal)
-        self.dictdata = None
+        self.dictdata = None  
         self._current_files = None
         self._data_dict = None
         
@@ -529,6 +568,7 @@ class ParaSetup_Dialog(QDialog):
         
         self.listWidget.signal_drop_paras.connect(self.slot_display_paras)
         self.listWidget_2.signal_drop_paras.connect(self.slot_display_paras)
+        self.toolButton_3.clicked.connect(self.slot_add_paras)
         self.toolButton_4.clicked.connect(self.slot_up_para)
         self.toolButton_5.clicked.connect(self.slot_down_para)
         self.toolButton_6.clicked.connect(self.slot_delete_paras)
@@ -659,8 +699,11 @@ class ParaSetup_Dialog(QDialog):
                 ms_box.setTextInteractionFlags(Qt.TextSelectableByMouse)
                 ms_box.exec_()
 
+
+#x轴toolbutton操作
     def slot_change_paras(self):
-        dialog = SelParasDialog(self, self._current_files, 0)
+#        单选dialog
+        dialog = SelParasDialog_xparasetting(self, self._current_files, 0)
         return_signal = dialog.exec_()
         if (return_signal == QDialog.Accepted):
             paras = dialog.get_list_sel_paras()
@@ -675,15 +718,83 @@ class ParaSetup_Dialog(QDialog):
     #                xpara = sorted_paras[0]
                     ms_box.exec_()
                 xpara, file_dir = paras[0]
+                if (self._data_dict and 
+                    CONFIG.OPTION['data dict scope paralist'] and
+                    xpara in self._data_dict):
+                    if CONFIG.OPTION['data dict scope style'] == 0:
+                        temp_str = self._data_dict[xpara][0]
+                    if CONFIG.OPTION['data dict scope style'] == 1:
+                        temp_str = xpara + '(' + self._data_dict[xpara][0] + ')'
+                    if CONFIG.OPTION['data dict scope style'] == 2:
+                        temp_str = self._data_dict[xpara][0] + '(' + xpara + ')'
+                    self.listWidget.item(0).setText(temp_str)
                     
-                self.listWidget.item(0).setText(xpara)
+                else:
+                    self.listWidget.item(0).setText(xpara)
+                    
+#                self.listWidget.item(0).setText(xpara)
                 self.listWidget.item(0).setData(Qt.UserRole, (xpara, file_dir))    
                 
                 
     def slot_set_timeaxis(self):
         self.listWidget.item(0).setText("Time（时间）")
 
-#Y轴toolbuttton操作                
+#Y轴toolbuttton操作 
+
+    def slot_add_paras(self):
+#        单选dialog
+        dialog = SelParasDialog_xparasetting(self, self._current_files, 1)
+        return_signal = dialog.exec_()
+        if (return_signal == QDialog.Accepted):
+            paraslist = dialog.get_list_sel_paras()
+            if paraslist:
+                
+                ex_paras = []
+    #            norfile_list = {}
+                
+                for para_info in paraslist:
+                    paraname, file_dir = para_info
+    #                判断导入的参数是否已存在
+                    if self.is_in_sel_paras((paraname, file_dir)):
+                        ex_paras.append(paraname)
+                    else:
+    #                    避免重复创建文件对象
+    #                    if not (file_dir in norfile_list):
+    #                        norfile_list[file_dir] = Normal_DataFile(file_dir)
+    #                    file = norfile_list[file_dir]
+    #                    filename = file.filename
+                        item_para = QListWidgetItem(self.listWidget_2)
+                        
+                        if (self._data_dict and 
+                            CONFIG.OPTION['data dict scope paralist'] and
+                            paraname in self._data_dict):
+                            if CONFIG.OPTION['data dict scope style'] == 0:
+                                temp_str = self._data_dict[paraname][0]
+                            if CONFIG.OPTION['data dict scope style'] == 1:
+                                temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                            if CONFIG.OPTION['data dict scope style'] == 2:
+                                temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                            item_para.setText(temp_str)
+                        else:
+                            item_para.setText(paraname)
+                        item_para.setData(Qt.UserRole, (paraname, file_dir))
+    #                    item_para.setText(1, filename)
+    #                    item_para.setData(1, Qt.UserRole, file_dir)
+    #                    item_para.setText(2, file.time_range[0])
+    #                    item_para.setText(3, file.time_range[1])
+    #                    item_para.setText(4, str(file.sample_frequency))
+                if ex_paras:
+                    print_para = '以下参数已存在：'
+                    for pa in ex_paras:
+                        print_para += ('<br>' + pa)
+                    ms_box = QMessageBox(QMessageBox.Information,
+                                         QCoreApplication.translate('DataAnalysisWindow', '导入参数提示'),
+                                         QCoreApplication.translate('DataAnalysisWindow', print_para),
+                                         QMessageBox.Ok,
+                                         self)
+                    ms_box.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                    ms_box.exec_()
+               
     def slot_up_para(self):
         
         if self.listWidget_2:
@@ -756,7 +867,7 @@ class ParaSetup_Dialog(QDialog):
                         result[file_dir] = []
                         result[file_dir].append(item.data(Qt.UserRole)[0])
             for name in dict_df:
-                result[name] = self.dict_data[name].get_sub_data(dict_df[name])
+                result[name] = self.dictdata[name].get_sub_data(dict_df[name])
         return (result, sorted_paras)
 
     def get_x_paras(self):
@@ -767,8 +878,9 @@ class ParaSetup_Dialog(QDialog):
                 xpara = None
             else:
                 paraname, file_dir = item.data(Qt.UserRole)
-                if item.data(Qt.UserRole) not in self.sorted_paras:
-                    self.sorted_paras.append((paraname, file_dir))
+#                xpara不应加入self.sorted_paras
+#                if item.data(Qt.UserRole) not in self.sorted_paras:
+#                    self.sorted_paras.append((paraname, file_dir))
                 if file_dir in self.dictdata:
                     if paraname not in self.dictdata[file_dir]:
                         self.dictdata[file_dir].append(paraname)

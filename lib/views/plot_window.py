@@ -790,12 +790,19 @@ class PlotWindow(QWidget):
     def slot_add_sa_fig(self):
         
         sa_fig_win = FigureWindow(self.tab_widget_figure, 'sin_axis')
+#        禁止直接拖入绘图区域方式画图
+        sa_fig_win.setAcceptDrops(False)
         self.tab_widget_figure.addTab(sa_fig_win,
                                       QIcon(CONFIG.ICON_SINGLE_AXIS),
                                       QCoreApplication.translate('PlotWindow',
                                                                  '单坐标图'))
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
         sa_fig_win.canva.signal_progress.connect(self.set_value)
+        uxplot_dialog = ParaSetup_Dialog(sa_fig_win.canva)
+        uxplot_dialog.set_maindata(self._current_files, self._data_dict)
+        uxplot_dialog.show()
+#        将dialog accept函数发出的信号连接画图函数
+        uxplot_dialog.signal_accept.connect(self.slot_plot)
     
     def slot_add_ma_fig(self):
         

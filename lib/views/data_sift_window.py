@@ -330,7 +330,9 @@ class DataSiftWindow(QWidget):
             paras = dialog.get_list_sel_paras()
             if paras:
                 self.plain_text_edit_expression.insertPlainText(paras[0])
-                self.sift_search_paras.append(paras[0])
+#                添加判断，防止重复
+                if paras[0] not in self.sift_search_paras:
+                    self.sift_search_paras.append(paras[0])
                 
     def slot_close_tab(self, index : int):
         

@@ -1085,16 +1085,7 @@ class PlotCanvas(FigureCanvas):
     def an_plot_paras(self, datalist, sorted_paras, xpara):
 
         is_plot = self.process_data(datalist, sorted_paras)
-        xpara = None
-#        for index in self.total_data:
-#            
-#            if xpara not in self.total_data[index].data_paralist:
-#                
-#                print_message = self.total_data[index].filedir
-#                QMessageBox.information(self,
-#                        QCoreApplication.translate('PlotCanvas', '绘图提示'),
-#                        QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
-#                return
+
         if xpara == None:
             xdata = "self.time_series_list[index]"
         else:
@@ -1161,9 +1152,9 @@ class PlotCanvas(FigureCanvas):
                 paraname in self._data_dict):
                     xlabel = self._data_dict[xpara][0]
                     xunit = self._data_dict[xpara][1]
-                if xlabel != 'NaN':
-                    if xunit != 'NaN' and xunit != '1':
-                        xlabel = xlabel + '(' + xunit + ')'
+                    if xlabel != 'NaN':
+                        if xunit != 'NaN' and xunit != '1':
+                            xlabel = xlabel + '(' + xunit + ')'
             
             ax.set_xlabel(xlabel, fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
     
@@ -1277,9 +1268,9 @@ class PlotCanvas(FigureCanvas):
                         paraname in self._data_dict):
                             xlabel = self._data_dict[xpara][0]
                             xunit = self._data_dict[xpara][1]
-                        if xlabel != 'NaN':
-                            if xunit != 'NaN' and xunit != '1':
-                                xlabel = xlabel + '(' + xunit + ')'
+                            if xlabel != 'NaN':
+                                if xunit != 'NaN' and xunit != '1':
+                                    xlabel = xlabel + '(' + xunit + ')'
                     
                     ax.set_xlabel(xlabel, fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
 #                    若已指定fontproperties属性，则fontsize不起作用
