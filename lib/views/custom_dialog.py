@@ -1017,7 +1017,8 @@ class Base_AxisSettingDialog(QDialog):
         lines = axes.get_lines()
         for line in lines:
             line_info = {}
-            if line.pickable():
+#            忽略取值线和标记线
+            if line.pickable() or line.get_gid() == 'getvalue':
                 pass
             else:
                 line_info['line'] = line
@@ -1537,7 +1538,7 @@ class StackAxisSettingDialog(AxisSettingDialog):
 
         super().__init__(parent, axes)
         
-        self.num_ygrads, self.num_ylabel_inter_grads, self.num_y_subgrads, self.grads_y_sub, self.i = layout_info
+        self.num_yscales, self.num_scales_between_ylabel, self.num_view_yscales, self.num_yview_scales, self.i = layout_info
         self.view_llimit = axes.get_yticks()[0]
         self.view_ulimit = axes.get_yticks()[2]
         self.line_edit_y_top.setText(str(self.view_ulimit))
@@ -1558,9 +1559,9 @@ class StackAxisSettingDialog(AxisSettingDialog):
             self.xlim = (x0, x1)
             self.view_llimit = float(str_y_bottom)
             self.view_ulimit = float(str_y_top)
-            new_delta = (self.view_ulimit - self.view_llimit) / 2
-            self.ylim = (self.view_llimit - (self.num_ygrads - self.num_ylabel_inter_grads * self.i - self.num_y_subgrads) * new_delta / self.grads_y_sub, 
-                         self.view_ulimit + self.num_ylabel_inter_grads * self.i * new_delta / self.grads_y_sub)
+            new_scale = (self.view_ulimit - self.view_llimit) / self.num_yview_scales
+            self.ylim = (self.view_llimit - (self.num_yscales - self.num_scales_between_ylabel * self.i - self.num_view_yscales) * new_scale / self.num_yview_scales, 
+                         self.view_ulimit + self.num_scales_between_ylabel * self.i * new_scale / self.num_yview_scales)
         except:
             pass
         self.axes.set_xlim(self.xlim)
@@ -1569,19 +1570,16 @@ class StackAxisSettingDialog(AxisSettingDialog):
         self.axes.spines['left'].set_bounds(self.view_llimit, self.view_ulimit)
         
 #        设置图注
-        hs, ls = self.axes.get_legend_handles_labels()
-        for i, curve in enumerate(self.curves):
-            ls[i] = curve['line_label']
-            hs[i].set_color(curve['line_color'])
-            curve['line'].set_label(curve['line_label'])
-            self.axes.set_ylabel(curve['line_label'])
-            curve['line'].set_linestyle(curve['linestyle'])
-            curve['line'].set_color(curve['line_color'])
-            self.axes.spines['left'].set_color(curve['line_color'])
-            self.axes.tick_params(axis='y', colors=curve['line_color'])
-            self.axes.set_ylabel(self.axes.get_ylabel(), color = curve['line_color'])
-            curve['line'].set_linewidth(curve['linewidth'])
-            curve['line'].set_marker(curve['line_marker'])
+        curve = self.curves[0]
+        curve['line'].set_label(curve['line_label'])
+        self.axes.set_ylabel(curve['line_label'])
+        curve['line'].set_linestyle(curve['linestyle'])
+        curve['line'].set_color(curve['line_color'])
+        self.axes.spines['left'].set_color(curve['line_color'])
+        self.axes.tick_params(axis='y', colors=curve['line_color'])
+        self.axes.set_ylabel(self.axes.get_ylabel(), color = curve['line_color'])
+        curve['line'].set_linewidth(curve['linewidth'])
+        curve['line'].set_marker(curve['line_marker'])
         
         QDialog.accept(self)
             

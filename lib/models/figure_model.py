@@ -116,6 +116,8 @@ class PlotCanvasBase(FigureCanvas):
         
 #        添加右键菜单
         self.is_display_menu = True
+#        当前标注的鼠标事件被激活
+        self.marker_event_active = False
 
         self.action_show_hgrid = QAction(self)
         self.action_show_hgrid.setCheckable(True)
@@ -275,6 +277,7 @@ class PlotCanvasBase(FigureCanvas):
 #    标注线函数
     def slot_add_arb_markline(self):
 
+        self.marker_event_active = True
         self.setCursor(Qt.CrossCursor)
         self.current_cursor_inaxes = Qt.CrossCursor
         self.cid_move_new_line = self.mpl_connect('motion_notify_event',
@@ -325,6 +328,7 @@ class PlotCanvasBase(FigureCanvas):
     
     def create_move_annotation_event(self, event):
         
+        self.marker_event_active = True
         self.setCursor(Qt.ClosedHandCursor)
         self.current_cursor_inaxes = Qt.ClosedHandCursor
         self.cid_move_annotation = self.mpl_connect('motion_notify_event',
@@ -341,6 +345,7 @@ class PlotCanvasBase(FigureCanvas):
     
     def slot_add_mark_hline(self):
 
+        self.marker_event_active = True
         self.setCursor(Qt.SizeHorCursor)
         self.current_cursor_inaxes = Qt.SizeHorCursor
         self.cid_press_new_hline = self.mpl_connect('button_press_event',
@@ -364,6 +369,7 @@ class PlotCanvasBase(FigureCanvas):
         
     def slot_add_mark_vline(self):
 
+        self.marker_event_active = True
         self.setCursor(Qt.SizeVerCursor)
         self.current_cursor_inaxes = Qt.SizeVerCursor
         self.cid_press_new_vline = self.mpl_connect('button_press_event',
@@ -394,6 +400,7 @@ class PlotCanvasBase(FigureCanvas):
 #    文字标注函数     
     def slot_add_annotation(self):
         
+        self.marker_event_active = True
         self.setCursor(Qt.IBeamCursor)
         self.current_cursor_inaxes = Qt.IBeamCursor
         self.cid_press_new_annotation = self.mpl_connect('button_press_event',
@@ -455,6 +462,7 @@ class PlotCanvasBase(FigureCanvas):
 #    右键菜单时调用；相应动作完成也调用
     def slot_disconnect(self):
 
+        self.marker_event_active = False
 #        这个鼠标设置会在缩放时改变鼠标样式，因为绑定了鼠标释放事件
         self.setCursor(Qt.ArrowCursor)
         self.current_cursor_inaxes = Qt.ArrowCursor
@@ -754,6 +762,25 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
             else:
                 return True
 
+    def get_paravalue(self, dt):
+        
+        paravalue = []
+        for para_tuple in self.sorted_paralist:
+            paraname, index= para_tuple
+            time_str, pv = self.total_data[index].get_time_paravalue(dt, paraname)
+#            这样做会在数据字典很大时暴露出卡顿的问题
+            if (self._data_dict and 
+                CONFIG.OPTION['data dict scope plot'] and
+                paraname in self._data_dict):
+                pn = self._data_dict[paraname][0]
+                if pn != 'NaN':
+                    paraname = pn
+            if pv != None:
+                paravalue.append((paraname, pv))
+            else:
+                paravalue.append((paraname, 'NaN'))
+        return (time_str, paravalue)
+    
     def slot_clear_canvas(self):
         
         PlotCanvasBase.slot_clear_canvas(self)
@@ -777,7 +804,9 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
     
         super().__init__(parent)
         
-        self.cid_display_paravalue = None
+        self.cid_dppv_move = None
+        self.cid_dppv_press = None
+        self.aux_line = None
         
         self.action_display_data_info = QAction(self)
         self.action_display_data_info.setText(QCoreApplication.
@@ -876,44 +905,70 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
 
     def slot_connect_display_paravalue(self):
         
-        self.cid_display_paravalue = self.mpl_connect('motion_notify_event',
-                                                      self.slot_display_paravalue)
+        if self.fig.axes and self.aux_line == None:
+            ax = self.fig.axes[0]
+            time = (15 * ax.get_xlim()[0] + ax.get_xlim()[1]) / 16
+            datatime_sel = mdates.num2date(time)
+            real_time, para_values = self.get_paravalue(datatime_sel)
+            rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
+            self.signal_cursor_xdata.emit(real_time, para_values)
+            self.aux_line = ax.axvline(rt, 
+                                       gid = 'getvalue',
+                                       c = 'black',
+                                       ls = '-',
+                                       marker = 'd',
+                                       markerfacecolor = 'green',
+                                       markersize = 8)
+            self.draw()
+        self.cid_dppv_move = self.mpl_connect('motion_notify_event',
+                                              self.slot_display_paravalue)
+        self.cid_dppv_press = self.mpl_connect('button_press_event',
+                                               self.slot_display_paravalue)
     
     def slot_diaconnect_display_paravalue(self):
         
-        self.mpl_disconnect(self.cid_display_paravalue)
+        if self.aux_line:
+            self.aux_line.remove()
+            self.aux_line = None
+            self.draw()
+        self.mpl_disconnect(self.cid_dppv_move)
+        self.mpl_disconnect(self.cid_dppv_press)
 
     def slot_display_paravalue(self, event):
         
-        if event.inaxes:
+        if event.inaxes and event.button == 1 and not self.marker_event_active:
             datatime_sel = mdates.num2date(event.xdata)
             real_time, para_values = self.get_paravalue(datatime_sel)
+            rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
             self.signal_cursor_xdata.emit(real_time, para_values)
+            if self.aux_line:
+                if self.aux_line.axes == event.inaxes:
+                    self.aux_line.set_xdata([rt, rt])
+                else:
+                    self.aux_line.remove()
+                    self.aux_line = event.inaxes.axvline(rt,
+                                                         gid = 'getvalue',
+                                                         c = 'black',
+                                                         ls = '-',
+                                                         marker = 'd',
+                                                         markerfacecolor = 'green',
+                                                         markersize = 8)
+            else:
+                self.aux_line = event.inaxes.axvline(rt,
+                                                     gid = 'getvalue',
+                                                     c = 'black',
+                                                     ls = '-',
+                                                     marker = 'd',
+                                                     markerfacecolor = 'green',
+                                                     markersize = 8)
+            self.draw()
+            
             
     def my_format(self, x, pos=None):
         
         x = matplotlib.dates.num2date(x)
         return Time_Model.datetime_to_timestr(x)
             
-    def get_paravalue(self, dt):
-        
-        paravalue = []
-        for para_tuple in self.sorted_paralist:
-            paraname, index= para_tuple
-            time_str, pv = self.total_data[index].get_time_paravalue(dt, paraname)
-#            这样做会在数据字典很大时暴露出卡顿的问题
-            if (self._data_dict and 
-                CONFIG.OPTION['data dict scope plot'] and
-                paraname in self._data_dict):
-                pn = self._data_dict[paraname][0]
-                if pn != 'NaN':
-                    paraname = pn
-            if pv != None:
-                paravalue.append((paraname, pv))
-            else:
-                paravalue.append((paraname, 'NaN'))
-        return (time_str, paravalue)
-
     def plot_paras(self, datalist, sorted_paras):
 
         is_plot = self.process_data(datalist, sorted_paras)
@@ -1317,19 +1372,22 @@ class StackAxisPlotCanvas(FastPlotCanvas):
     
         super().__init__(parent)
 #        不显示右键的坐标设置
-        self.action_axis_setting.setVisible(False)
+#        self.action_axis_setting.setVisible(False)
 
 #        缩放
         self.cid_press_pan = None
+        self.cid_move_pan = None
         self.cid_release_pan = None
-        self.cursor_xpos = None
-        self.xlim = None
+        self.init_cursor_pos = None
+        self.init_xlim = None
+        self.init_ylim = None
 #        坐标设置相关的变量
-        self.selected_axis = None
-        self.num_ygrads = 0
-        self.num_ylabel_inter_grads = 0
-        self.num_y_subgrads = 0
-        self.grads_y_sub = 0
+        self.selected_sta_axis = None
+        self.selected_sta_axis_index = 0
+        self.num_yscales = 0
+        self.num_scales_between_ylabel = 0
+        self.num_view_yscales = 0
+        self.num_yview_scales = 0
         
 #    pick函数
     def on_pick(self, event):
@@ -1338,85 +1396,142 @@ class StackAxisPlotCanvas(FastPlotCanvas):
         
         if event.mouseevent.dblclick and type(event.artist) == Text:
             ylabel = event.artist
+#            注意，主坐标是第一个坐标，该坐标是没有画曲线的
             axes = self.fig.axes
             for i, axis in enumerate(axes):
                 if ylabel.get_text() == axis.get_ylabel():
 #                    以下代码实现添加选中效果
-#                    if self.selected_axis:
-#                        self.selected_axis.set_ylabel(self.selected_axis.get_ylabel(), bbox = None)
-#                        self.selected_axis = axis
-#                        self.selected_axis.set_ylabel(self.selected_axis.get_ylabel(), bbox = dict(boxstyle = 'round,pad=0.5', fc = 'none'))
-#                    else:
-#                        self.selected_axis = axis
-#                        self.selected_axis.set_ylabel(self.selected_axis.get_ylabel(), bbox = dict(boxstyle = 'round,pad=0.5', fc = 'none'))
-#                    self.draw()
-                    layout_info = (self.num_ygrads, self.num_ylabel_inter_grads,
-                                   self.num_y_subgrads, self.grads_y_sub, i - 1)
-                    dialog = StackAxisSettingDialog(self, axis, layout_info)
-                    return_signal = dialog.exec_()
-                    if (return_signal == QDialog.Accepted):
-#                    self.axis_menu_on.remove()
-                        event.canvas.draw()
+                    if self.selected_sta_axis:
+                        self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
+                                                          bbox = None)
+                        self.selected_sta_axis = axis
+#                        因为主坐标是第一个坐标，所以需减去1
+                        self.selected_sta_axis_index = i - 1
+                        self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
+                                                          bbox = dict(boxstyle = 'round,pad=0.5', fc = 'none'))
+                    else:
+                        self.selected_sta_axis = axis
+                        self.selected_sta_axis_index = i - 1
+                        self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
+                                                          bbox = dict(boxstyle = 'round,pad=0.5', fc = 'none'))
+                    self.draw()
+#                    layout_info = (self.num_yscales, self.num_scales_between_ylabel,
+#                                   self.num_view_yscales, self.num_yview_scales, i - 1)
+#                    dialog = StackAxisSettingDialog(self, axis, layout_info)
+#                    return_signal = dialog.exec_()
+#                    if (return_signal == QDialog.Accepted):
+#                        event.canvas.draw()
+                        
+    def slot_axis_setting(self):
+        
+        if self.selected_sta_axis:
+            layout_info = (self.num_yscales, self.num_scales_between_ylabel,
+                           self.num_view_yscales, self.num_yview_scales,
+                           self.selected_sta_axis_index)
+            dialog = StackAxisSettingDialog(self, self.selected_sta_axis, layout_info)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                self.draw()
+        else:
+            QMessageBox.information(self,
+                    QCoreApplication.translate('StackAxisPlotCanvas', '绘图提示'),
+                    QCoreApplication.translate('StackAxisPlotCanvas', '未选择坐标！'))
                         
 #    重载缩放函数
     def slot_pan(self):
         
-        self.cid_press_pan = self.mpl_connect('motion_notify_event',
+        self.cid_press_pan = self.mpl_connect('button_press_event',
                                               self.slot_press_pan)
+        self.cid_move_pan = self.mpl_connect('motion_notify_event',
+                                             self.slot_move_pan)
         self.cid_release_pan = self.mpl_connect('button_release_event',
-                                                    self.slot_release_pan)
+                                                self.slot_release_pan)
         
     def slot_press_pan(self, event):
         
-        if event.inaxes and event.button == 1:
-            ax = event.inaxes
-            if self.cursor_xpos:
-                dx = event.xdata - self.cursor_xpos
-                if self.count_axes:
-                    l, r = ax.get_xlim()
-                    ax.set_xlim(l - dx, r - dx)
-                self.draw()
-            else:
-                self.cursor_xpos = event.xdata
-        if event.inaxes and event.button == 3:
-            ax = event.inaxes
-            if self.cursor_xpos and self.xlim:
-                dx = event.xdata - self.cursor_xpos
-                if self.count_axes:
-                    l, r = self.xlim
-                    ax.set_xlim(l + dx, r - dx)
-                self.draw()
-            else:
-                self.cursor_xpos = event.xdata
-                self.xlim = ax.get_xlim()
+        if event.inaxes and (event.button == 1 or event.button == 3):
+            ax = self.selected_sta_axis
+            ax_inv = ax.transData.inverted()
+            x0data, self.real_init_cursor_ypos = ax_inv.transform(event.inaxes.transData.transform((event.xdata, event.ydata)))
+            y0data = (ax.get_yticks()[2] + ax.get_yticks()[0]) / 2
+            self.init_cursor_pos = (x0data, y0data)
+            self.init_xlim = ax.get_xlim()
+            self.init_ylim = ax.get_ylim()
+            x_frac = (self.init_cursor_pos[0] - self.init_xlim[0]) / (self.init_xlim[1] - self.init_xlim[0])
+            y_frac = (self.real_init_cursor_ypos - self.init_ylim[0]) / (self.init_ylim[1] - self.init_ylim[0])
+            self.init_pos_frac = (x_frac, y_frac)
+    
+    def slot_move_pan(self, event):
+        
+        if event.inaxes and (event.button == 1 or event.button == 3):
+            ax = self.selected_sta_axis
+            ax_inv = ax.transData.inverted()
+            new_pos = ax_inv.transform(event.inaxes.transData.transform((event.xdata, event.ydata)))
+            dx = new_pos[0] - self.init_cursor_pos[0]
+            dy = new_pos[1] - self.real_init_cursor_ypos
+            xl, xr = ax.get_xlim()
+            yl, yu = ax.get_ylim()
+#            平移
+            if event.button == 1:
+#                每次执行完该函数，鼠标所在的x值就是最初的x值
+                xl -= dx
+                xr -= dx
+                yl = ax.get_yticks()[0] - dy
+                yu = ax.get_yticks()[2] - dy
+#            缩放
+            if event.button == 3:
+                new_xpos_frac = (new_pos[0] - xl) / (xr - xl)
+                xl = self.init_cursor_pos[0] - (self.init_cursor_pos[0] - self.init_xlim[0]) * pow(10, self.init_pos_frac[0] - new_xpos_frac)
+                xr = self.init_cursor_pos[0] + (self.init_xlim[1] - self.init_cursor_pos[0]) * pow(10, self.init_pos_frac[0] - new_xpos_frac)
+                new_ypos_frac = (new_pos[1] - yl) / (yu - yl)
+                yl = self.init_cursor_pos[1] - (self.init_cursor_pos[1] - self.init_ylim[0]) * pow(10, self.init_pos_frac[1] - new_ypos_frac)
+                yu = self.init_cursor_pos[1] + (self.init_ylim[1] - self.init_cursor_pos[1]) * pow(10, self.init_pos_frac[1] - new_ypos_frac)
+                yl, yu = self.tran_ra_va(ax,
+                                         self.selected_sta_axis_index,
+                                         yl, yu)
+            ax.set_xlim(xl, xr)
+            yl, yu = self.reg_ylim(yl, yu)
+            self.adjust_view_axis(ax, self.selected_sta_axis_index, yl, yu)
+                
+            self.draw()
             
     def slot_release_pan(self, event):
         
-        self.cursor_xpos = None
-        self.xlim = None
+        self.init_cursor_pos = None
+        self.init_xlim = None
+        self.init_ylim = None
+        self.init_ylim_factor = None
         
     def slot_disconnect_pan(self):
         
-        if self.cid_press_pan and self.cid_release_pan:
+        if self.cid_press_pan and self.cid_move_pan and self.cid_release_pan:
             self.mpl_disconnect(self.cid_press_pan)
+            self.mpl_disconnect(self.cid_move_pan)
             self.mpl_disconnect(self.cid_release_pan)
             self.cid_press_pan = None
+            self.cid_move_pan = None
             self.cid_release_pan = None
             
     def slot_onpress_new_vline(self, event):
 
         PlotCanvasBase.slot_onpress_new_vline(self, event)
         
+    def slot_clear_canvas(self):
+        
+        FTDataPlotCanvasBase.slot_clear_canvas(self)
+        self.selected_sta_axis = None
+        self.selected_sta_axis_index = 0
+        
     def plot_paras(self, datalist, sorted_paras):
 
 #        y坐标的实际刻度数
-        self.num_ygrads = num_ygrads = 22
+        self.num_yscales = 22
 #        y轴标签间间隔的刻度数
-        self.num_ylabel_inter_grads = num_ylabel_inter_grads = 3
+        self.num_scales_between_ylabel = 3
 #        每个坐标用多少个实际刻度显示，取偶数
-        self.num_y_subgrads = num_y_subgrads = 4
+        self.num_view_yscales = 4
 #        坐标的刻度用几个实际刻度显示，目前只显示三个刻度值，所以除以2
-        self.grads_y_sub = grads_y_sub = num_y_subgrads / 2
+        self.num_yview_scales = self.num_view_yscales / 2
         is_plot = self.process_data(datalist, sorted_paras)
         
         if is_plot:
@@ -1427,7 +1542,7 @@ class StackAxisPlotCanvas(FastPlotCanvas):
             self.count_axes = count
             if count > 7:
                 n = count - 7
-                self.num_ygrads = num_ygrads = 22 + num_ylabel_inter_grads * (n - 1) + num_y_subgrads
+                self.num_yscales = 22 + self.num_scales_between_ylabel * (n - 1) + self.num_view_yscales
             matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
             matplotlib.rcParams['ytick.direction'] = 'in'
 #            支持中文显示
@@ -1448,7 +1563,7 @@ class StackAxisPlotCanvas(FastPlotCanvas):
             host.xaxis.set_major_formatter(FuncFormatter(self.my_format))
             host.xaxis.set_major_locator(MaxNLocator(nbins=6))
             host.xaxis.set_minor_locator(AutoMinorLocator(n=2))
-            host.yaxis.set_major_locator(LinearLocator(numticks=num_ygrads+1))
+            host.yaxis.set_major_locator(LinearLocator(numticks=self.num_yscales+1))
             
             axeslist = []
             axeslist.append(host)
@@ -1502,35 +1617,25 @@ class StackAxisPlotCanvas(FastPlotCanvas):
                 ax.spines['top'].set_visible(False)
                 ax.spines['bottom'].set_visible(False)
                 llimit, ulimit = ax.get_ylim()
-                new_delta = self.num_adjust((ulimit - llimit) / 2)
-                base_mid = int((llimit + ulimit) / 2 / new_delta)
-                bias_mid = (llimit + ulimit) / 2 / new_delta - base_mid
-#                正数的四舍五入，实数的则要考虑负数的情况，这里bias_mid肯定是正数
-                if bias_mid > 0.5:
-                    base_mid += 1
-                mid = base_mid * new_delta
-                lb = mid - new_delta
-                ub = mid + new_delta
+                yl, yu = self.reg_ylim(llimit, ulimit)
                 flag = i
                 if flag % 2 == 1:
                     ax.spines['left'].set_position(('axes', -0.14))
                 else:
                     ax.spines['left'].set_position(('axes', -0.03))
-                ax.set_yticks([lb,(lb + ub) / 2, ub])
-                ax.spines['left'].set_bounds(lb, ub)
-                ax.set_ylabel(ax.get_ylabel(),
-                              y = 1 - (num_ylabel_inter_grads * flag + grads_y_sub) / num_ygrads,
-                              picker = 1)
-                ax.set_ylim(lb - (num_ygrads - num_ylabel_inter_grads * flag - num_y_subgrads) * new_delta / grads_y_sub, 
-                            ub + num_ylabel_inter_grads * flag * new_delta / grads_y_sub)
-                plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+                self.adjust_view_axis(ax, i, yl, yu)
 
     #                一共有十种颜色可用
                 if self.color_index == 9:
                     self.color_index = 0
                 else:
                     self.color_index += 1
-            
+                    
+            if axeslist:
+                self.selected_sta_axis = axeslist[1]
+                self.selected_sta_axis_index = 0
+                self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
+                                                  bbox = dict(boxstyle = 'round,pad=0.5', fc = 'none'))
             self.adjust_figure()
             self.draw()
 
@@ -1563,20 +1668,57 @@ class StackAxisPlotCanvas(FastPlotCanvas):
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap)
         
-    def num_adjust(self, num):
+#    规整可视坐标的上下限
+    def reg_ylim(self, yl, yu):
+        
+        old_view_scale = (yu - yl) / (self.num_view_yscales / self.num_yview_scales)
+        new_view_scale = self.reg_scale(old_view_scale)
+        base_mid = int((yl + yu) / 2 / new_view_scale)
+        bias_mid = (yl + yu) / 2 / new_view_scale - base_mid
+#                正数的四舍五入，实数的则要考虑负数的情况，这里bias_mid肯定是正数
+        if bias_mid > 0.5:
+            base_mid += 1
+        mid = base_mid * new_view_scale
+        lb = mid - new_view_scale
+        ub = mid + new_view_scale
+        
+        return (lb, ub)
+    
+    def tran_ra_va(self, ax, ax_index, yl, yu):
+        
+        real_scale = (yu - yl) / self.num_yscales
+        view_yl = yl + (self.num_yscales - self.num_scales_between_ylabel * ax_index - self.num_view_yscales) * real_scale
+        view_yu = yu - self.num_scales_between_ylabel * ax_index * real_scale
+        return (view_yl, view_yu)
+    
+#    显示可视坐标
+    def adjust_view_axis(self, ax, ax_index, view_yl, view_yu):
+        
+        real_scale = (view_yu - view_yl) / self.num_view_yscales
+        ax.set_yticks([view_yl, (view_yl + view_yu) / 2, view_yu])
+        ax.spines['left'].set_bounds(view_yl, view_yu)
+        ax.set_ylabel(ax.get_ylabel(),
+                      y = 1 - (self.num_scales_between_ylabel * ax_index + self.num_yview_scales) / self.num_yscales,
+                      picker = 1)
+        ax.set_ylim(view_yl - (self.num_yscales - self.num_scales_between_ylabel * ax_index - self.num_view_yscales) * real_scale, 
+                    view_yu + self.num_scales_between_ylabel * ax_index * real_scale)
+        plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+        
+#    规整刻度值
+    def reg_scale(self, scale):
         
         base_values = [1, 2, 5]
         digits = 0
-        init_value = num
+        init_value = scale
         result = 0
-        abs_num = num = abs(num)
-        if num >= 1:
-            while num != 0:
-                num = int(num / 10)
+        abs_scale = scale = abs(scale)
+        if scale >= 1:
+            while scale != 0:
+                scale = int(scale / 10)
                 digits += 1
             t_delta = -1
             for base in base_values:
-                delta = abs(base * pow(10, digits - 1) - abs_num) 
+                delta = abs(base * pow(10, digits - 1) - abs_scale) 
                 if t_delta == -1:
                     t_delta = delta
                     result =  base * pow(10, digits - 1)
@@ -1584,13 +1726,13 @@ class StackAxisPlotCanvas(FastPlotCanvas):
                     if delta < t_delta:
                         t_delta = delta
                         result =  base * pow(10, digits - 1)
-        elif num != 0:
-            while num < 1:
-                num = num * 10
+        elif scale != 0:
+            while scale < 1:
+                scale = scale * 10
                 digits += 1
             t_delta = -1
             for base in base_values:
-                delta = abs(base * pow(10, -digits) - abs_num) 
+                delta = abs(base * pow(10, -digits) - abs_scale) 
                 if t_delta == -1:
                     t_delta = delta
                     result =  base * pow(10, -digits)
@@ -1604,6 +1746,15 @@ class StackAxisPlotCanvas(FastPlotCanvas):
             result = -1 * result
             
         return result
+    
+    def visible_axis_sel_status(self, flag):
+        
+        if flag:
+            self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
+                                              bbox = dict(boxstyle = 'round,pad=0.5', fc = 'none'))
+        else:
+            self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
+                                              bbox = None)
 
 
 

@@ -629,8 +629,8 @@ class PlotWindow(QWidget):
             dialog = DisplayParaValuesDialog(self)
             dialog.move(30,100)
             self.current_canva._data_dict = self._data_dict
-            self.current_canva.slot_connect_display_paravalue()
             self.current_canva.signal_cursor_xdata.connect(dialog.slot_display_paravalue)
+            self.current_canva.slot_connect_display_paravalue()
             self.button_get_paravalue.clicked.connect(dialog.accept)
             dialog.rejected.connect(self.button_get_paravalue.click)
             dialog.show()
@@ -755,11 +755,15 @@ class PlotWindow(QWidget):
 #            将画布变形成合适的尺寸
             self.current_fig_win.setWidgetResizable(False)
             self.on_saving_fig = True
+            if type(self.current_canva) == StackAxisPlotCanvas:
+                self.current_canva.visible_axis_sel_status(False)
             self.current_canva.adjust_savefig()
             
 #            保存变形后的画布
             self.current_canva.toolbar.save_figure()
             self.on_saving_fig = False
+            if type(self.current_canva) == StackAxisPlotCanvas:
+                self.current_canva.visible_axis_sel_status(True)
             
 #            将画布还原回查看状态下的尺寸
             self.adjust_fig_win()
