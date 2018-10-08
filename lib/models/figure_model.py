@@ -9,6 +9,7 @@
 # PlotCanvasBase
 # FastPlotCanvas
 # SingleAxisPlotCanvasBase
+# SingleAxisPlotCanvas
 # SingleAxisXTimePlotCanvas
 # StackAxisPlotCanvas
 # =======使用说明
@@ -790,7 +791,7 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
         self.count_created_data = 0
 
 #    当新建一种画布类时必须重载绘图函数
-    def plot_paras(self, datalist, sorted_paras):
+    def plot_paras(self, datalist, sorted_paras, xpara = None):
         
         raise KeyError('must overload function \'plot_paras\'(FastPlot).')    
         
@@ -915,7 +916,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             self.aux_line = ax.axvline(rt, 
                                        gid = 'getvalue',
                                        c = 'black',
-                                       ls = '-',
+                                       ls = '--',
                                        marker = 'd',
                                        markerfacecolor = 'green',
                                        markersize = 8)
@@ -949,7 +950,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                     self.aux_line = event.inaxes.axvline(rt,
                                                          gid = 'getvalue',
                                                          c = 'black',
-                                                         ls = '-',
+                                                         ls = '--',
                                                          marker = 'd',
                                                          markerfacecolor = 'green',
                                                          markersize = 8)
@@ -957,7 +958,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 self.aux_line = event.inaxes.axvline(rt,
                                                      gid = 'getvalue',
                                                      c = 'black',
-                                                     ls = '-',
+                                                     ls = '--',
                                                      marker = 'd',
                                                      markerfacecolor = 'green',
                                                      markersize = 8)
@@ -969,7 +970,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         x = matplotlib.dates.num2date(x)
         return Time_Model.datetime_to_timestr(x)
             
-    def plot_paras(self, datalist, sorted_paras):
+    def plot_paras(self, datalist, sorted_paras, xpara = None):
 
         is_plot = self.process_data(datalist, sorted_paras)
         
@@ -1103,7 +1104,7 @@ class SingleAxisPlotCanvasBase(FTDataPlotCanvasBase):
         if (return_signal == QDialog.Accepted):
             self.draw()
             
-    def plot_paras(self, datalist, sorted_paras, xpara=None):
+    def plot_paras(self, datalist, sorted_paras, xpara = None):
 
         is_plot = self.process_data(datalist, sorted_paras)
         xpara = "FCM1_Voted_Mach"
@@ -1250,6 +1251,140 @@ class SingleAxisPlotCanvasBase(FTDataPlotCanvasBase):
         self.resize(w, h)
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap, hspace = hs)
+
+class SingleAxisPlotCanvas(SingleAxisPlotCanvasBase):
+    
+    def __init__(self, parent = None):
+    
+        super().__init__(parent)
+        self.count_axes = 1
+        
+    def plot_paras(self, datalist, sorted_paras, xpara = None):
+
+        is_plot = self.process_data(datalist, sorted_paras)
+
+        for index in self.total_data:
+        
+            if xpara not in self.total_data[index].data_paralist:
+                
+                print_message = self.total_data[index].filedir
+                QMessageBox.information(self,
+                        QCoreApplication.translate('PlotCanvas', '绘图提示'),
+                        QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
+                return
+        xdata = "self.total_data[index].data[xpara]"
+        
+        if is_plot:
+            self.fig.clf()
+            self.count_axes = 1
+            matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+            matplotlib.rcParams['ytick.direction'] = 'in'
+#            支持中文显示
+#            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+            matplotlib.rcParams['axes.unicode_minus'] = False
+            
+            ax = self.fig.add_subplot(1, 1, 1)
+            count = len(self.sorted_paralist)
+            self.count_curves = count
+            self.color_index = 0
+            for i, para_tuple in enumerate(self.sorted_paralist):
+                self.signal_progress.emit(int(i/count*100))
+                paraname, index = para_tuple
+                if paraname in self._data_dict:
+                    pn = self._data_dict[paraname][0]
+                    unit = self._data_dict[paraname][1]
+                    if pn != 'NaN':
+                        if unit != 'NaN' and unit != '1':
+                            pn = pn + '(' + unit + ')'
+                        ax.plot(eval(xdata), 
+                                self.total_data[index].data[paraname],
+                                label = pn,
+                                color = self.curve_colors[self.color_index],
+                                lw = 1)
+                    else:
+                        ax.plot(eval(xdata), 
+                                self.total_data[index].data[paraname],
+                                color = self.curve_colors[self.color_index],
+                                lw = 1)
+                else:
+                    ax.plot(eval(xdata), 
+                            self.total_data[index].data[paraname],
+                            color = self.curve_colors[self.color_index],
+                            lw = 1)
+#                一共有十种颜色可用
+                if self.color_index == 9:
+                    self.color_index = 0
+                else:
+                    self.color_index += 1
+            
+                
+            xlabel = xpara
+            if (self._data_dict and 
+            CONFIG.OPTION['data dict scope plot'] and
+            paraname in self._data_dict):
+                xlabel = self._data_dict[xpara][0]
+                xunit = self._data_dict[xpara][1]
+                if xlabel != 'NaN':
+                    if xunit != 'NaN' and xunit != '1':
+                        xlabel = xlabel + '(' + xunit + ')'
+            
+            ax.set_xlabel(xlabel, fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
+    
+#            ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
+#            若已指定fontproperties属性，则fontsize不起作用
+            plt.setp(ax.get_xticklabels(),
+                 horizontalalignment = 'center',
+                 rotation = 'horizontal',
+                 fontproperties = CONFIG.FONT_MSYH)
+            plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+            ax.legend(loc=(0,1), ncol=4, frameon=False, borderpad = 0.15,
+                      prop = CONFIG.FONT_MSYH)
+            ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+            ax.grid(which='major',linestyle='--',color = '0.45')
+            ax.grid(which='minor',linestyle='--',color = '0.75')
+                
+            self.adjust_figure()
+            
+    def adjust_figure(self):
+        
+        h = self.height()
+        w = self.width()
+#        设置图四边的空白宽度 
+        bottom_gap = round(50 / h, 2)
+        right_gap = round((w - 40) / w, 2)       
+        left_gap = round(70 / w, 2)
+        m = int(self.count_curves / 4)
+        if self.count_curves % 4 != 0:
+            m += 1
+        top_gap = round((h - 20 * m) / h, 2)
+
+        self.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
+                                 right=right_gap,top=top_gap,hspace=0.16)
+        self.draw()
+        
+    def adjust_savefig(self):
+        
+#        图注高度
+        legend_h = 18
+#        坐标高度
+        axis_h = 300
+#        画布尺寸
+        h = (axis_h + legend_h) + legend_h
+        w = 650
+        bottom_gap = round(legend_h * 2 / h, 2)
+        right_gap = round((w - 10) / w, 2)
+        left_gap = round(50 / w, 2)
+        m = int(self.count_curves / 4)
+        if self.count_curves % 4 != 0:
+            m += 1
+        top_gap = round((h - legend_h * m) / h, 2)
+        hs = round(legend_h / (axis_h + legend_h), 2)
+        self.resize(w, h)
+        self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
+                                 right = right_gap, top = top_gap, hspace = hs)
         
 class SingleAxisXTimePlotCanvas(FastPlotCanvas):
     
@@ -1262,7 +1397,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
 
         PlotCanvasBase.slot_onpress_new_vline(self, event)
         
-    def plot_paras(self, datalist, sorted_paras):
+    def plot_paras(self, datalist, sorted_paras, xpara = None):
 
         is_plot = self.process_data(datalist, sorted_paras)
         
@@ -1456,9 +1591,10 @@ class StackAxisPlotCanvas(FastPlotCanvas):
             y0data = (ax.get_yticks()[2] + ax.get_yticks()[0]) / 2
             self.init_cursor_pos = (x0data, y0data)
             self.init_xlim = ax.get_xlim()
-            self.init_ylim = ax.get_ylim()
+            init_ylim = ax.get_ylim()
             x_frac = (self.init_cursor_pos[0] - self.init_xlim[0]) / (self.init_xlim[1] - self.init_xlim[0])
-            y_frac = (self.real_init_cursor_ypos - self.init_ylim[0]) / (self.init_ylim[1] - self.init_ylim[0])
+            y_frac = (self.real_init_cursor_ypos - init_ylim[0]) / (init_ylim[1] - init_ylim[0])
+            self.init_view_ylim = (ax.get_yticks()[0], ax.get_yticks()[2])
             self.init_pos_frac = (x_frac, y_frac)
     
     def slot_move_pan(self, event):
@@ -1484,11 +1620,11 @@ class StackAxisPlotCanvas(FastPlotCanvas):
                 xl = self.init_cursor_pos[0] - (self.init_cursor_pos[0] - self.init_xlim[0]) * pow(10, self.init_pos_frac[0] - new_xpos_frac)
                 xr = self.init_cursor_pos[0] + (self.init_xlim[1] - self.init_cursor_pos[0]) * pow(10, self.init_pos_frac[0] - new_xpos_frac)
                 new_ypos_frac = (new_pos[1] - yl) / (yu - yl)
-                yl = self.init_cursor_pos[1] - (self.init_cursor_pos[1] - self.init_ylim[0]) * pow(10, self.init_pos_frac[1] - new_ypos_frac)
-                yu = self.init_cursor_pos[1] + (self.init_ylim[1] - self.init_cursor_pos[1]) * pow(10, self.init_pos_frac[1] - new_ypos_frac)
-                yl, yu = self.tran_ra_va(ax,
-                                         self.selected_sta_axis_index,
-                                         yl, yu)
+                yl = self.init_cursor_pos[1] - (self.init_cursor_pos[1] - self.init_view_ylim[0]) * pow(10, self.init_pos_frac[1] - new_ypos_frac)
+                yu = self.init_cursor_pos[1] + (self.init_view_ylim[1] - self.init_cursor_pos[1]) * pow(10, self.init_pos_frac[1] - new_ypos_frac)
+#                yl, yu = self.tran_ra_va(ax,
+#                                         self.selected_sta_axis_index,
+#                                         yl, yu)
             ax.set_xlim(xl, xr)
             yl, yu = self.reg_ylim(yl, yu)
             self.adjust_view_axis(ax, self.selected_sta_axis_index, yl, yu)
@@ -1522,7 +1658,7 @@ class StackAxisPlotCanvas(FastPlotCanvas):
         self.selected_sta_axis = None
         self.selected_sta_axis_index = 0
         
-    def plot_paras(self, datalist, sorted_paras):
+    def plot_paras(self, datalist, sorted_paras, xpara = None):
 
 #        y坐标的实际刻度数
         self.num_yscales = 22
@@ -1658,7 +1794,10 @@ class StackAxisPlotCanvas(FastPlotCanvas):
 #        图注高度
         legend_h = 18
 #        画布尺寸
-        h = self.height()
+        if self.count_axes <= 7:
+            h = legend_h * 3 + (3 * (7 - 1) + 4) * 20
+        else:
+            h = legend_h * 3 + (3 * (self.count_axes - 1) + 4) * 20
         w = 650
         bottom_gap = round(legend_h * 2 / h, 2)
         right_gap = round((w - 10) / w, 2)

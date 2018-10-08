@@ -451,11 +451,12 @@ class MainWindow(QMainWindow):
             ms_box.exec_()
 
         ms_box = QMessageBox(QMessageBox.NoIcon,
-                             QCoreApplication.translate('MainWindow', '关于FastPlot(beta 0.1)'),
+                             QCoreApplication.translate('MainWindow', '关于' + CONFIG.SOFTNAME),
                              QCoreApplication.translate('MainWindow',
                                                        '<img src=\'' + CONFIG.FTCC_LOGO + 
                                                        '''' width='360' height='46'>
-                                                       <p><b>FastPlot(beta 0.1)</b></p>
+                                                       <p><b>''' + CONFIG.SOFTNAME +
+                                                       '''</b></p>
                                                        <br>试飞数据分析软件
                                                        <p>试飞中心 | 试飞工程部
                                                        <br>Copyright &copy; COMAC Flight Test Center.</p>
@@ -671,7 +672,7 @@ class MainWindow(QMainWindow):
 # =============================================================================
     def retranslate(self):
         _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate('MainWindow', 'FastPlot(beta 0.1)'))
+        self.setWindowTitle(_translate('MainWindow', CONFIG.SOFTNAME))
         self.menu_file.setTitle(_translate('MainWindow', '文件'))
 #        self.menu_open.setTitle(_translate('MainWindow', '打开'))
 #        self.menu_edit.setTitle(_translate('MainWindow', '编辑'))

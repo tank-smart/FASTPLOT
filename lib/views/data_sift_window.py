@@ -268,8 +268,8 @@ class DataSiftWindow(QWidget):
                         self.tab_widget_datasift.indexOf(tab_sift_result))
             else:
                 QMessageBox.information(self,
-                        QCoreApplication.translate("DataAnalysisWindow", "提示"),
-                        QCoreApplication.translate("DataAnalysisWindow", '语法错误'))
+                        QCoreApplication.translate('DataAnalysisWindow', '提示'),
+                        QCoreApplication.translate('DataAnalysisWindow', '语法错误'))
         else:
             QMessageBox.information(self,
                     QCoreApplication.translate('DataAnalysisWindow', '提示'),
@@ -346,7 +346,9 @@ class DataSiftWindow(QWidget):
             paras = dialog.get_list_sel_paras()
             if paras:
                 self.plain_text_edit_expression.insertPlainText(paras[0])
-                self.sift_search_paras.append(paras[0])
+#                添加判断，防止重复
+                if paras[0] not in self.sift_search_paras:
+                    self.sift_search_paras.append(paras[0])
                 
     def slot_close_tab(self, index : int):
         
@@ -371,5 +373,5 @@ class DataSiftWindow(QWidget):
 #        self.tree_widget_aggragate_para.headerItem().setText(0, _translate('DataAnalysisWindow', '条件'))
 #        self.tree_widget_aggragate_para.headerItem().setText(1, _translate('DataAnalysisWindow', '参数'))
         self.tab_widget_datasift.setTabText(self.tab_widget_datasift.indexOf(self.tab_sift), _translate('DataAnalysisWindow', '数据筛选'))
-        self.btn_confirm.setText(_translate("DataManageWindow", "确定"))
-        self.btn_cancel.setText(_translate("DataManageWindow", "取消"))
+        self.btn_confirm.setText(_translate('DataManageWindow', '确定'))
+        self.btn_cancel.setText(_translate('DataManageWindow', '清空输入'))
