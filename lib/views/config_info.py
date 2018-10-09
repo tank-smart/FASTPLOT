@@ -7,7 +7,7 @@ import matplotlib
 # =============================================================================
 # 软件名
 # =============================================================================
-SOFTNAME = 'FastPlot(beta 0.1)'
+SOFTNAME = 'FastPlot(beta 0.2)'
 # =============================================================================
 # 路径
 # =============================================================================
@@ -24,10 +24,11 @@ OPTION = {'dir of importing' : '',
           'data dict scope style' : 1,#0-参数名，1-软件标识符(参数名)，2-参数名(软件标识符)
           'work dir' : SETUP_DIR,
           'plot fontsize' : 8,
-          'plot fontcolor' : 'black',
+          'plot fontcolor' : '#aa0000',
           'plot font arrow' : False,
+          'plot font bbox' : True,
           'plot markline style' : '--',
-          'plot markline color' : 'red',
+          'plot markline color' : '#aa0000',
           'plot markline marker' : 'None'}
 # =============================================================================
 # 字体

@@ -1340,6 +1340,7 @@ class AnnotationSettingDialog(QDialog):
         self.text_color = Color.to_hex(annotation.get_color())
         self.text_style = annotation.get_style()
         self.text_arrow = annotation.arrow_patch.get_visible()
+        self.text_bbox = annotation.get_bbox_patch().get_visible()
         self.enum_text_style = ['normal', 'italic', 'oblique']
         self.enum_text_style_name = ['Normal', 'Italic', 'Oblique']
         
@@ -1461,6 +1462,21 @@ class AnnotationSettingDialog(QDialog):
             self.check_box_arrow.setChecked(False)
         self.hlayout_arrow.addWidget(self.check_box_arrow)
         self.verticalLayout.addLayout(self.hlayout_arrow)
+        
+        self.hlayout_bbox = QHBoxLayout()
+        self.label_bbox = QLabel(self)
+        self.label_bbox.setMinimumSize(QSize(75, 24))
+        self.label_bbox.setMaximumSize(QSize(75, 24))
+        self.hlayout_bbox.addWidget(self.label_bbox)
+        self.check_box_bbox = QCheckBox(self)
+        self.check_box_bbox.setMinimumSize(QSize(0, 24))
+        self.check_box_bbox.setMaximumSize(QSize(16777215, 24))
+        if self.text_bbox:
+            self.check_box_bbox.setChecked(True)
+        else:
+            self.check_box_bbox.setChecked(False)
+        self.hlayout_bbox.addWidget(self.check_box_bbox)
+        self.verticalLayout.addLayout(self.hlayout_bbox)
 
         self.line_2 = QFrame(self)
         self.line_2.setFrameShape(QFrame.HLine)
@@ -1496,6 +1512,7 @@ class AnnotationSettingDialog(QDialog):
             pass
         self.text_arrow = self.check_box_arrow.isChecked()
 #        self.text_style = self.combo_box_text_style.currentData()
+        self.text_bbox = self.check_box_bbox.isChecked()
         
         self.annotation.set_text(self.text)
         self.annotation.set_rotation(self.text_rotation)
@@ -1508,6 +1525,14 @@ class AnnotationSettingDialog(QDialog):
         else:
             self.annotation.arrow_patch.set_visible(False)
             self.annotation.arrow_patch.set_color(self.text_color)
+        if self.text_bbox:
+            self.annotation.set_bbox(dict(boxstyle = 'square, pad = 0.5', 
+                                          fc = 'w', ec = self.text_color,
+                                          visible = True))
+        else:
+            self.annotation.set_bbox(dict(boxstyle = 'square, pad = 0.5', 
+                                          fc = 'w', ec = self.text_color,
+                                          visible = False))
         
         QDialog.accept(self)
         
@@ -1528,6 +1553,7 @@ class AnnotationSettingDialog(QDialog):
         self.label_text_color.setText(_translate('AnnotationSettingDialog', '文字颜色'))
         self.tool_btn_text_color.setText(_translate('AnnotationSettingDialog', 'C'))
         self.label_arrow.setText(_translate('AnnotationSettingDialog', '箭头'))
+        self.label_bbox.setText(_translate('AnnotationSettingDialog', '边框'))
 #        self.label_line_text_style.setText(_translate('AnnotationSettingDialog', '文字样式'))
 #        self.combo_box_text_style.setItemText(0, _translate('AnnotationSettingDialog', 'Normal'))
 #        self.combo_box_text_style.setItemText(1, _translate('AnnotationSettingDialog', 'Italic'))
@@ -3377,6 +3403,21 @@ class OptionDialog(QDialog):
         self.hlayout_arrow.addWidget(self.check_box_arrow)
         self.verticalLayout_6.addLayout(self.hlayout_arrow)
         
+        self.hlayout_bbox = QHBoxLayout()
+        self.label_bbox = QLabel(self)
+        self.label_bbox.setMinimumSize(QSize(100, 24))
+        self.label_bbox.setMaximumSize(QSize(100, 24))
+        self.hlayout_bbox.addWidget(self.label_bbox)
+        self.check_box_bbox = QCheckBox(self)
+        self.check_box_bbox.setMinimumSize(QSize(0, 24))
+        self.check_box_bbox.setMaximumSize(QSize(16777215, 24))
+        if CONFIG.OPTION['plot font bbox']:
+            self.check_box_bbox.setChecked(True)
+        else:
+            self.check_box_bbox.setChecked(False)
+        self.hlayout_bbox.addWidget(self.check_box_bbox)
+        self.verticalLayout_6.addLayout(self.hlayout_bbox)
+        
         self.verticalLayout_3.addWidget(self.group_box_text)
         self.group_box_line = QGroupBox(self.page_plot)
         self.verticalLayout_7 = QVBoxLayout(self.group_box_line)
@@ -3547,6 +3588,7 @@ class OptionDialog(QDialog):
         CONFIG.OPTION['plot fontsize'] = self.spinBox.value()
         CONFIG.OPTION['plot fontcolor'] = self.font_color
         CONFIG.OPTION['plot font arrow'] = self.check_box_arrow.isChecked()
+        CONFIG.OPTION['plot font bbox'] = self.check_box_bbox.isChecked()
         CONFIG.OPTION['plot markline style'] = self.cb_ls.currentData()
         CONFIG.OPTION['plot markline color'] = self.line_color
         CONFIG.OPTION['plot markline marker'] = self.cb_lm.currentData()
@@ -3569,11 +3611,12 @@ class OptionDialog(QDialog):
             self.line_edit_work_dir.setText(CONFIG.SETUP_DIR)
         if index == 1:
             self.spinBox.setValue(8)
-            self.font_color = 'black'
+            self.font_color = '#aa0000'
             self.label_color.setPalette(QPalette(QColor(self.font_color)))
             self.check_box_arrow.setChecked(False)
+            self.check_box_bbox.setChecked(True)
             self.cb_ls.setCurrentIndex(2)
-            self.line_color = 'red'
+            self.line_color = '#aa0000'
             self.label_lc_view.setPalette(QPalette(QColor(self.line_color)))
             self.cb_lm.setCurrentIndex(0)
         if index == 2:
@@ -3642,6 +3685,7 @@ class OptionDialog(QDialog):
         self.label_fontszie.setText(_translate('OptionDialog', '字体大小'))
         self.label_fontcolor.setText(_translate('OptionDialog', '字体颜色'))
         self.label_arrow.setText(_translate('OptionDialog', '箭头'))
+        self.label_bbox.setText(_translate('OptionDialog', '边框'))
         self.label_color.setText(_translate('OptionDialog', ''))
         self.btn_sel_color.setText(_translate('OptionDialog', 'C'))
         self.group_box_line.setTitle(_translate('OptionDialog', '标注线'))

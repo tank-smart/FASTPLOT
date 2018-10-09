@@ -24,7 +24,7 @@
 # 导入所需的包
 # =============================================================================
 # 用于数据处理的包
-import scipy.io as sio
+#import scipy.io as sio
 import numpy as np
 import pandas as pd
 # 用于绘图的包
@@ -41,7 +41,7 @@ from matplotlib.text import Annotation, Text
 # 用于PyQt交互的包
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QPoint, Qt
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import (QMenu, QAction, QMessageBox, QDialog, QFileDialog)
+from PyQt5.QtWidgets import (QMenu, QAction, QMessageBox, QDialog)
 # 自定义的包
 import views.config_info as CONFIG
 from views.custom_dialog import (Base_LineSettingDialog, LineSettingDialog, 
@@ -105,6 +105,7 @@ class PlotCanvasBase(FigureCanvas):
         self.current_text_color = CONFIG.OPTION['plot fontcolor']
         self.current_text_size = CONFIG.OPTION['plot fontsize']
         self.current_text_arrow = CONFIG.OPTION['plot font arrow']
+        self.current_text_bbox = CONFIG.OPTION['plot font bbox']
         
 #        记录pick到哪个文字标注
         self.picked_annotation = None
@@ -325,6 +326,7 @@ class PlotCanvasBase(FigureCanvas):
             self.current_text_color = dialog.text_color
             self.current_text_size = dialog.text_size
             self.current_text_arrow = dialog.text_arrow
+            self.current_text_bbox = dialog.text_bbox
             event.canvas.draw()
     
     def create_move_annotation_event(self, event):
@@ -418,6 +420,9 @@ class PlotCanvasBase(FigureCanvas):
                                        xy = (event.xdata, event.ydata),
                                        color = self.current_text_color,
                                        size = self.current_text_size,
+                                       bbox = dict(boxstyle = 'square, pad = 0.5', 
+                                                   fc = 'w', ec = self.current_text_color,
+                                                   visible = self.current_text_bbox),
                                        arrowprops = dict(arrowstyle = '->',
                                                          color = self.current_text_color,
                                                          visible = self.current_text_arrow),
@@ -524,6 +529,7 @@ class PlotCanvasBase(FigureCanvas):
         self.current_text_color = CONFIG.OPTION['plot fontcolor']
         self.current_text_size = CONFIG.OPTION['plot fontsize']
         self.current_text_arrow = CONFIG.OPTION['plot font arrow']
+        self.current_text_bbox = CONFIG.OPTION['plot font bbox']
 
 #    def slot_save_time(self):
 #        
@@ -700,6 +706,10 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
         self.count_created_data = 0
 #        顺序排列的参数及其对应的数据索引
         self.sorted_paralist = []
+#        读参数值的辅助线
+        self.aux_line = None
+        self.cid_dppv_move = None
+        self.cid_dppv_press = None
         
 #    datadict中的参数和sorted_paras中的参数个数是一致的，这在输入时就保证了
     def process_data(self, datadict, sorted_paras):
@@ -762,6 +772,68 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                 return False
             else:
                 return True
+            
+    def slot_connect_display_paravalue(self):
+        
+        if self.fig.axes and self.aux_line == None:
+            ax = self.fig.axes[0]
+            time = (15 * ax.get_xlim()[0] + ax.get_xlim()[1]) / 16
+            datatime_sel = mdates.num2date(time)
+            real_time, para_values = self.get_paravalue(datatime_sel)
+            if real_time != '':
+                rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
+                self.signal_cursor_xdata.emit(real_time, para_values)
+                self.aux_line = ax.axvline(rt, 
+                                           gid = 'getvalue',
+                                           c = 'black',
+                                           ls = '--',
+                                           marker = 'd',
+                                           markerfacecolor = 'green',
+                                           markersize = 8)
+                self.draw()
+        self.cid_dppv_move = self.mpl_connect('motion_notify_event',
+                                              self.slot_display_paravalue)
+        self.cid_dppv_press = self.mpl_connect('button_press_event',
+                                               self.slot_display_paravalue)
+    
+    def slot_diaconnect_display_paravalue(self):
+        
+        if self.aux_line:
+            self.aux_line.remove()
+            self.aux_line = None
+            self.draw()
+        self.mpl_disconnect(self.cid_dppv_move)
+        self.mpl_disconnect(self.cid_dppv_press)
+
+    def slot_display_paravalue(self, event):
+        
+        if event.inaxes and event.button == 1 and not self.marker_event_active:
+            datatime_sel = mdates.num2date(event.xdata)
+            real_time, para_values = self.get_paravalue(datatime_sel)
+            if real_time != '':
+                rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
+                self.signal_cursor_xdata.emit(real_time, para_values)
+                if self.aux_line:
+                    if self.aux_line.axes == event.inaxes:
+                        self.aux_line.set_xdata([rt, rt])
+                    else:
+                        self.aux_line.remove()
+                        self.aux_line = event.inaxes.axvline(rt,
+                                                             gid = 'getvalue',
+                                                             c = 'black',
+                                                             ls = '--',
+                                                             marker = 'd',
+                                                             markerfacecolor = 'green',
+                                                             markersize = 8)
+                else:
+                    self.aux_line = event.inaxes.axvline(rt,
+                                                         gid = 'getvalue',
+                                                         c = 'black',
+                                                         ls = '--',
+                                                         marker = 'd',
+                                                         markerfacecolor = 'green',
+                                                         markersize = 8)
+                self.draw()
 
     def get_paravalue(self, dt):
         
@@ -805,9 +877,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
     
         super().__init__(parent)
         
-        self.cid_dppv_move = None
-        self.cid_dppv_press = None
-        self.aux_line = None
+        self.aux_lines = []
         
         self.action_display_data_info = QAction(self)
         self.action_display_data_info.setText(QCoreApplication.
@@ -893,11 +963,14 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                                           picker = 5)
                 self.current_axes.annotate(s = '时间 = ' + real_time + '\n' + para_values[index][0] + ' = ' + str(para_values[index][1]),
                                            xy = (rt, para_values[index][1]),
-                                           color = self.current_markline_color,
+                                           color = self.current_text_color,
                                            size = self.current_text_size,
                                            picker = 1,
+                                           bbox = dict(boxstyle = 'square, pad = 0.5', 
+                                                       fc = 'w', ec = self.current_text_color,
+                                                       visible = self.current_text_bbox),
                                            arrowprops = dict(arrowstyle = '->',
-                                                             color = self.current_markline_color,
+                                                             color = self.current_text_color,
                                                              visible = self.current_text_arrow),
                                            fontproperties = font)
                 self.draw()
@@ -906,21 +979,24 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
 
     def slot_connect_display_paravalue(self):
         
-        if self.fig.axes and self.aux_line == None:
+        if self.fig.axes and self.aux_lines == []:
             ax = self.fig.axes[0]
             time = (15 * ax.get_xlim()[0] + ax.get_xlim()[1]) / 16
             datatime_sel = mdates.num2date(time)
             real_time, para_values = self.get_paravalue(datatime_sel)
-            rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
-            self.signal_cursor_xdata.emit(real_time, para_values)
-            self.aux_line = ax.axvline(rt, 
-                                       gid = 'getvalue',
-                                       c = 'black',
-                                       ls = '--',
-                                       marker = 'd',
-                                       markerfacecolor = 'green',
-                                       markersize = 8)
-            self.draw()
+            if real_time != '':
+                rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
+                self.signal_cursor_xdata.emit(real_time, para_values)
+                for axis in self.fig.axes:
+                    line = axis.axvline(rt,
+                                        gid = 'getvalue',
+                                        c = 'black',
+                                        ls = '--',
+                                        marker = 'd',
+                                        markerfacecolor = 'green',
+                                        markersize = 8)
+                    self.aux_lines.append(line)
+                self.draw()
         self.cid_dppv_move = self.mpl_connect('motion_notify_event',
                                               self.slot_display_paravalue)
         self.cid_dppv_press = self.mpl_connect('button_press_event',
@@ -928,9 +1004,10 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
     
     def slot_diaconnect_display_paravalue(self):
         
-        if self.aux_line:
-            self.aux_line.remove()
-            self.aux_line = None
+        if self.aux_lines:
+            for line in self.aux_lines:
+                line.remove()
+            self.aux_lines = []
             self.draw()
         self.mpl_disconnect(self.cid_dppv_move)
         self.mpl_disconnect(self.cid_dppv_press)
@@ -940,30 +1017,23 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         if event.inaxes and event.button == 1 and not self.marker_event_active:
             datatime_sel = mdates.num2date(event.xdata)
             real_time, para_values = self.get_paravalue(datatime_sel)
-            rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
-            self.signal_cursor_xdata.emit(real_time, para_values)
-            if self.aux_line:
-                if self.aux_line.axes == event.inaxes:
-                    self.aux_line.set_xdata([rt, rt])
+            if real_time != '':
+                rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
+                self.signal_cursor_xdata.emit(real_time, para_values)
+                if self.aux_lines:
+                    for line in self.aux_lines:
+                        line.set_xdata([rt, rt])
                 else:
-                    self.aux_line.remove()
-                    self.aux_line = event.inaxes.axvline(rt,
-                                                         gid = 'getvalue',
-                                                         c = 'black',
-                                                         ls = '--',
-                                                         marker = 'd',
-                                                         markerfacecolor = 'green',
-                                                         markersize = 8)
-            else:
-                self.aux_line = event.inaxes.axvline(rt,
-                                                     gid = 'getvalue',
-                                                     c = 'black',
-                                                     ls = '--',
-                                                     marker = 'd',
-                                                     markerfacecolor = 'green',
-                                                     markersize = 8)
-            self.draw()
-            
+                    for axis in self.fig.axes:
+                        line = axis.axvline(rt,
+                                            gid = 'getvalue',
+                                            c = 'black',
+                                            ls = '--',
+                                            marker = 'd',
+                                            markerfacecolor = 'green',
+                                            markersize = 8)
+                        self.aux_lines.append(line)
+                self.draw()
             
     def my_format(self, x, pos=None):
         
@@ -1397,6 +1467,18 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
 
         PlotCanvasBase.slot_onpress_new_vline(self, event)
         
+    def slot_connect_display_paravalue(self):
+        
+        FTDataPlotCanvasBase.slot_connect_display_paravalue(self)
+        
+    def slot_diaconnect_display_paravalue(self):
+        
+        FTDataPlotCanvasBase.slot_diaconnect_display_paravalue(self)
+
+    def slot_display_paravalue(self, event):
+        
+        FTDataPlotCanvasBase.slot_display_paravalue(self, event)
+        
     def plot_paras(self, datalist, sorted_paras, xpara = None):
 
         is_plot = self.process_data(datalist, sorted_paras)
@@ -1598,8 +1680,8 @@ class StackAxisPlotCanvas(FastPlotCanvas):
             self.init_pos_frac = (x_frac, y_frac)
     
     def slot_move_pan(self, event):
-        
-        if event.inaxes and (event.button == 1 or event.button == 3):
+#        将self.init_cursor_pos作为判据是由于当使用完对话框后关闭event的button始终为1
+        if event.inaxes and (event.button == 1 or event.button == 3) and self.init_cursor_pos:
             ax = self.selected_sta_axis
             ax_inv = ax.transData.inverted()
             new_pos = ax_inv.transform(event.inaxes.transData.transform((event.xdata, event.ydata)))
@@ -1651,6 +1733,18 @@ class StackAxisPlotCanvas(FastPlotCanvas):
     def slot_onpress_new_vline(self, event):
 
         PlotCanvasBase.slot_onpress_new_vline(self, event)
+        
+    def slot_connect_display_paravalue(self):
+        
+        FTDataPlotCanvasBase.slot_connect_display_paravalue(self)
+        
+    def slot_diaconnect_display_paravalue(self):
+        
+        FTDataPlotCanvasBase.slot_diaconnect_display_paravalue(self)
+
+    def slot_display_paravalue(self, event):
+        
+        FTDataPlotCanvasBase.slot_display_paravalue(self, event)
         
     def slot_clear_canvas(self):
         

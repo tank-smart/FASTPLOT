@@ -196,8 +196,8 @@ class MainWindow(QMainWindow):
         self.action_add_ma_fig.setIcon(QIcon(CONFIG.ICON_MULT_AXIS))
         self.action_add_sta_fig = QAction(self)
         self.action_add_sta_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
-        self.action_add_ux_fig = QAction(self)
-        self.action_add_ux_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
+#        self.action_add_ux_fig = QAction(self)
+#        self.action_add_ux_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
         
 #        将动作添加到对应的菜单下       
 #        self.menu_open.addAction(self.action_open_normal_datafile)
@@ -248,8 +248,7 @@ class MainWindow(QMainWindow):
         
         self.toolbar_plot.addActions([self.action_add_sa_fig,
                                       self.action_add_ma_fig,
-                                      self.action_add_sta_fig,
-                                      self.action_add_ux_fig])
+                                      self.action_add_sta_fig])
         
 #        将绘图页面显示为初始页面
         self.stacked_window.setCurrentIndex(2)
@@ -292,7 +291,7 @@ class MainWindow(QMainWindow):
         self.action_add_sa_fig.triggered.connect(self.plot_page.slot_add_sa_fig)
         self.action_add_ma_fig.triggered.connect(self.plot_page.slot_add_ma_fig)
         self.action_add_sta_fig.triggered.connect(self.plot_page.slot_add_stack_fig)
-        self.action_add_ux_fig.triggered.connect(self.plot_page.slot_add_ux_fig)
+#        self.action_add_ux_fig.triggered.connect(self.plot_page.slot_add_ux_fig)
         
         self.signal_import_datafiles.connect(
                 self.paralist_window.slot_import_datafiles)

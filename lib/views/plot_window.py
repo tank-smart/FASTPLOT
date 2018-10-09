@@ -18,7 +18,7 @@
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
                              QMessageBox, QScrollArea, QProgressDialog,
-                             QTabWidget, QApplication, QDialog)
+                             QTabWidget, QApplication, QFrame)
 from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
                           QIODevice, Qt)
 from PyQt5.QtGui import QIcon, QKeyEvent
@@ -29,8 +29,7 @@ from PyQt5.QtGui import QIcon, QKeyEvent
 from models.figure_model import (FastPlotCanvas, SingleAxisPlotCanvasBase,
                                  SingleAxisXTimePlotCanvas, StackAxisPlotCanvas,
                                  SingleAxisPlotCanvas)
-from views.custom_dialog import (DisplayParaValuesDialog, SelParasDialog,
-                                 ParaSetup_Dialog)
+from views.custom_dialog import DisplayParaValuesDialog
 import views.config_info as CONFIG
 # =============================================================================
 # FigureWindow
@@ -262,6 +261,15 @@ class PlotWindow(QWidget):
 #        self.button_add_ux_fig.setIconSize(QSize(22, 22))
 #        self.button_add_ux_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
 #        self.verticalLayout.addWidget(self.button_add_ux_fig)
+        
+        self.line = QFrame(self)
+        self.line.setFrameShape(QFrame.HLine)
+        self.line.setFrameShadow(QFrame.Sunken)
+        self.verticalLayout.addWidget(self.line)
+        self.line_2 = QFrame(self)
+        self.line_2.setFrameShape(QFrame.HLine)
+        self.line_2.setFrameShadow(QFrame.Sunken)
+        self.verticalLayout.addWidget(self.line_2)
         
         self.button_add_text = QToolButton(self.widget_plot_tools)
         self.button_add_text.setCheckable(True)
@@ -816,47 +824,56 @@ class PlotWindow(QWidget):
             else:
                 self.button_get_paravalue.setEnabled(True)
     
+#    def slot_add_sa_fig(self):
+#        
+##        禁止直接拖入绘图区域方式画图
+#        self.tab_widget_figure.setEnabled(False)
+#
+#        uxplot_dialog = ParaSetup_Dialog(self)
+##        将dialog accept函数发出的信号连接画图函数
+#        uxplot_dialog.signal_accept.connect(self.slot_single_plot)
+#        uxplot_dialog.rejected.connect(self.slot_enable_figure)
+#        uxplot_dialog.set_maindata(self._current_files, self._data_dict)
+#        uxplot_dialog.show()
+#        
+#        
+#    def slot_enable_figure(self):
+#        
+#        self.tab_widget_figure.setEnabled(True)
+#    
+#    def slot_single_plot(self, tuple_info):
+#        
+#        self.tab_widget_figure.setEnabled(True)
+#        dictdata, sorted_paras, xpara = tuple_info
+#        if xpara:
+#            sa_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_fig')
+#            self.tab_widget_figure.addTab(sa_fig_win,
+#                                          QIcon(CONFIG.ICON_SINGLE_AXIS),
+#                                          QCoreApplication.translate('PlotWindow',
+#                                                                     '单坐标图'))
+#            self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
+#            sa_fig_win.canva.signal_progress.connect(self.set_value)
+#            self.slot_plot(tuple_info)
+#        else:
+#            sa_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_xtime_fig')
+#            self.tab_widget_figure.addTab(sa_fig_win,
+#                                          QIcon(CONFIG.ICON_SINGLE_AXIS),
+#                                          QCoreApplication.translate('PlotWindow',
+#                                                                     '单坐标时间图'))
+#            self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
+#            sa_fig_win.canva.signal_progress.connect(self.set_value)
+#
+#            self.slot_plot(tuple_info)
+            
     def slot_add_sa_fig(self):
         
-#        禁止直接拖入绘图区域方式画图
-        self.tab_widget_figure.setEnabled(False)
-
-        uxplot_dialog = ParaSetup_Dialog(self)
-#        将dialog accept函数发出的信号连接画图函数
-        uxplot_dialog.signal_accept.connect(self.slot_single_plot)
-        uxplot_dialog.rejected.connect(self.slot_enable_figure)
-        uxplot_dialog.set_maindata(self._current_files, self._data_dict)
-        uxplot_dialog.show()
-        
-        
-    def slot_enable_figure(self):
-        
-        self.tab_widget_figure.setEnabled(True)
-    
-    def slot_single_plot(self, tuple_info):
-        
-        self.tab_widget_figure.setEnabled(True)
-        dictdata, sorted_paras, xpara = tuple_info
-        if xpara:
-            sa_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_fig')
-            self.tab_widget_figure.addTab(sa_fig_win,
-                                          QIcon(CONFIG.ICON_SINGLE_AXIS),
-                                          QCoreApplication.translate('PlotWindow',
-                                                                     '单坐标图'))
-            self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
-            sa_fig_win.canva.signal_progress.connect(self.set_value)
-            self.slot_plot(tuple_info)
-        else:
-            sa_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_xtime_fig')
-            self.tab_widget_figure.addTab(sa_fig_win,
-                                          QIcon(CONFIG.ICON_SINGLE_AXIS),
-                                          QCoreApplication.translate('PlotWindow',
-                                                                     '单坐标时间图'))
-            self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
-            sa_fig_win.canva.signal_progress.connect(self.set_value)
-
-            self.slot_plot(tuple_info)
-
+        sa_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_xtime_fig')
+        self.tab_widget_figure.addTab(sa_fig_win,
+                                      QIcon(CONFIG.ICON_SINGLE_AXIS),
+                                      QCoreApplication.translate('PlotWindow',
+                                                                 '单坐标图'))
+        self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
+        sa_fig_win.canva.signal_progress.connect(self.set_value)
     
     def slot_add_ma_fig(self):
         
@@ -878,33 +895,23 @@ class PlotWindow(QWidget):
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(stack_fig_win))
         stack_fig_win.canva.signal_progress.connect(self.set_value)
         
-    def slot_add_ux_fig(self):
-        
-        ux_fig_win = FigureWindow(self.tab_widget_figure, 'custom_axis_fig')
-#        禁止直接拖入绘图区域方式画图
-        ux_fig_win.setAcceptDrops(False)
-        self.tab_widget_figure.addTab(ux_fig_win,
-                                      QIcon(CONFIG.ICON_MULT_AXIS),
-                                      QCoreApplication.translate('PlotWindow',
-                                                                 '自定义坐标图'))
-        self.slot_fig_win_change(self.tab_widget_figure.indexOf(ux_fig_win))
-        ux_fig_win.canva.signal_progress.connect(self.set_value)
-        uxplot_dialog = ParaSetup_Dialog(ux_fig_win.canva)
-        uxplot_dialog.set_maindata(self._current_files, self._data_dict)
-        uxplot_dialog.show()
-#        将dialog accept函数发出的信号连接画图函数
-        uxplot_dialog.signal_accept.connect(self.slot_plot)
-        
-    def slot_add_para(self):
-        
-#        采用单选模式
-        dialog = SelParasDialog(self, self._current_files, 0)
-        return_signal = dialog.exec_()
-        if (return_signal == QDialog.Accepted):
-            paras = dialog.get_list_sel_paras()
-            if paras:
-                self.plain_text_edit_expression.insertPlainText(paras[0])
-                self.sift_search_paras.append(paras[0])
+#    绘制非时间轴的图
+#    def slot_add_ux_fig(self):
+#        
+#        ux_fig_win = FigureWindow(self.tab_widget_figure, 'custom_axis_fig')
+##        禁止直接拖入绘图区域方式画图
+#        ux_fig_win.setAcceptDrops(False)
+#        self.tab_widget_figure.addTab(ux_fig_win,
+#                                      QIcon(CONFIG.ICON_MULT_AXIS),
+#                                      QCoreApplication.translate('PlotWindow',
+#                                                                 '自定义坐标图'))
+#        self.slot_fig_win_change(self.tab_widget_figure.indexOf(ux_fig_win))
+#        ux_fig_win.canva.signal_progress.connect(self.set_value)
+#        uxplot_dialog = ParaSetup_Dialog(ux_fig_win.canva)
+#        uxplot_dialog.set_maindata(self._current_files, self._data_dict)
+#        uxplot_dialog.show()
+##        将dialog accept函数发出的信号连接画图函数
+#        uxplot_dialog.signal_accept.connect(self.slot_plot)
         
     def slot_add_text(self):
         
