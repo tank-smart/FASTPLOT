@@ -180,7 +180,7 @@ class MainWindow(QMainWindow):
         self.action_about = QAction(self)
         self.action_about.setIcon(QIcon(CONFIG.ICON_ABOUT))
         self.action_plot = QAction(self)
-        self.action_plot.setIcon(QIcon(CONFIG.ICON_PLOT))
+        self.action_plot.setIcon(QIcon(CONFIG.ICON_PLOT_WIN))
         self.action_show_paralist_window = QAction(self)
         self.action_show_paralist_window.setCheckable(True)
         self.action_show_paralist_window.setChecked(True)
@@ -699,6 +699,9 @@ class MainWindow(QMainWindow):
         self.action_show_syn_window.setText(_translate('MainWindow', '功能模块'))
         self.action_help_doc.setText(_translate('MainWindow', 'FastPlot帮助文档'))
         self.action_help_video.setText(_translate('MainWindow', 'FastPlot视频教程'))
+        self.action_add_ma_fig.setText(_translate('MainWindow', '添加多坐标图'))
+        self.action_add_sa_fig.setText(_translate('MainWindow', '添加单坐标图'))
+        self.action_add_sta_fig.setText(_translate('MainWindow', '添加重叠图'))
         
 def main():
     app = QApplication(sys.argv)

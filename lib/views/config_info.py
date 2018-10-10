@@ -79,6 +79,7 @@ ICON_PARA = SETUP_DIR + r'\lib\icon\parameter.ico'
 ICON_PARA_DICT = SETUP_DIR + r'\lib\icon\para_dict.ico'
 ICON_PARA_TEMP = SETUP_DIR + r'\lib\icon\para_temp.ico'
 ICON_PARA_VALUE = SETUP_DIR + r'\lib\icon\para_value.ico'
+ICON_PLOT_WIN = SETUP_DIR + r'\lib\icon\plot_win.ico'
 ICON_PLOT = SETUP_DIR + r'\lib\icon\quick_plot.ico'
 #ICON_PLOT_SETTING = SETUP_DIR + r'\lib\icon\plot_setting.ico'
 

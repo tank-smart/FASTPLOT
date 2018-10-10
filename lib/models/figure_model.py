@@ -74,6 +74,9 @@ class PlotCanvasBase(FigureCanvas):
 #        当前坐标个数，基类的坐标只有一个，曲线都画在这个坐标内
         self.count_axes = 1
         self.count_curves = 0
+#        坐标信息
+        self.axes_info = {}
+        self.init_axes_lim = {}
 
 #        当前光标在坐标内的样式
         self.current_cursor_inaxes = None
@@ -172,7 +175,7 @@ class PlotCanvasBase(FigureCanvas):
         self.mpl_connect('motion_notify_event', self.slot_set_cursor)
         
 #        Pick事件在进行缩放移动、框选缩放时不会触发，但是press事件却会触发，不知道为何
-        self.mpl_connect('pick_event', self.on_pick)
+        self.cid_on_pick = self.mpl_connect('pick_event', self.on_pick)
         
     def slot_set_display_menu(self, is_display):
 
@@ -238,10 +241,11 @@ class PlotCanvasBase(FigureCanvas):
                     self.picked_del_artist = event.artist
 
         else:
-            if type(event.artist) == Line2D:
-                self.set_line_props(event)
-            if type(event.artist) == Annotation:
-                self.set_annotation_props(event)
+            if event.mouseevent.button == 1:
+                if type(event.artist) == Line2D:
+                    self.set_line_props(event)
+                if type(event.artist) == Annotation:
+                    self.set_annotation_props(event)
 
 #    网格显示函数    
     def slot_show_hgrid(self):
@@ -315,7 +319,7 @@ class PlotCanvasBase(FigureCanvas):
             self.current_markline_color = dialog.line_color
             self.current_markline_style = dialog.line_ls
             self.current_markline_marker = dialog.line_marker
-            event.canvas.draw()
+            self.draw()
     
     def set_annotation_props(self, event):
         
@@ -327,7 +331,7 @@ class PlotCanvasBase(FigureCanvas):
             self.current_text_size = dialog.text_size
             self.current_text_arrow = dialog.text_arrow
             self.current_text_bbox = dialog.text_bbox
-            event.canvas.draw()
+            self.draw()
     
     def create_move_annotation_event(self, event):
         
@@ -453,6 +457,11 @@ class PlotCanvasBase(FigureCanvas):
     def slot_disconnect_pan(self):
         
         pass
+    
+    def slot_home(self):
+        
+        if self.init_axes_lim:
+            self.set_axes_lim(self.init_axes_lim)
 
     def slot_set_cursor(self, event):
         
@@ -530,6 +539,26 @@ class PlotCanvasBase(FigureCanvas):
         self.current_text_size = CONFIG.OPTION['plot fontsize']
         self.current_text_arrow = CONFIG.OPTION['plot font arrow']
         self.current_text_bbox = CONFIG.OPTION['plot font bbox']
+        
+    def get_axes_lim(self):
+        
+        axes_lim = {}
+        label = ''
+        if self.fig.axes:
+            for i, ax in enumerate(self.fig.axes):
+                label = 'axis_' + str(i)
+                axes_lim[label] = (ax, ax.get_xlim(), ax.get_ylim())
+                
+        return axes_lim
+                
+    def set_axes_lim(self, axes_lim : dict):
+        
+        if axes_lim:
+            for label, ax_info in axes_lim.items():
+                ax, xlim, ylim = ax_info
+                ax.set_xlim(xlim[0], xlim[1])
+                ax.set_ylim(ylim[0], ylim[1])
+            self.draw()
 
 #    def slot_save_time(self):
 #        
@@ -1125,7 +1154,9 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 else:
                     self.color_index += 1
                 self.count_axes += 1
-                
+            
+            self.init_axes_lim = {}
+            self.init_axes_lim = self.get_axes_lim()
             self.adjust_figure()
             
     def adjust_figure(self):
@@ -1280,7 +1311,9 @@ class SingleAxisPlotCanvasBase(FTDataPlotCanvasBase):
                     self.color_index = 0
                 else:
                     self.color_index += 1
-                
+            
+            self.init_axes_lim = {}
+            self.init_axes_lim = self.get_axes_lim()
             self.adjust_figure()
             self.xaxes_flag = xpara #标志x轴是否为时间
             
@@ -1416,6 +1449,8 @@ class SingleAxisPlotCanvas(SingleAxisPlotCanvasBase):
             ax.grid(which='major',linestyle='--',color = '0.45')
             ax.grid(which='minor',linestyle='--',color = '0.75')
                 
+            self.init_axes_lim = {}
+            self.init_axes_lim = self.get_axes_lim()
             self.adjust_figure()
             
     def adjust_figure(self):
@@ -1543,6 +1578,8 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
             ax.grid(which='major',linestyle='--',color = '0.45')
             ax.grid(which='minor',linestyle='--',color = '0.75')
                 
+            self.init_axes_lim = {}
+            self.init_axes_lim = self.get_axes_lim()
             self.adjust_figure()
             
     def adjust_figure(self):
@@ -1866,6 +1903,8 @@ class StackAxisPlotCanvas(FastPlotCanvas):
                 self.selected_sta_axis_index = 0
                 self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
                                                   bbox = dict(boxstyle = 'round,pad=0.5', fc = 'none'))
+            self.init_axes_lim = {}
+            self.init_axes_lim = self.get_axes_lim()
             self.adjust_figure()
             self.draw()
 
@@ -1988,6 +2027,28 @@ class StackAxisPlotCanvas(FastPlotCanvas):
         else:
             self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
                                               bbox = None)
+            
+    def get_axes_lim(self):
+        
+        axes_lim = {}
+        label = ''
+        if self.fig.axes:
+            for i, ax in enumerate(self.fig.axes):
+                if i != 0:
+                    label = 'axis_' + str(i)
+                    ylim = (ax.get_yticks()[0], ax.get_yticks()[2])
+                    axes_lim[label] = (ax, i - 1, ax.get_xlim(), ylim)
+                
+        return axes_lim
+                
+    def set_axes_lim(self, axes_lim : dict):
+        
+        if axes_lim:
+            for label, ax_info in axes_lim.items():
+                ax, ax_i, xlim, ylim = ax_info
+                ax.set_xlim(xlim[0], xlim[1])
+                self.adjust_view_axis(ax, ax_i, ylim[0], ylim[1])
+            self.draw()
 
 
 
