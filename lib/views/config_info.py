@@ -41,7 +41,7 @@ FONT_MSYH = matplotlib.font_manager.FontProperties(
 # =============================================================================
 FTCC_LOGO = SETUP_DIR + r'\lib\icon\ftcc.png'
 
-ICON_WINDOW = SETUP_DIR + r'\lib\icon\fastplot.ico'
+ICON_WINDOW = SETUP_DIR + r'\lib\icon\fastplot.png'
 
 ICON_ABOUT = SETUP_DIR + r'\lib\icon\information.ico'
 ICON_DATA_ABSTRACT = SETUP_DIR + r'\lib\icon\data_abstract.ico'

@@ -956,6 +956,15 @@ class Base_LineSettingDialog(QDialog):
                                  'Triangle_up', 'Triangle_left', 'Triangle_right',
                                  'Tri_down', 'Tri_up', 'Tri_left', 'Tri_right', 
                                  'Square', 'Star', 'Plus', 'x', 'Diamond']
+#        判断是否是取值标记线，是的话就将文字标注对象保存起来
+        self.text_mark = None
+        ax = self.markline.axes
+        if ax:
+            list_text = ax.findobj(Annotation)
+            for text in list_text:
+                if self.markline.get_gid() and self.markline.get_gid() == text.get_gid():
+                    self.text_mark = text
+        
         self.setup()
     
     def setup(self):

@@ -740,6 +740,8 @@ class PlotWindow(QWidget):
                   QCoreApplication.translate('PlotWindow', '确定要清除画布吗'),
                   QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
+                if self.button_get_paravalue.isChecked():
+                    self.button_get_paravalue.click()
                 self.current_canva.slot_clear_canvas()
 #                如果画的图多会出现滚动条，此时清除画布，滚动条不会消失，因此采用此行解决
                 self.current_fig_win.setWidgetResizable(True)
@@ -755,6 +757,8 @@ class PlotWindow(QWidget):
     def slot_save_figure(self):
         
         if self.current_canva.fig.axes:
+            if self.button_get_paravalue.isChecked():
+                self.button_get_paravalue.click()
 #            将画布变形成合适的尺寸
             self.current_fig_win.setWidgetResizable(False)
             self.on_saving_fig = True

@@ -7,6 +7,7 @@
 # =======内容
 # 包含类：
 # PlotCanvasBase
+# FTDataPlotCanvasBase
 # FastPlotCanvas
 # SingleAxisPlotCanvasBase
 # SingleAxisPlotCanvas
@@ -907,29 +908,24 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         super().__init__(parent)
         
         self.aux_lines = []
+        self._count_value_mark = 0
         
         self.action_display_data_info = QAction(self)
         self.action_display_data_info.setText(QCoreApplication.
-                                              translate('PlotCanvas', '数据聚合'))
+                                              translate('FastPlotCanvas', '数据聚合'))
         self.action_display_data_info.triggered.connect(self.slot_display_aggregate_info)
+        self.action_mark_data = QAction(self)
+        self.action_mark_data.setText(QCoreApplication.
+                                              translate('FastPlotCanvas', '取值标注'))
+        self.action_mark_data.triggered.connect(self.slot_mark_data)
         
     def custom_context_menu(self, event):
 #        如果重载函数内有单独使用self变量的情况，调用重载函数时需要加上self作为参数
         menu = PlotCanvasBase.custom_context_menu(self, event)
         menu.addSeparator()
-        menu.addAction(self.action_display_data_info)
+        menu.addActions([self.action_display_data_info,
+                         self.action_mark_data])
         return menu
-    
-    def set_line_props(self, event):
-        
-        line = event.artist
-        dialog = LineSettingDialog(self, line)
-        return_signal = dialog.exec_()
-        if (return_signal == QDialog.Accepted):
-            self.current_markline_color = dialog.line_color
-            self.current_markline_style = dialog.line_ls
-            self.current_markline_marker = dialog.line_marker
-            event.canvas.draw()
     
     def slot_axis_setting(self):
         
@@ -970,7 +966,15 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             dialog.display_para_agg_info(real_timerange, para_info_list)
             dialog.exec_()
             
-    def slot_onpress_new_vline(self, event):
+    def slot_mark_data(self):
+
+        self.marker_event_active = True
+        self.setCursor(Qt.SizeVerCursor)
+        self.current_cursor_inaxes = Qt.SizeVerCursor
+        self.cid_press_new_vline = self.mpl_connect('button_press_event',
+                                                 self.slot_onpress_mark_data)
+    
+    def slot_onpress_mark_data(self, event):
 
         font = matplotlib.font_manager.FontProperties(
                 fname = CONFIG.SETUP_DIR + r'\data\fonts\msyh.ttf',
@@ -989,7 +993,8 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 self.current_axes.axvline(rt, c = self.current_markline_color,
                                           ls = self.current_markline_style,
                                           marker = self.current_markline_marker,
-                                          picker = 5)
+                                          picker = 5,
+                                          gid = '_valuemark' + str(self._count_value_mark))
                 self.current_axes.annotate(s = '时间 = ' + real_time + '\n' + para_values[index][0] + ' = ' + str(para_values[index][1]),
                                            xy = (rt, para_values[index][1]),
                                            color = self.current_text_color,
@@ -1001,10 +1006,76 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                                            arrowprops = dict(arrowstyle = '->',
                                                              color = self.current_text_color,
                                                              visible = self.current_text_arrow),
-                                           fontproperties = font)
+                                           fontproperties = font,
+                                           gid = '_valuemark' + str(self._count_value_mark))
+                self._count_value_mark += 1
                 self.draw()
+            else:
+                QMessageBox.information(self,
+                                        QCoreApplication.translate('FastPlotCanvas', '绘图提示'),
+                                        QCoreApplication.translate('FastPlotCanvas', '时间：' + Time_Model.datetime_to_timestr(datatime_sel) + '处无数据'))
         if event.button == 1:
             self.slot_disconnect()
+            
+    def set_line_props(self, event):
+        
+        line = event.artist
+        xdata = line.get_xdata()
+        dialog = LineSettingDialog(self, line)
+        return_signal = dialog.exec_()
+        if (return_signal == QDialog.Accepted):
+            self.current_markline_color = dialog.line_color
+            self.current_markline_style = dialog.line_ls
+            self.current_markline_marker = dialog.line_marker
+            if dialog.text_mark and xdata[0] != dialog.line_xdata[0]:
+                index = 0
+                for i, axis in enumerate(self.fig.axes):
+                    if line.axes == axis:
+                        index = i
+                        break
+                datatime_sel = mdates.num2date(dialog.line_xdata[0])
+                real_time, para_values = self.get_paravalue(datatime_sel)
+                
+                if real_time != '':
+                    rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
+                    line.set_xdata([rt, rt])
+                    dialog.text_mark.xy = (rt, para_values[index][1])
+                    dialog.text_mark.set_text('时间 = ' + real_time + '\n' + para_values[index][0] + ' = ' + str(para_values[index][1]))
+                    dialog.text_mark.set_position((rt, para_values[index][1]))
+                else:
+                    line.set_xdata(xdata)
+                    QMessageBox.information(self,
+                                            QCoreApplication.translate('FastPlotCanvas', '绘图提示'),
+                                            QCoreApplication.translate('FastPlotCanvas', '时间：' + Time_Model.datetime_to_timestr(datatime_sel) + '处无数据'))
+            self.draw()
+            
+    def slot_del_artist(self):
+
+        message = QMessageBox.warning(self,
+                      QCoreApplication.translate('PlotCanvas', '删除标记'),
+                      QCoreApplication.translate('PlotCanvas',
+                                        '''<p>确定要删除吗？'''),
+                      QMessageBox.Yes | QMessageBox.No)
+        if (message == QMessageBox.Yes):
+#            实现删除取值标注中的线或文字时能同时删除
+            if type(self.picked_del_artist) == Line2D:
+                ax = self.picked_del_artist.axes
+                if ax:
+                    list_text = ax.findobj(Annotation)
+                    for text in list_text:
+                        if (self.picked_del_artist.get_gid() and
+                            self.picked_del_artist.get_gid() == text.get_gid()):
+                            text.remove()
+            if type(self.picked_del_artist) == Annotation:
+                ax = self.picked_del_artist.axes
+                if ax:
+                    list_line = ax.findobj(Line2D)
+                    for line in list_line:
+                        if (self.picked_del_artist.get_gid() and
+                            self.picked_del_artist.get_gid() == line.get_gid()):
+                            line.remove()
+            self.picked_del_artist.remove()
+            self.draw()
 
     def slot_connect_display_paravalue(self):
         
@@ -1498,9 +1569,76 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         super().__init__(parent)
         self.count_axes = 1
         
-    def slot_onpress_new_vline(self, event):
+    def slot_onpress_mark_data(self, event):
 
-        PlotCanvasBase.slot_onpress_new_vline(self, event)
+        font = matplotlib.font_manager.FontProperties(
+                fname = CONFIG.SETUP_DIR + r'\data\fonts\msyh.ttf',
+                size = 8)
+        if event.inaxes and event.button == 1:
+            datatime_sel = mdates.num2date(event.xdata)
+            real_time, para_values = self.get_paravalue(datatime_sel)
+            
+            if real_time != '':
+                rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
+                self.current_axes.axvline(rt, c = self.current_markline_color,
+                                          ls = self.current_markline_style,
+                                          marker = self.current_markline_marker,
+                                          picker = 5,
+                                          gid = '_valuemark' + str(self._count_value_mark))
+                dis_str = '时间 = ' + real_time
+                for para_info in para_values:
+                    dis_str += '\n' + para_info[0] + ' = ' + str(para_info[1])
+                self.current_axes.annotate(s = dis_str,
+                                           xy = (rt, event.inaxes.get_ylim()[0]),
+                                           color = self.current_text_color,
+                                           size = self.current_text_size,
+                                           picker = 1,
+                                           bbox = dict(boxstyle = 'square, pad = 0.5', 
+                                                       fc = 'w', ec = self.current_text_color,
+                                                       visible = self.current_text_bbox),
+                                           arrowprops = dict(arrowstyle = '->',
+                                                             color = self.current_text_color,
+                                                             visible = self.current_text_arrow),
+                                           fontproperties = font,
+                                           gid = '_valuemark' + str(self._count_value_mark))
+                self._count_value_mark += 1
+                self.draw()
+            else:
+                QMessageBox.information(self,
+                                        QCoreApplication.translate('FastPlotCanvas', '绘图提示'),
+                                        QCoreApplication.translate('FastPlotCanvas', '时间：' + Time_Model.datetime_to_timestr(datatime_sel) + '处无数据'))
+        if event.button == 1:
+            self.slot_disconnect()
+            
+    def set_line_props(self, event):
+        
+        line = event.artist
+        xdata = line.get_xdata()
+        dialog = LineSettingDialog(self, line)
+        return_signal = dialog.exec_()
+        if (return_signal == QDialog.Accepted):
+            self.current_markline_color = dialog.line_color
+            self.current_markline_style = dialog.line_ls
+            self.current_markline_marker = dialog.line_marker
+            if dialog.text_mark and xdata[0] != dialog.line_xdata[0]:
+                datatime_sel = mdates.num2date(dialog.line_xdata[0])
+                real_time, para_values = self.get_paravalue(datatime_sel)
+                
+                if real_time != '':
+                    rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
+                    line.set_xdata([rt, rt])
+                    dialog.text_mark.xy = (rt, event.mouseevent.inaxes.get_ylim()[0])
+                    dis_str = '时间 = ' + real_time
+                    for para_info in para_values:
+                        dis_str += '\n' + para_info[0] + ' = ' + str(para_info[1])
+                    dialog.text_mark.set_text(dis_str)
+                    dialog.text_mark.set_position((rt, event.mouseevent.inaxes.get_ylim()[0]))
+                else:
+                    line.set_xdata(xdata)
+                    QMessageBox.information(self,
+                                            QCoreApplication.translate('FastPlotCanvas', '绘图提示'),
+                                            QCoreApplication.translate('FastPlotCanvas', '时间：' + Time_Model.datetime_to_timestr(datatime_sel) + '处无数据'))
+            self.draw()
         
     def slot_connect_display_paravalue(self):
         
@@ -1620,7 +1758,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap, hspace = hs)
         
-class StackAxisPlotCanvas(FastPlotCanvas):
+class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
     
     def __init__(self, parent = None):
     
@@ -1766,22 +1904,6 @@ class StackAxisPlotCanvas(FastPlotCanvas):
             self.cid_press_pan = None
             self.cid_move_pan = None
             self.cid_release_pan = None
-            
-    def slot_onpress_new_vline(self, event):
-
-        PlotCanvasBase.slot_onpress_new_vline(self, event)
-        
-    def slot_connect_display_paravalue(self):
-        
-        FTDataPlotCanvasBase.slot_connect_display_paravalue(self)
-        
-    def slot_diaconnect_display_paravalue(self):
-        
-        FTDataPlotCanvasBase.slot_diaconnect_display_paravalue(self)
-
-    def slot_display_paravalue(self, event):
-        
-        FTDataPlotCanvasBase.slot_display_paravalue(self, event)
         
     def slot_clear_canvas(self):
         

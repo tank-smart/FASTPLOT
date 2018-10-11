@@ -21,7 +21,7 @@ import json
 # Qt imports
 # =============================================================================
 from PyQt5.QtCore import QObject, QSize, Qt, QCoreApplication, pyqtSignal
-from PyQt5.QtGui import QIcon, QFont, QCloseEvent
+from PyQt5.QtGui import QIcon, QFont, QCloseEvent, QPixmap
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar, 
                              QFileDialog, QMessageBox, QMenu, QToolBar, 
                              QAction, QStatusBar, QStackedWidget,
@@ -452,16 +452,16 @@ class MainWindow(QMainWindow):
         ms_box = QMessageBox(QMessageBox.NoIcon,
                              QCoreApplication.translate('MainWindow', '关于' + CONFIG.SOFTNAME),
                              QCoreApplication.translate('MainWindow',
-                                                       '<img src=\'' + CONFIG.FTCC_LOGO + 
-                                                       '''' width='360' height='46'>
-                                                       <p><b>''' + CONFIG.SOFTNAME +
-                                                       '''</b></p>
-                                                       <br>试飞数据分析软件
-                                                       <p>试飞中心 | 试飞工程部
-                                                       <br>Copyright &copy; COMAC Flight Test Center.</p>
-                                                       '''),
+                                                        '<p><b>' + CONFIG.SOFTNAME +
+                                                        '''</b></p>
+                                                        <br>试飞数据分析软件
+                                                        <p>试飞中心 | 试飞工程部
+                                                        <br><img src= \'''' + CONFIG.FTCC_LOGO + 
+                                                        '\' width=\'240\' height=\'30\'></p>'),
+#                                                        <br>Copyright copy; COMAC Flight Test Center.
                              QMessageBox.Close,
                              self)
+        ms_box.setIconPixmap(QPixmap(CONFIG.ICON_WINDOW))
         btn = ms_box.addButton(QCoreApplication.translate('MainWindow', '开发人员'), QMessageBox.ActionRole)
         btn.clicked.connect(developers)
         btn_list = ms_box.buttons()
