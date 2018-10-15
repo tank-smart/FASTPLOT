@@ -30,7 +30,7 @@ import numpy as np
 import pandas as pd
 # 用于绘图的包
 import matplotlib
-matplotlib.use('Qt5Agg')
+#matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from matplotlib.ticker import FuncFormatter, AutoMinorLocator, MaxNLocator, LinearLocator
@@ -234,7 +234,7 @@ class PlotCanvasBase(FigureCanvas):
 #        判断是否是双击
         if not event.mouseevent.dblclick:
             if event.mouseevent.button == 1:
-                if type(event.artist) == Annotation:
+                if type(event.artist) == Annotation and event.mouseevent.inaxes:
                     self.picked_annotation = event.artist
                     self.create_move_annotation_event(event)
             if event.mouseevent.button == 3:
@@ -421,7 +421,7 @@ class PlotCanvasBase(FigureCanvas):
                 size = 8)
         if event.inaxes and event.button == 1:
 #            此处的字体大小size会覆盖fontproperties中size的属性
-            self.current_axes.annotate(s = r'Text', 
+            self.current_axes.annotate(text = r'Text', 
                                        xy = (event.xdata, event.ydata),
                                        color = self.current_text_color,
                                        size = self.current_text_size,
@@ -995,7 +995,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                                           marker = self.current_markline_marker,
                                           picker = 5,
                                           gid = '_valuemark' + str(self._count_value_mark))
-                self.current_axes.annotate(s = '时间 = ' + real_time + '\n' + para_values[index][0] + ' = ' + str(para_values[index][1]),
+                self.current_axes.annotate(text = '时间 = ' + real_time + '\n' + para_values[index][0] + ' = ' + str(para_values[index][1]),
                                            xy = (rt, para_values[index][1]),
                                            color = self.current_text_color,
                                            size = self.current_text_size,
@@ -1588,7 +1588,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
                 dis_str = '时间 = ' + real_time
                 for para_info in para_values:
                     dis_str += '\n' + para_info[0] + ' = ' + str(para_info[1])
-                self.current_axes.annotate(s = dis_str,
+                self.current_axes.annotate(text = dis_str,
                                            xy = (rt, event.inaxes.get_ylim()[0]),
                                            color = self.current_text_color,
                                            size = self.current_text_size,
