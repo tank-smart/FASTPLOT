@@ -12,8 +12,8 @@ SOFTNAME = 'FastPlot(beta 0.2)'
 # 路径
 # =============================================================================
 SETUP_DIR = osp.abspath(osp.join(osp.dirname(sys.argv[0]), osp.pardir))
-DIR_HELP_DOC = SETUP_DIR + r'\data\docs'
-DIR_HELP_VIDEO = SETUP_DIR + r'\data\videos'
+DIR_HELP_DOC = SETUP_DIR + r'\help\docs'
+DIR_HELP_VIDEO = SETUP_DIR + r'\help\videos'
 # =============================================================================
 # 软件设置
 # =============================================================================

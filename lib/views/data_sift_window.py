@@ -15,7 +15,7 @@
 # Qt imports
 # =============================================================================
 from PyQt5.QtCore import (QSize, QCoreApplication, Qt, QObject)
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
                              QTabWidget, QPushButton, QGroupBox,
                              QPlainTextEdit, QMessageBox, QTreeWidget, 
@@ -42,6 +42,9 @@ class SiftResultViewWidget(QWidget):
         
     def setup(self):
 
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.verticalLayout_8 = QVBoxLayout(self)
         self.verticalLayout_8.setContentsMargins(2, 2, 2, 2)
         self.verticalLayout_8.setSpacing(2)
@@ -107,6 +110,9 @@ class DataSiftWindow(QWidget):
 # =============================================================================        
     def setup(self):
         
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.verticalLayout = QVBoxLayout(self)
         self.verticalLayout.setContentsMargins(2, 0, 2, 0)
         self.verticalLayout.setSpacing(2)

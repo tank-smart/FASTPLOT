@@ -3780,7 +3780,7 @@ class DisplayParaValuesDialog(DsiplayParaInfoBaseDialog):
         self.retranslateUi_custom()
 
 #    实时显示参数值
-    def slot_display_paravalue(self, time : str, paravalue : list):
+    def slot_display_paravalue(self, time : str, list_paravalue_info : list):
         
 #        显示时间
         if time != '':
@@ -3788,11 +3788,11 @@ class DisplayParaValuesDialog(DsiplayParaInfoBaseDialog):
         else:
             self.label_tip.setText('No Data!')
         
-        count = len(paravalue)
+        count = len(list_paravalue_info)
         self.table_widget_para_info.clearContents()
         self.table_widget_para_info.setRowCount(count)
-        for row, para_tuple in enumerate(paravalue):
-            paraname, value = para_tuple
+        for row, para_tuple in enumerate(list_paravalue_info):
+            time, paraname, value = para_tuple
             item1 = QTableWidgetItem(paraname)
             self.table_widget_para_info.setItem(row, 0, item1)
             item2 = QTableWidgetItem(str(value))

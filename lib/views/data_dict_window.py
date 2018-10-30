@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel,
                              QGroupBox, QSpacerItem, QTreeWidget, 
                              QTreeWidgetItem, QMessageBox, QMenu,
                              QAction, QAbstractItemView, QFileDialog)
-#from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QFont
 
 import views.config_info as CONFIG
 
@@ -41,6 +41,9 @@ class DataDictWindow(QWidget):
         
     def setup(self):
 
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.horizontalLayout_3 = QHBoxLayout(self)
         self.horizontalLayout_3.setContentsMargins(2, 2, 2, 2)
         self.horizontalLayout_3.setSpacing(2)

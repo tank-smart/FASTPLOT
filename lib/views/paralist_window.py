@@ -16,7 +16,7 @@ import re
 # =============================================================================
 from PyQt5.QtCore import (Qt, pyqtSignal, QCoreApplication, QMimeData, 
                           QByteArray, QDataStream, QIODevice)
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QWidget, QDockWidget,QLineEdit, QMenu, 
                              QTreeWidget, QTreeWidgetItem, QAction, 
                              QVBoxLayout, QAbstractItemView, QMessageBox)
@@ -84,6 +84,10 @@ class ParalistWindow(QDockWidget):
 # =============================================================================
     def setup(self):
         
+        self.setFeatures(QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable)
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.setWindowTitle(QCoreApplication.translate('ParalistDock', '参数浏览器'))
 
         self.paralist_dock_contents = QWidget(self)

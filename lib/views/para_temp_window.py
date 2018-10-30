@@ -16,7 +16,7 @@ import os, json
 # =============================================================================
 from PyQt5.QtCore import (QSize, QCoreApplication, pyqtSignal, Qt,
                           QDataStream, QIODevice)
-from PyQt5.QtGui import QIcon, QDragEnterEvent, QDropEvent
+from PyQt5.QtGui import QIcon, QDragEnterEvent, QDropEvent, QFont
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QAction,
                              QMenu, QListWidget, QListWidgetItem,
                              QLineEdit, QAbstractItemView, QGroupBox,
@@ -134,6 +134,9 @@ class ParaTempWindow(QWidget):
 # =============================================================================
     def setup(self):
 
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.horizontalLayout_2 = QHBoxLayout(self)
         self.horizontalLayout_2.setContentsMargins(2, 0, 2, 0)
         self.horizontalLayout_2.setSpacing(2)
