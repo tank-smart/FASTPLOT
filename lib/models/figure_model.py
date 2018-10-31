@@ -206,16 +206,17 @@ class PlotCanvasBase(FigureCanvas):
         menu.addActions([self.action_show_hgrid, 
                          self.action_show_vgrid,
                          self.action_axis_setting,
-                         self.action_add_text])
-        menu_markline = QMenu(menu)
-        menu_markline.setIcon(QIcon(CONFIG.ICON_ADD_LINE_MARK))
-        menu_markline.setTitle(QCoreApplication.
-                              translate('PlotCanvas', '添加标记线'))
-        menu_markline.addActions([self.action_add_mark_hline,
-                                self.action_add_mark_vline,
-                                self.action_add_arb_markline])
-        menu.addAction(menu_markline.menuAction())
-        menu.addAction(self.action_del_artist)
+#                         self.action_add_text,
+                         self.action_del_artist])
+#        menu_markline = QMenu(menu)
+#        menu_markline.setIcon(QIcon(CONFIG.ICON_ADD_LINE_MARK))
+#        menu_markline.setTitle(QCoreApplication.
+#                              translate('PlotCanvas', '添加标记线'))
+#        menu_markline.addActions([self.action_add_mark_hline,
+#                                self.action_add_mark_vline,
+#                                self.action_add_arb_markline])
+#        menu.addAction(menu_markline.menuAction())
+#        menu.addAction(self.action_del_artist)
         
         if event.inaxes:
             self.axis_menu_on = event.inaxes
@@ -982,6 +983,14 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         self.action_mark_data.setText(QCoreApplication.
                                       translate('FastPlotCanvas', '取值标注'))
         self.action_mark_data.triggered.connect(self.slot_mark_data)
+        self.action_up_axis = QAction(self)
+        self.action_up_axis.setText(QCoreApplication.
+                                    translate('FastPlotCanvas', '上移曲线'))
+        self.action_up_axis.triggered.connect(self.slot_up_axis)
+        self.action_down_axis = QAction(self)
+        self.action_down_axis.setText(QCoreApplication.
+                                      translate('FastPlotCanvas', '下移曲线'))
+        self.action_down_axis.triggered.connect(self.slot_down_axis)
         self.action_del_axis = QAction(self)
         self.action_del_axis.setText(QCoreApplication.
                                      translate('FastPlotCanvas', '删除曲线'))
@@ -991,7 +1000,18 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
     def custom_context_menu(self, event):
 #        如果重载函数内有单独使用self变量的情况，调用重载函数时需要加上self作为参数
         menu = PlotCanvasBase.custom_context_menu(self, event)
-        menu.addAction(self.action_del_axis)
+        menu.addSeparator()
+        menu.addActions([self.action_up_axis,
+                         self.action_down_axis,
+                         self.action_del_axis])
+        if event.inaxes:
+            self.action_up_axis.setEnabled(True)
+            self.action_down_axis.setEnabled(True)
+            self.action_del_axis.setEnabled(True)
+        else:
+            self.action_up_axis.setEnabled(False)
+            self.action_down_axis.setEnabled(False)
+            self.action_del_axis.setEnabled(False)
         menu.addSeparator()
         menu.addActions([self.action_display_data_info,
                          self.action_mark_data])
@@ -1086,7 +1106,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                                         QCoreApplication.translate('FastPlotCanvas', '时间：' + Time_Model.datetime_to_timestr(datatime_sel) + '处无数据'))
         if event.button == 1:
             self.slot_disconnect()
-            
+
     def set_line_props(self, event):
         
         line = event.artist
@@ -1152,7 +1172,35 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                             line.remove()
             self.picked_del_artist.remove()
             self.draw()
-            
+
+    def slot_up_axis(self):
+        
+        if self.axis_menu_on and self.fig.axes:
+            for i, axis in enumerate(self.fig.axes):
+                if axis == self.axis_menu_on and i > 0:
+                    self.restore_axes_info()
+                    paraname, index = self.sorted_paralist[i]
+                    self.sorted_paralist[i] = self.sorted_paralist[i - 1]
+                    self.sorted_paralist[i - 1] = (paraname, index)
+                    self.count_axes = len(self.sorted_paralist)
+                    self.signal_adjust_win.emit()
+                    self.plot_total_data()
+                    break
+    
+    def slot_down_axis(self):
+        
+        if self.axis_menu_on and self.fig.axes:
+            for i, axis in enumerate(self.fig.axes):
+                if axis == self.axis_menu_on and i < (len(self.fig.axes) - 1):
+                    self.restore_axes_info()
+                    paraname, index = self.sorted_paralist[i]
+                    self.sorted_paralist[i] = self.sorted_paralist[i + 1]
+                    self.sorted_paralist[i + 1] = (paraname, index)
+                    self.count_axes = len(self.sorted_paralist)
+                    self.signal_adjust_win.emit()
+                    self.plot_total_data()
+                    break
+    
     def slot_del_axis(self):
         
         if self.axis_menu_on and self.fig.axes:
@@ -1175,6 +1223,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                         self.count_axes = len(self.sorted_paralist)
                         self.signal_adjust_win.emit()
                         self.plot_total_data()
+                    break
 
     def slot_connect_display_paravalue(self):
         
@@ -1245,6 +1294,11 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                                             markersize = 8)
                         self.aux_lines.append(line)
                 self.draw()
+                
+    def slot_clear_canvas(self):
+        
+        FTDataPlotCanvasBase.slot_clear_canvas(self)
+        self._count_value_mark = 0
             
     def my_format(self, x, pos=None):
         
@@ -1299,19 +1353,19 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                             label = pn,
                             color = self.curve_colors[self.color_index],
                             lw = 1,
-                            gid = 'dataline')
+                            gid = 'dataline_' + paraname)
                 else:
                     ax.plot(self.time_series_list[index], 
                             self.total_data[index].data[paraname],
                             color = self.curve_colors[self.color_index],
                             lw = 1,
-                            gid = 'dataline')
+                            gid = 'dataline_' + paraname)
             else:
                 ax.plot(self.time_series_list[index], 
                         self.total_data[index].data[paraname],
                         color = self.curve_colors[self.color_index],
                         lw = 1,
-                        gid = 'dataline')
+                        gid = 'dataline_' + paraname)
                 
             if i != (count - 1):
                 plt.setp(ax.get_xticklabels(), visible = False)
@@ -1370,30 +1424,27 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 size = 8)
         datalines = dict_axis_info['datalines']
 #        数据曲线的属性设置
-#        只会得到数据线，不清楚为什么
+#        不用判断是否是数据线，因为当前还未加入任何标记线
         lines = ax.get_lines()
-        dls = []
-        for li in lines:
-            if li.get_gid() == 'dataline':
-                dls.append(li)
-        i = 0
-        for j, curve in enumerate(dls):
-            if i < len(datalines):
-                curve.set_label(datalines[i]['label'])
-                curve.set_linestyle(datalines[i]['ls'])
-                curve.set_color(datalines[i]['color'])
-                curve.set_linewidth(datalines[i]['lw'])
-                curve.set_marker(datalines[i]['line_mark'])
-                i += 1
+        for curve in lines:
+            for i, dl in enumerate(datalines):
+                if curve.get_gid() == dl['line_gid']:
+                    curve.set_label(datalines[i]['label'])
+                    curve.set_linestyle(datalines[i]['ls'])
+                    curve.set_color(datalines[i]['color'])
+                    curve.set_linewidth(datalines[i]['lw'])
+                    curve.set_marker(datalines[i]['line_mark'])
+                    break
+                    
         if ax.get_legend():
 #            设置图注
             hs, ls = ax.get_legend_handles_labels()
             i = 0
             for j, curve in enumerate(lines):
-                if i < len(datalines):
-                    ls[j] = datalines[i]['label']
-                    hs[j].set_color(datalines[i]['color'])
-                    i += 1
+                for i, dl in enumerate(datalines):
+                    if curve.get_gid() == dl['line_gid']:
+                        ls[j] = datalines[i]['label']
+                        hs[j].set_color(datalines[i]['color'])
 #            似乎获得图注labels时是返回曲线的label而不是当前状态，所以需要用下面这个设置下
             ax.legend(hs, ls, loc=(0,1), fontsize = ax.get_legend()._fontsize,
                       ncol=4, frameon=False, borderpad = 0.15,
@@ -1569,7 +1620,8 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 markline_info['ls'] = line.get_linestyle()
                 markline_info['lw'] = line.get_linewidth()
                 markline_info['line_mark'] = line.get_marker()
-                if line.get_gid() == 'dataline':
+                if line.get_gid() and line.get_gid().find('dataline') != -1:
+                    markline_info['line_gid'] = line.get_gid()
                     markline_info['label'] = line.get_label()
                     dict_axis_info['datalines'].append(markline_info)
                 if line.get_gid() == 'arb_markline':
@@ -1949,6 +2001,47 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
     def __init__(self, parent = None):
     
         super().__init__(parent)
+        self.del_curve_acitons = []
+        self.count_curves = 0
+        
+    def custom_context_menu(self, event):
+#        如果重载函数内有单独使用self变量的情况，调用重载函数时需要加上self作为参数
+        menu = PlotCanvasBase.custom_context_menu(self, event)
+        if event.inaxes:
+            self.del_curve_acitons = []
+            menu.addSeparator()
+            del_curve_menu = QMenu(menu)
+            del_curve_menu.setTitle(QCoreApplication.
+                                    translate('SingleAxisXTimePlotCanvas', '删除曲线'))
+            ax = event.inaxes
+            lines = ax.get_lines()
+            for line in lines:
+                if line.get_gid() and line.get_gid().find('dataline') != -1:
+                    action = del_curve_menu.addAction(line.get_label())
+                    self.del_curve_acitons.append((action, line.get_gid()))
+            del_curve_menu.triggered.connect(self.slot_del_curve)
+            menu.addMenu(del_curve_menu)
+        menu.addSeparator()
+        menu.addActions([self.action_display_data_info,
+                         self.action_mark_data])
+        return menu
+    
+    def slot_del_curve(self, action):
+        
+        pn = ''
+        for ac, gid in self.del_curve_acitons:
+            if action == ac:
+                pn = gid[9 : ]
+                break
+        for i, para_info in enumerate(self.sorted_paralist):
+            para_name, index = para_info
+            if para_name == pn:
+                self.restore_axes_info()
+                self.delete_para_data(i)
+                self.count_axes = len(self.sorted_paralist)
+                self.signal_adjust_win.emit()
+                self.plot_total_data()
+                break
         
     def slot_onpress_mark_data(self, event):
 
@@ -2045,6 +2138,12 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         
         FTDataPlotCanvasBase.slot_display_paravalue(self, event)
         
+    def slot_clear_canvas(self):
+        
+        FTDataPlotCanvasBase.slot_clear_canvas(self)
+        self.del_curve_acitons = []
+        self.count_curves = 0
+        
     def plot_paras(self, datalist, sorted_paras, xpara = None):
 
         self.restore_axes_info()
@@ -2058,73 +2157,77 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
     def plot_total_data(self):
 
         self.fig.clf()
-        matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
-        matplotlib.rcParams['ytick.direction'] = 'in'
-#            支持中文显示
-#            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
-        matplotlib.rcParams['axes.unicode_minus'] = False
+        if len(self.sorted_paralist) > 0:
+            
+            matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+            matplotlib.rcParams['ytick.direction'] = 'in'
+    #            支持中文显示
+    #            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+            matplotlib.rcParams['axes.unicode_minus'] = False
+            
+            ax = self.fig.add_subplot(1, 1, 1)
+            count = len(self.sorted_paralist)
+            self.count_curves = count
         
-        ax = self.fig.add_subplot(1, 1, 1)
-        count = len(self.sorted_paralist)
-        self.count_curves = count
-        
-        self.color_index = 0
-        for i, para_tuple in enumerate(self.sorted_paralist):
-            self.signal_progress.emit(int(i/count*100))
-            paraname, index = para_tuple
-            if (self._data_dict and 
-                CONFIG.OPTION['data dict scope plot'] and
-                paraname in self._data_dict):
-                pn = self._data_dict[paraname][0]
-                unit = self._data_dict[paraname][1]
-                if pn != 'NaN':
-                    if unit != 'NaN' and unit != '1':
-                        pn = pn + '(' + unit + ')'
-                    ax.plot(self.time_series_list[index], 
-                            self.total_data[index].data[paraname],
-                            label = pn,
-                            color = self.curve_colors[self.color_index],
-                            lw = 1,
-                            gid = 'dataline')
+            self.color_index = 0
+            for i, para_tuple in enumerate(self.sorted_paralist):
+                self.signal_progress.emit(int(i/count*100))
+                paraname, index = para_tuple
+                if (self._data_dict and 
+                    CONFIG.OPTION['data dict scope plot'] and
+                    paraname in self._data_dict):
+                    pn = self._data_dict[paraname][0]
+                    unit = self._data_dict[paraname][1]
+                    if pn != 'NaN':
+                        if unit != 'NaN' and unit != '1':
+                            pn = pn + '(' + unit + ')'
+                        ax.plot(self.time_series_list[index], 
+                                self.total_data[index].data[paraname],
+                                label = pn,
+                                color = self.curve_colors[self.color_index],
+                                lw = 1,
+                                gid = 'dataline_' + paraname)
+                    else:
+                        ax.plot(self.time_series_list[index], 
+                                self.total_data[index].data[paraname],
+                                color = self.curve_colors[self.color_index],
+                                lw = 1,
+                                gid = 'dataline_' + paraname)
                 else:
                     ax.plot(self.time_series_list[index], 
                             self.total_data[index].data[paraname],
                             color = self.curve_colors[self.color_index],
                             lw = 1,
-                            gid = 'dataline')
-            else:
-                ax.plot(self.time_series_list[index], 
-                        self.total_data[index].data[paraname],
-                        color = self.curve_colors[self.color_index],
-                        lw = 1,
-                        gid = 'dataline')
-#                一共有十种颜色可用
-            if self.color_index == 9:
-                self.color_index = 0
-            else:
-                self.color_index += 1
-        
-        ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
-#            若已指定fontproperties属性，则fontsize不起作用
-        plt.setp(ax.get_xticklabels(),
-                 horizontalalignment = 'center',
-                 rotation = 'horizontal',
-                 fontproperties = CONFIG.FONT_MSYH)
-        plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
-        ax.legend(loc=(0,1), ncol=4, frameon=False, borderpad = 0.15,
-                  prop = CONFIG.FONT_MSYH)
-        ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
-        ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
-        ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
-        ax.grid(which='major',linestyle='--',color = '0.45')
-        ax.grid(which='minor',linestyle='--',color = '0.75')
+                            gid = 'dataline_' + paraname)
+    #                一共有十种颜色可用
+                if self.color_index == 9:
+                    self.color_index = 0
+                else:
+                    self.color_index += 1
             
-        self.init_axes_lim = {}
-        self.init_axes_lim = self.get_current_axes_lim()
-        self.refresh_axes_status()
-        self.adjust_figure()
+            ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
+    #            若已指定fontproperties属性，则fontsize不起作用
+            plt.setp(ax.get_xticklabels(),
+                     horizontalalignment = 'center',
+                     rotation = 'horizontal',
+                     fontproperties = CONFIG.FONT_MSYH)
+            plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+            ax.legend(loc=(0,1), ncol=4, frameon=False, borderpad = 0.15,
+                      prop = CONFIG.FONT_MSYH)
+            ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+            ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+            ax.grid(which='major',linestyle='--',color = '0.45')
+            ax.grid(which='minor',linestyle='--',color = '0.75')
+                
+            self.init_axes_lim = {}
+            self.init_axes_lim = self.get_current_axes_lim()
+            self.refresh_axes_status()
+            self.adjust_figure()
+        else:
+            self.draw()
 
 #    根据存储的坐标信息，把重画后的坐标状态还原
     def refresh_axes_status(self):
@@ -2132,9 +2235,6 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         ax = self.fig.axes
         if ax and self.axes_info:
             ax[0].set_xlim(self.axes_info['axis']['xlim'])
-            ax[0].set_ylim(self.axes_info['axis']['ylim'])
-            ax[0].set_xlim(self.axes_info['axis']['xlim'])
-            ax[0].set_ylim(self.axes_info['axis']['ylim'])
             self.refresh_axes_artist_status(self.axes_info['axis'], ax[0])
             
 #    更新取值标注的状态    
@@ -2262,6 +2362,11 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         self.num_view_yscales = 0
         self.num_yview_scales = 0
         
+    def custom_context_menu(self, event):
+#        如果重载函数内有单独使用self变量的情况，调用重载函数时需要加上self作为参数
+        menu = FastPlotCanvas.custom_context_menu(self, event)
+        return menu
+    
 #    pick函数
     def on_pick(self, event):
         
@@ -2297,6 +2402,34 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                     QCoreApplication.translate('StackAxisPlotCanvas', '绘图提示'),
                     QCoreApplication.translate('StackAxisPlotCanvas', '未选择坐标！'))
             
+    def slot_up_axis(self):
+        
+        if self.selected_sta_axis:
+            i = self.selected_sta_axis_index
+            if i > 0:
+                self.selected_sta_axis_index = i - 1
+                self.restore_axes_info()
+                paraname, index = self.sorted_paralist[i]
+                self.sorted_paralist[i] = self.sorted_paralist[i - 1]
+                self.sorted_paralist[i - 1] = (paraname, index)
+                self.count_axes = len(self.sorted_paralist)
+                self.signal_adjust_win.emit()
+                self.plot_total_data()
+    
+    def slot_down_axis(self):
+        
+        if self.selected_sta_axis:
+            i = self.selected_sta_axis_index
+            if i < (len(self.sorted_paralist) - 1):
+                self.selected_sta_axis_index = i + 1
+                self.restore_axes_info()
+                paraname, index = self.sorted_paralist[i]
+                self.sorted_paralist[i] = self.sorted_paralist[i + 1]
+                self.sorted_paralist[i + 1] = (paraname, index)
+                self.count_axes = len(self.sorted_paralist)
+                self.signal_adjust_win.emit()
+                self.plot_total_data()
+    
     def slot_del_axis(self):
         
         if self.selected_sta_axis:
@@ -2396,7 +2529,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         
     def slot_clear_canvas(self):
         
-        FTDataPlotCanvasBase.slot_clear_canvas(self)
+        SingleAxisXTimePlotCanvas.slot_clear_canvas(self)
         self.selected_sta_axis = None
         self.selected_sta_axis_index = 0
         
@@ -2467,7 +2600,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                             label = pn,
                             color = self.curve_colors[self.color_index],
                             lw = 1,
-                            gid = 'dataline')
+                            gid = 'dataline_' + paraname)
                     ax.set_ylabel(pn, fontproperties = CONFIG.FONT_MSYH,
                                   color = self.curve_colors[self.color_index])
                 else:
@@ -2475,7 +2608,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                             self.total_data[index].data[paraname],
                             color = self.curve_colors[self.color_index],
                             lw = 1,
-                            gid = 'dataline')
+                            gid = 'dataline_' + paraname)
                     ax.set_ylabel(pn, fontproperties = CONFIG.FONT_MSYH, 
                                   color = self.curve_colors[self.color_index])
             else:
@@ -2483,7 +2616,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                         self.total_data[index].data[paraname],
                         color = self.curve_colors[self.color_index],
                         lw = 1,
-                        gid = 'dataline')
+                        gid = 'dataline_' + paraname)
                 ax.set_ylabel(paraname, fontproperties = CONFIG.FONT_MSYH, 
                               color = self.curve_colors[self.color_index])
             
@@ -2684,7 +2817,6 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
                                               bbox = None)
             self.selected_sta_axis = ax
-#            因为主坐标是第一个坐标，所以需减去1
             self.selected_sta_axis_index = ax_index
             self.selected_sta_axis.set_ylabel(self.selected_sta_axis.get_ylabel(),
                                               bbox = dict(boxstyle = 'round,pad=0.5', fc = 'none'))

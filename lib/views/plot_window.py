@@ -488,6 +488,11 @@ class PlotWindow(QWidget):
             return
         
         if datadict and sorted_paras:
+#            在绘图前把正在进行的操作都停止
+#            if (self.current_clicked_btn and 
+#                self.current_clicked_btn.isChecked()):
+#                    self.current_clicked_btn.click()
+#                    self.current_clicked_btn = None
             self.current_canva._data_dict = self._data_dict
             
             self.signal_send_status.emit('绘图中...', 0)
@@ -529,7 +534,7 @@ class PlotWindow(QWidget):
             else:
                 height = int(self.current_fig_win.height() * 1.05) / 4
                 self.current_canva.resize(self.current_fig_win.width() - 19,
-                                       self.current_count_axes * height)
+                                          self.current_count_axes * height)
         else:
             self.current_fig_win.setWidgetResizable(True)
         
@@ -759,8 +764,10 @@ class PlotWindow(QWidget):
                   QCoreApplication.translate('PlotWindow', '确定要清除画布吗'),
                   QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
-                if self.button_get_paravalue.isChecked():
-                    self.button_get_paravalue.click()
+                if (self.current_clicked_btn and 
+                    self.current_clicked_btn.isChecked()):
+                        self.current_clicked_btn.click()
+                        self.current_clicked_btn = None
                 self.current_canva.slot_clear_canvas()
 #                如果画的图多会出现滚动条，此时清除画布，滚动条不会消失，因此采用此行解决
                 self.current_fig_win.setWidgetResizable(True)
@@ -776,8 +783,10 @@ class PlotWindow(QWidget):
     def slot_save_figure(self):
         
         if self.current_canva.fig.axes:
-            if self.button_get_paravalue.isChecked():
-                self.button_get_paravalue.click()
+            if (self.current_clicked_btn and 
+                self.current_clicked_btn.isChecked()):
+                    self.current_clicked_btn.click()
+                    self.current_clicked_btn = None
 #            将画布变形成合适的尺寸
             self.current_fig_win.setWidgetResizable(False)
             self.on_saving_fig = True

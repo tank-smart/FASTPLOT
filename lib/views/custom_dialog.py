@@ -1601,9 +1601,7 @@ class Base_AxisSettingDialog(QDialog):
         for line in lines:
             line_info = {}
 #            忽略取值线和标记线
-            if line.pickable() or line.get_gid() == 'getvalue':
-                pass
-            else:
+            if line.get_gid() and line.get_gid().find('dataline') != -1:
                 line_info['line'] = line
                 line_info['line_label'] = line.get_label()
                 line_info['linestyle'] = line.get_linestyle()
