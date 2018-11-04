@@ -1581,7 +1581,6 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 self.axes_info[pn]['ylim'] = axes[i].get_ylim()
                 self.restore_axes_artist_info(self.axes_info[pn], axes[i])
                 
-#    返回数据线的个数            
     def restore_axes_artist_info(self, dict_axis_info, axis):
         
         dict_axis_info['marktexts'] = []
@@ -1640,7 +1639,266 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                     markline_info['xdata'] = line.get_xdata()[0]
                     markline_info['ydata'] = line.get_ydata()
                     dict_axis_info['valuemark_lines'][line.get_gid()] = markline_info
+
+    def save_plot_temp_artist_info(self, dict_axis_info, axis):
+        
+        def is_in_range(f, rg):
+            if f >= rg[0] and f <= rg[1]:
+                return True
+            else:
+                return False
+
+        def abs_2_rel(f, rg):
+            
+            return (f - rg[0]) / (rg[1] - rg[0])
+            
+        def is_in_view(xl, yl, artist):
+            if type(artist) == Annotation:
+                xy = artist.xy
+                xytext = artist.get_position()
+#                只有文字位置和锚点都在坐标内，才算在坐标内
+                if (is_in_range(xy[0], xl) and is_in_range(xy[1], yl) and
+                    is_in_range(xytext[0], xl) and is_in_range(xytext[1], yl)):
+                    return True
+                else:
+                    return False
+                
+            if type(artist) == Line2D:
+                if artist.get_gid() and artist.get_gid().find('dataline') != -1:
+                    return True
+                if artist.get_gid() == 'arb_markline':
+                    xdata = artist.get_xdata()
+                    ydata = artist.get_ydata()
+                    if (is_in_range(xdata[0], xl) and is_in_range(ydata[0], yl) and
+                        is_in_range(xdata[1], xl) and is_in_range(ydata[1], yl)):
+                        return True
+                    else:
+                        return False
+                if artist.get_gid() == 'h_markline':
+                    yd = artist.get_ydata()[0]
+                    if is_in_range(yd, yl):
+                        return True
+                    else:
+                        return False
+                if artist.get_gid() == 'v_markline':
+                    xd = artist.get_xdata()[0]
+                    if is_in_range(xd, xl):
+                        return True
+                    else:
+                        return False
+                if artist.get_gid() and line.get_gid().find('_value') != -1:
+                    xd = artist.get_xdata()[0]
+                    if is_in_range(xd, xl):
+                        return True
+                    else:
+                        return False
+        
+        ax_xlim = axis.get_xlim()
+        ax_ylim = axis.get_ylim()
+        dict_axis_info['marktexts'] = []
+        dict_axis_info['datalines'] = []
+        dict_axis_info['arb_marklines'] = []
+        dict_axis_info['h_marklines'] = []
+        dict_axis_info['v_marklines'] = []
+        dict_axis_info['valuemark_texts'] = {}
+        dict_axis_info['valuemark_lines'] = {}
+#        存储文字标注的属性
+        annotations = axis.findobj(Annotation)
+        if annotations:
+            marktext_info = {}
+            for anno in annotations:
+                if is_in_view(ax_xlim, ax_ylim, anno):
+                    marktext_info = {}
+                    marktext_info['content'] = anno.get_text()
+                    axy = anno.xy
+                    marktext_info['xy'] = (abs_2_rel(axy[0], ax_xlim), abs_2_rel(axy[1], ax_ylim))
+                    xyt = anno.get_position()
+                    marktext_info['xytext'] = (abs_2_rel(xyt[0], ax_xlim), abs_2_rel(xyt[1], ax_ylim))
+                    marktext_info['color'] = anno.get_color()
+                    marktext_info['rotation'] = anno.get_rotation()
+                    marktext_info['fontsize'] = anno.get_fontsize()
+    #                marktext_info['fontproperties'] = anno.get_fontproperties()
+                    marktext_info['bbox_visible'] = anno.get_bbox_patch().get_visible()
+                    marktext_info['arrow_visible'] = anno.arrow_patch.get_visible()
+                    if anno.get_gid() == 'marktext':
+                        dict_axis_info['marktexts'].append(marktext_info)
+                    if anno.get_gid() and anno.get_gid().find('_value') != -1:
+                        dict_axis_info['valuemark_texts'][anno.get_gid()] = marktext_info
+#        存储标注线的属性
+        lines = axis.findobj(Line2D)
+        if lines:
+            markline_info = {}
+            for line in lines:
+                if is_in_view(ax_xlim, ax_ylim, line):
+                    markline_info = {}
+                    markline_info['color'] = line.get_color()
+                    markline_info['ls'] = line.get_linestyle()
+                    markline_info['lw'] = line.get_linewidth()
+                    markline_info['line_mark'] = line.get_marker()
+                    if line.get_gid() and line.get_gid().find('dataline') != -1:
+                        dict_axis_info['datalines'].append(markline_info)
+                    if line.get_gid() == 'arb_markline':
+                        arb_xdata = line.get_xdata()
+                        arb_ydata = line.get_ydata()
+                        markline_info['xdata'] = [abs_2_rel(arb_xdata[0], ax_xlim), abs_2_rel(arb_xdata[1], ax_xlim)]
+                        markline_info['ydata'] = [abs_2_rel(arb_ydata[0], ax_ylim), abs_2_rel(arb_ydata[1], ax_ylim)]
+                        dict_axis_info['arb_marklines'].append(markline_info)
+                    if line.get_gid() == 'h_markline':
+                        h_ydata = line.get_ydata()
+                        markline_info['xdata'] = line.get_xdata()
+                        markline_info['ydata'] = abs_2_rel(h_ydata[0], ax_ylim)
+                        dict_axis_info['h_marklines'].append(markline_info)
+                    if line.get_gid() == 'v_markline':
+                        v_xdata = line.get_xdata()
+                        markline_info['xdata'] = abs_2_rel(v_xdata[0], ax_xlim)
+                        markline_info['ydata'] = line.get_ydata()
+                        dict_axis_info['v_marklines'].append(markline_info)
+                    if line.get_gid() and line.get_gid().find('_value') != -1:
+                        vl_xdata = line.get_xdata()
+                        markline_info['xdata'] = abs_2_rel(vl_xdata[0], ax_xlim)
+                        markline_info['ydata'] = line.get_ydata()
+                        dict_axis_info['valuemark_lines'][line.get_gid()] = markline_info
+                        
+    def plot_temp_artist_status(self, dict_axis_info, ax):
+        
+        def rel_2_abs(f, rg):
+            
+            return rg[0] + f * (rg[1] - rg[0])
+        
+        ax_xlim = ax.get_xlim()
+        ax_ylim = ax.get_ylim()
+        font = matplotlib.font_manager.FontProperties(
+                fname = CONFIG.SETUP_DIR + r'\data\fonts\msyh.ttf',
+                size = 8)
+        datalines = dict_axis_info['datalines']
+#        数据曲线的属性设置
+#        不用判断是否是数据线，因为当前还未加入任何标记线
+        lines = ax.get_lines()
+        dlines = []
+        for line in lines:
+            if line.get_gid() and line.get_gid().find('dataline') != -1:
+                dlines.append(line)
+        for i, curve in enumerate(dlines):
+            curve.set_linestyle(datalines[i]['ls'])
+            curve.set_color(datalines[i]['color'])
+            curve.set_linewidth(datalines[i]['lw'])
+            curve.set_marker(datalines[i]['line_mark'])
                     
+        if ax.get_legend():
+#            设置图注
+            hs, ls = ax.get_legend_handles_labels()
+            for i, curve in enumerate(dlines):
+                hs[i].set_color(datalines[i]['color'])
+#            似乎获得图注labels时是返回曲线的label而不是当前状态，所以需要用下面这个设置下
+            ax.legend(hs, ls, loc=(0,1), fontsize = ax.get_legend()._fontsize,
+                      ncol=4, frameon=False, borderpad = 0.15,
+                      prop = CONFIG.FONT_MSYH)
+        
+        arb_marklines = dict_axis_info['arb_marklines']
+        for ml in arb_marklines:
+            ax.add_line(Line2D([rel_2_abs(ml['xdata'][0], ax_xlim), rel_2_abs(ml['xdata'][1], ax_xlim)],
+                               [rel_2_abs(ml['ydata'][0], ax_ylim), rel_2_abs(ml['ydata'][1], ax_ylim)],
+                               gid = 'arb_markline',
+                               c = ml['color'],
+                               ls = ml['ls'],
+                               lw = ml['lw'],
+                               marker = ml['line_mark'],
+                               picker = 5))
+            
+        h_marklines = dict_axis_info['h_marklines']
+        for ml in h_marklines:
+            line = ax.axhline(rel_2_abs(ml['ydata'], ax_ylim),
+                              gid = 'h_markline',
+                              c = ml['color'],
+                              ls = ml['ls'],
+                              lw = ml['lw'],
+                              marker = ml['line_mark'],
+                              picker = 5)
+            line.set_xdata(ml['xdata'])
+            
+        v_marklines = dict_axis_info['v_marklines']
+        for ml in v_marklines:
+            line = ax.axvline(rel_2_abs(ml['xdata'], ax_xlim),
+                              gid = 'v_markline',
+                              c = ml['color'],
+                              ls = ml['ls'],
+                              lw = ml['lw'],
+                              marker = ml['line_mark'],
+                              picker = 5)
+            line.set_ydata(ml['ydata'])
+            
+        marktexts = dict_axis_info['marktexts']
+        for mt in marktexts:
+            ax.annotate(text = mt['content'],
+                        gid = 'marktext',
+                        xy =  (rel_2_abs(mt['xy'][0], ax_xlim), rel_2_abs(mt['xy'][1], ax_ylim)),
+                        xytext = (rel_2_abs(mt['xytext'][0], ax_xlim), rel_2_abs(mt['xytext'][1], ax_ylim)),
+                        color = mt['color'],
+                        rotation = mt['rotation'],
+                        size = mt['fontsize'],
+                        bbox = dict(boxstyle = 'square, pad = 0.5',
+                                    fc = 'w', ec = mt['color'],
+                                    visible = mt['bbox_visible']),
+                        arrowprops = dict(arrowstyle = '->',
+                                          color = mt['color'],
+                                          visible = mt['arrow_visible']),
+                        picker = 1,
+                        fontproperties = font)
+        self.plot_temp_valuemark_status(dict_axis_info, ax)
+    
+#    更新取值标注的状态    
+    def plot_temp_valuemark_status(self, dict_axis_info, ax):
+        
+        def rel_2_abs(f, rg):
+            
+            return rg[0] + f * (rg[1] - rg[0])
+        
+        ax_xlim = ax.get_xlim()
+        ax_ylim = ax.get_ylim()
+        font = matplotlib.font_manager.FontProperties(
+                fname = CONFIG.SETUP_DIR + r'\data\fonts\msyh.ttf',
+                size = 8)
+        valuemark_ts = dict_axis_info['valuemark_texts']
+        valuemark_ls = dict_axis_info['valuemark_lines']
+        for vm_gid in valuemark_ts:
+            
+            xdata = ax_xlim[0] + valuemark_ls[vm_gid]['xdata'] * (ax_xlim[1] - ax_xlim[0])
+            datatime_sel = mdates.num2date(xdata)
+            list_paravalue_info = self.get_paravalue(datatime_sel)
+            index = 0
+            for i, axis in enumerate(self.fig.axes):
+                if ax == axis:
+                    index = i
+                    break
+            real_time = list_paravalue_info[index][0]
+            if real_time != '':
+                rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
+                line = ax.axvline(rt,
+                                  gid = '_valuemark' + str(self._count_value_mark),
+                                  c = valuemark_ls[vm_gid]['color'],
+                                  ls = valuemark_ls[vm_gid]['ls'],
+                                  lw = valuemark_ls[vm_gid]['lw'],
+                                  marker = valuemark_ls[vm_gid]['line_mark'],
+                                  picker = 5)
+                line.set_ydata(valuemark_ls[vm_gid]['ydata'])
+                
+                ax.annotate(text = '时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]),
+                            gid = '_valuemark' + str(self._count_value_mark),
+                            xy =  (rel_2_abs(valuemark_ts[vm_gid]['xy'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xy'][1], ax_ylim)),
+                            xytext = (rel_2_abs(valuemark_ts[vm_gid]['xytext'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xytext'][1], ax_ylim)),
+                            color = valuemark_ts[vm_gid]['color'],
+                            rotation = valuemark_ts[vm_gid]['rotation'],
+                            size = valuemark_ts[vm_gid]['fontsize'],
+                            bbox = dict(boxstyle = 'square, pad = 0.5',
+                                        fc = 'w', ec = valuemark_ts[vm_gid]['color'],
+                                        visible = valuemark_ts[vm_gid]['bbox_visible']),
+                            arrowprops = dict(arrowstyle = '->',
+                                              color = valuemark_ts[vm_gid]['color'],
+                                              visible = valuemark_ts[vm_gid]['arrow_visible']),
+                            picker = 1,
+                            fontproperties = font)
+                self._count_value_mark += 1
+
     def save_plot_temp(self):
         
         axes = self.fig.axes
@@ -1651,17 +1909,21 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             if (return_signal == QDialog.Accepted):
                 temp_name = dialog.temp_name
                 if temp_name:
+                    temp['figure_type'] = self.__class__.__name__
+                    temp['temp_axes'] = []
                     for i, axis in enumerate(axes):
                         axis_name = 'temp_axis' + str(i)
                         temp[axis_name] = {}
-                        self.restore_axes_artist_info(temp[axis_name], axis)
+                        temp['temp_axes'].append(temp[axis_name])
+                        self.save_plot_temp_artist_info(temp[axis_name], axis)
                     try:
                         with open(CONFIG.SETUP_DIR + '\\data\\plot_temp\\' + temp_name + '.json', 'w') as file:
                             json.dump(temp, file)
+                            self.fig.savefig(CONFIG.SETUP_DIR + '\\data\\plot_temp\\' + temp_name + '.png')
                         QMessageBox.information(self,
                                                 QCoreApplication.translate('FastPlotCanvas', '保存提示'), 
                                                 QCoreApplication.translate('FastPlotCanvas', '保存成功'))
-                    except IOError:
+                    except:
                         QMessageBox.information(self,
                                                 QCoreApplication.translate('FastPlotCanvas', '保存提示'),
                                                 QCoreApplication.translate('FastPlotCanvas', '保存失败！'))
@@ -1681,11 +1943,12 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             plot_temp_info = {}
             with open(CONFIG.SETUP_DIR + '\\data\\plot_temp\\' + temp_name + '.json', 'r') as file:
                 plot_temp_info = json.load(file)
-            if plot_temp_info and self.fig.axes:
-                if len(plot_temp_info) == len(self.fig.axes):
+                axes_info = plot_temp_info['temp_axes']
+            if axes_info and self.fig.axes:
+                if len(axes_info) == len(self.fig.axes):
                     axes = self.fig.axes
-                    for i, ax_name in enumerate(plot_temp_info):
-                        self.refresh_axes_artist_status(plot_temp_info[ax_name], axes[i])
+                    for i, ax_info in enumerate(axes_info):
+                        self.plot_temp_artist_status(ax_info, axes[i])
                     self.draw()
                 else:
                     QMessageBox.information(self,
@@ -1694,7 +1957,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         except IOError:
             QMessageBox.information(self,
                                     QCoreApplication.translate('FastPlotCanvas', '模板应用提示'),
-                                    QCoreApplication.translate('FastPlotCanvas', '模板导入错误！'))
+                                    QCoreApplication.translate('FastPlotCanvas', '模板应用时出现错误！'))
         
 class SingleAxisPlotCanvasBase(FTDataPlotCanvasBase):
     

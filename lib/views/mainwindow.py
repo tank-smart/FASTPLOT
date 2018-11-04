@@ -120,14 +120,14 @@ class MainWindow(QMainWindow):
 #        self.stacked_window.addWidget(self.data_dict_page)
         self.vlayout_pw.addWidget(self.plot_page)
         self.plot_fun_win.setWidget(self.plot_wid)
-#        数据分析界面
+#        参数选择界面
         self.data_process_fun_win = QDockWidget(self)
 #        让dock窗口不可依靠
         self.data_process_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.data_process_fun_win.setMinimumSize(QSize(800, 500))
         self.data_process_fun_win.setGeometry(150, 150, 800, 500)
         self.data_process_fun_win.setWindowTitle(QCoreApplication.
-                                                 translate('MainWindow', '数据分析'))
+                                                 translate('MainWindow', '参数选择'))
         self.data_process_wid = QWidget(self)
         self.vlayout_dpw = QVBoxLayout(self.data_process_wid)
         self.vlayout_dpw.setContentsMargins(2, 2, 2, 2)
@@ -400,7 +400,7 @@ class MainWindow(QMainWindow):
                 self.data_dict_page.slot_add_dict)
         self.paralist_window.signal_into_data_dict.connect(
                 self.action_data_dict.trigger)
-#        数据分析窗口与主窗口和其他窗口的信号与槽连接
+#        参数选择窗口与主窗口和其他窗口的信号与槽连接
         self.data_process_page.signal_request_temps.connect(
                 self.slot_send_temps)
         self.data_process_page.signal_save_temp.connect(
@@ -411,6 +411,8 @@ class MainWindow(QMainWindow):
                 self.plot_page.slot_plot)
         self.data_process_page.signal_send_status.connect(
                 self.slot_display_status_info)
+        self.data_process_page.signal_close_dock.connect(
+                self.slot_close_dp_wind)
 #        数据字典窗口与主窗口和其他窗口的信号与槽连接
         
 #        绘图窗口与主窗口和其他窗口的信号与槽连接
@@ -680,6 +682,10 @@ class MainWindow(QMainWindow):
         if (return_signal == QDialog.Accepted):
             for index in range(self.plot_page.tab_widget_figure.count()):
                 self.plot_page.tab_widget_figure.widget(index).canva.update_config_info()
+                
+    def slot_close_dp_wind(self):
+        
+        self.data_process_fun_win.close()
 
 # =============================================================================
 # 功能函数模块
@@ -721,7 +727,7 @@ class MainWindow(QMainWindow):
         self.menu_view.setTitle(_translate('MainWindow', '视图'))
 #        self.menu_panels.setTitle(_translate('MainWindow', '面板'))
         self.menu_tools.setTitle(_translate('MainWindow', '工具'))
-#        self.menu_data_analysis.setTitle(_translate('MainWindow', '数据分析'))
+#        self.menu_data_analysis.setTitle(_translate('MainWindow', '参数选择'))
 #        self.menu_data_manage.setTitle(_translate('MainWindow', '数据管理'))
 #        self.menu_window.setTitle(_translate('MainWindow', '窗口'))
         self.menu_help.setTitle(_translate('MainWindow', '帮助'))
@@ -731,7 +737,7 @@ class MainWindow(QMainWindow):
         self.action_file_process.setText(_translate('MainWindow', '文件导出'))
         self.action_exit.setText(_translate('MainWindow', '退出'))
         self.action_mathematics.setText(_translate('MainWindow', '数学计算'))
-        self.action_data_process.setText(_translate('MainWindow', '数据分析'))
+        self.action_data_process.setText(_translate('MainWindow', '参数选择'))
         self.action_data_sift.setText(_translate('MainWindow', '数据筛选'))
         self.action_para_templates.setText(_translate('MainWindow', '参数模板'))
         self.action_data_dict.setText(_translate('MainWindow', '数据字典'))

@@ -1014,7 +1014,7 @@ class PlotWindow(QWidget):
             
     def slot_sel_plot_temp(self):
         
-        self.current_canva.apply_plot_temp('temp')
+        self.current_canva.apply_plot_temp('test')
             
 #    实现按下Esc键后当前操作取消的功能
     def keyPressEvent(self, event : QKeyEvent):

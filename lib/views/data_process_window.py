@@ -78,6 +78,7 @@ class DataProcessWindow(QWidget):
     signal_request_temps = pyqtSignal(str)
     signal_save_temp = pyqtSignal(dict)
     signal_send_status = pyqtSignal(str, int)
+    signal_close_dock = pyqtSignal()
 # =============================================================================
 # 初始化    
 # =============================================================================    
@@ -353,6 +354,7 @@ class DataProcessWindow(QWidget):
     def slot_plot(self):
         
         if self.tree_widget_paralist:
+            self.signal_close_dock.emit()
             items = self.tree_widget_paralist.selectedItems()
             if items:
                 self.signal_para_for_plot.emit(self.get_sel_paras_in_tuple())
