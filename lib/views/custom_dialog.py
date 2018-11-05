@@ -3,6 +3,7 @@
 # Dialog Content
 #
 # SaveTemplateDialog
+# SelectTemplateDialog
 # SelParasDialog
 # SelParasDialog_xparasetting
 # ParaSetup_Dialog
@@ -35,7 +36,7 @@ import matplotlib.dates as mdates
 # =============================================================================
 from PyQt5.QtCore import (QSize, QCoreApplication, Qt, pyqtSignal, QObject,
                           QDataStream, QIODevice, QRect)
-from PyQt5.QtGui import QFont, QIcon, QColor, QPalette
+from PyQt5.QtGui import QFont, QIcon, QColor, QPalette, QPixmap
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
                              QLineEdit, QSpacerItem, QSizePolicy,
                              QPushButton, QMessageBox, QListWidget,
@@ -45,7 +46,8 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                              QTreeWidgetItem, QHeaderView, QFileDialog,
                              QAction, QMenu, QStackedWidget, QWidget,
                              QCheckBox, QTableWidget, QTableWidgetItem,
-                             QSpinBox, QDialogButtonBox, QGridLayout)
+                             QSpinBox, QDialogButtonBox, QGridLayout,
+                             QGraphicsScene, QGraphicsView, QGraphicsPixmapItem)
 
 # =============================================================================
 # Package models imports
@@ -115,25 +117,21 @@ class SaveTemplateDialog(QDialog):
         self.button_confirm.setText(_translate('SaveTemplateDialog', '确定'))
         self.button_cancel.setText(_translate('SaveTemplateDialog', '取消'))
 
-
-class SelectTemplateDialog(QDialog):
+class SelectTemplateBaseDialog(QDialog):
     
-    def __init__(self, parent = None, templates = {}):
+    def __init__(self, parent = None):
         
         super().__init__(parent)
-        self._data_dict = None
-        self.templates = templates
         self.sel_temp = ''
         self.tempicon = QIcon(CONFIG.ICON_TEMPLATE)
-        self.paraicon = QIcon(CONFIG.ICON_PARA)
         self.setup()
-    
+        
     def setup(self):
 
         font = QFont()
         font.setFamily('微软雅黑')
         self.setFont(font)
-        self.resize(560, 450)
+        self.resize(700, 450)
         self.verticalLayout_3 = QVBoxLayout(self)
         self.verticalLayout_3.setContentsMargins(4, 0, 4, 4)
         self.horizontalLayout_2 = QHBoxLayout()
@@ -144,15 +142,16 @@ class SelectTemplateDialog(QDialog):
         self.label_temp.setMaximumSize(QSize(16777215, 24))
         self.verticalLayout.addWidget(self.label_temp)
         self.list_temps = QListWidget(self)
+        self.list_temps.setMinimumWidth(200)
+        self.list_temps.setMaximumWidth(200)
         self.verticalLayout.addWidget(self.list_temps)
         self.horizontalLayout_2.addLayout(self.verticalLayout)
         self.verticalLayout_2 = QVBoxLayout()
-        self.label_para = QLabel(self)
-        self.label_para.setMinimumSize(QSize(0, 24))
-        self.label_para.setMaximumSize(QSize(16777215, 24))
-        self.verticalLayout_2.addWidget(self.label_para)
-        self.list_paras = QListWidget(self)
-        self.verticalLayout_2.addWidget(self.list_paras)
+        self.label_preview = QLabel(self)
+        self.label_preview.setMinimumSize(QSize(0, 24))
+        self.label_preview.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout_2.addWidget(self.label_preview)
+
         self.horizontalLayout_2.addLayout(self.verticalLayout_2)
         self.horizontalLayout_2.setStretch(0, 2)
         self.horizontalLayout_2.setStretch(1, 3)
@@ -169,24 +168,47 @@ class SelectTemplateDialog(QDialog):
 
         self.button_cancel.clicked.connect(self.reject)
         self.button_confirm.clicked.connect(self.accept)
-        self.list_temps.itemClicked.connect(self.slot_display_paras)
         
-        self.load_data_dict()
         self.retranslateUi()
-        self.display_templates(self.templates)
-
+        
     def accept(self):
         
         item = self.list_temps.currentItem()
         self.sel_temp = item.text()
         QDialog.accept(self)
+        
+    def retranslateUi(self):
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('SelectTemplateBaseDialog', '选择模板'))
+        self.label_temp.setText(_translate('SelectTemplateBaseDialog', '模板列表'))
+        self.label_preview.setText(_translate('SelectTemplateBaseDialog', '模板预览'))
+        self.button_confirm.setText(_translate('SelectTemplateBaseDialog', '确定'))
+        self.button_cancel.setText(_translate('SelectTemplateBaseDialog', '取消'))
+
+class SelectParasTemplateDialog(SelectTemplateBaseDialog):
     
+    def __init__(self, parent = None, templates = {}):
+        
+        super().__init__(parent)
+#        在预览标签下添加预览控件，这里为列表控件
+        self.preview_widget = QListWidget(self)
+        self.verticalLayout_2.addWidget(self.preview_widget)
+        self.list_temps.itemClicked.connect(self.slot_display_paras)
+        self.label_preview.setText(QCoreApplication.translate('SelectParasTemplateDialog', '参数列表'))
+#        初始化参数列表的信息
+        self._data_dict = None
+        self.templates = templates
+        self.paraicon = QIcon(CONFIG.ICON_PARA)
+        
+        self.load_data_dict()
+        self.load_templates()
+
     def slot_display_paras(self, item):
         
         name = item.text()
-        self.list_paras.clear()
+        self.preview_widget.clear()
         for paraname in self.templates[name]:
-            para_item = QListWidgetItem(paraname, self.list_paras)
+            para_item = QListWidgetItem(paraname, self.preview_widget)
             para_item.setIcon(self.paraicon)
             if (self._data_dict and 
                 CONFIG.OPTION['data dict scope paralist'] and
@@ -203,29 +225,15 @@ class SelectTemplateDialog(QDialog):
                 para_item.setText(paraname)
             para_item.setData(Qt.UserRole, paraname)
     
-    def display_templates(self, templates):
+    def load_templates(self):
         
         flag = True
-        if templates:
-            for name in templates:
-                QListWidgetItem(name, self.list_temps).setIcon(self.tempicon)
+        if self.templates:
+            for name in self.templates:
+                item = QListWidgetItem(name, self.list_temps)
+                item.setIcon(self.tempicon)
                 if flag:
-                    for paraname in templates[name]:
-                        para_item = QListWidgetItem(paraname, self.list_paras)
-                        para_item.setIcon(self.paraicon)
-                        if (self._data_dict and 
-                            CONFIG.OPTION['data dict scope paralist'] and
-                            paraname in self._data_dict):
-                            if CONFIG.OPTION['data dict scope style'] == 0:
-                                temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
-                            if CONFIG.OPTION['data dict scope style'] == 1:
-                                temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
-                            if CONFIG.OPTION['data dict scope style'] == 2:
-                                temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
-                            para_item.setText(temp_str)
-                        else:
-                            para_item.setText(paraname)
-                        para_item.setData(Qt.UserRole, paraname)
+                    self.slot_display_paras(item)
                     flag = False
                     
             self.list_temps.setCurrentRow(0)
@@ -237,14 +245,47 @@ class SelectTemplateDialog(QDialog):
                 self._data_dict = json.load(f_obj)
         except:
             pass
-
-    def retranslateUi(self):
-        _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate('SelectTemplateself', '选择模板'))
-        self.label_temp.setText(_translate('SelectTemplateself', '模板列表'))
-        self.label_para.setText(_translate('SelectTemplateself', '参数列表'))
-        self.button_confirm.setText(_translate('SelectTemplateself', '确定'))
-        self.button_cancel.setText(_translate('SelectTemplateself', '取消'))
+        
+class SelectPlotTemplateDialog(SelectTemplateBaseDialog):
+    
+    def __init__(self, parent = None):
+        
+        super().__init__(parent)
+#        在预览标签下添加预览控件，这里为列表控件
+        self.gp_scene = QGraphicsScene(self)
+        self.preview_widget = QGraphicsView(self.gp_scene, self)
+        self.verticalLayout_2.addWidget(self.preview_widget)
+        self.list_temps.itemClicked.connect(self.slot_display_plot_temp)
+        
+        self.templates = {}
+        self.load_templates()
+        
+    def load_templates(self):
+        
+        dirs = os.listdir(CONFIG.SETUP_DIR + '\\data\\plot_temp')
+        for d in dirs:
+            name,suffix = os.path.splitext(d)
+            self.templates[name] = CONFIG.SETUP_DIR + '\\data\\plot_temp' + d
+        if self.templates:
+            for i, name in enumerate(self.templates):
+                item = QListWidgetItem(name, self.list_temps)
+                item.setIcon(self.tempicon)
+                if i == 0:
+                    self.slot_display_plot_temp(item)
+            self.list_temps.setCurrentRow(0)
+    
+    def slot_display_plot_temp(self, item):
+        
+        name = item.text()
+        temp_png_dir = CONFIG.SETUP_DIR + '\\data\\plot_temp\\' + name + '.png'
+        self.gp_scene.clear()
+        if os.path.isfile(temp_png_dir):
+            temp_png_pixmap = QPixmap(temp_png_dir)
+#            temp_png_pixmap.setDevicePixelRatio(2.0)
+#            size = temp_png_pixmap.size()
+            temp_png_pixmap = temp_png_pixmap.scaled(482, 382, transformMode = Qt.SmoothTransformation)
+#            print('w %d, h %d' % (self.preview_widget.width(), self.preview_widget.height()))
+            self.gp_scene.addPixmap(temp_png_pixmap)
 
 class SelParasDialog(QDialog):
 
@@ -275,9 +316,9 @@ class SelParasDialog(QDialog):
         self.line_edit_search.setMinimumSize(QSize(0, 24))
         self.line_edit_search.setMaximumSize(QSize(16777215, 24))
         self.verticalLayout.addWidget(self.line_edit_search)
-        self.list_paras = QListWidget(self)
-        self.list_paras.setSelectionMode(self.sel_mode)
-        self.verticalLayout.addWidget(self.list_paras)
+        self.preview_widget = QListWidget(self)
+        self.preview_widget.setSelectionMode(self.sel_mode)
+        self.verticalLayout.addWidget(self.preview_widget)
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setSpacing(10)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -304,7 +345,7 @@ class SelParasDialog(QDialog):
         if self.sel_mode == QAbstractItemView.ExtendedSelection & 0==1:
             self.btn_add.clicked.connect(self.signal_add_paras)
         if self.sel_mode == QAbstractItemView.SingleSelection:
-            self.list_paras.itemDoubleClicked.connect(self.accept)
+            self.preview_widget.itemDoubleClicked.connect(self.accept)
         self.line_edit_search.textChanged.connect(self.slot_search_para)
         
         self.load_data_dict()
@@ -312,11 +353,11 @@ class SelParasDialog(QDialog):
     
     def slot_search_para(self, para_name):
         
-        if self.list_paras:
+        if self.preview_widget:
             pattern = re.compile('.*' + para_name + '.*')
-            count = self.list_paras.count()
+            count = self.preview_widget.count()
             for i in range(count):
-                item = self.list_paras.item(i)
+                item = self.preview_widget.item(i)
                 paraname = item.data(Qt.UserRole)
                 para_alias = item.text()
                 if re.match(pattern, paraname) or re.match(pattern, para_alias):
@@ -326,10 +367,10 @@ class SelParasDialog(QDialog):
 
     def get_list_sel_paras(self):
         
-        list_paras = []
-        for item in self.list_paras.selectedItems():
-            list_paras.append(item.data(Qt.UserRole))
-        return list_paras
+        preview_widget = []
+        for item in self.preview_widget.selectedItems():
+            preview_widget.append(item.data(Qt.UserRole))
+        return preview_widget
         
 #    不显示时间
     def display_paras(self, files):
@@ -342,8 +383,8 @@ class SelParasDialog(QDialog):
             paras = file.paras_in_file
             for para in paras:
                 if time_hide:
-                    if para not in self.get_list_paras():
-                        item = QListWidgetItem(para, self.list_paras)
+                    if para not in self.get_preview_widget():
+                        item = QListWidgetItem(para, self.preview_widget)
                         item.setIcon(self.paraicon)
                         if (self._data_dict and 
                             CONFIG.OPTION['data dict scope paralist'] and
@@ -362,14 +403,14 @@ class SelParasDialog(QDialog):
                 else:
                     time_hide = True
     
-    def get_list_paras(self):
+    def get_preview_widget(self):
         
-        list_paras = []
-        count = self.list_paras.count()
+        preview_widget = []
+        count = self.preview_widget.count()
         for i in range(count):
-            item = self.list_paras.item(i)
-            list_paras.append(item.data(Qt.UserRole))
-        return list_paras
+            item = self.preview_widget.item(i)
+            preview_widget.append(item.data(Qt.UserRole))
+        return preview_widget
     
     def load_data_dict(self):
         
@@ -403,8 +444,8 @@ class SelParasDialog_xparasetting(SelParasDialog):
             paras = file.paras_in_file
             for para in paras:
                 if time_hide:
-                    if para not in self.get_list_paras():
-                        item = QListWidgetItem(para, self.list_paras)
+                    if para not in self.get_preview_widget():
+                        item = QListWidgetItem(para, self.preview_widget)
                         item.setIcon(self.paraicon)
                         if (self._data_dict and 
                             CONFIG.OPTION['data dict scope paralist'] and

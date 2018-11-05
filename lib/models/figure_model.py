@@ -1648,9 +1648,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             else:
                 return False
 
-        def abs_2_rel(f, rg):
-            
-            return (f - rg[0]) / (rg[1] - rg[0])
+        abs_2_rel = lambda f, rg : (f - rg[0]) / (rg[1] - rg[0])
             
         def is_in_view(xl, yl, artist):
             if type(artist) == Annotation:
@@ -1761,10 +1759,8 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                         
     def plot_temp_artist_status(self, dict_axis_info, ax):
         
-        def rel_2_abs(f, rg):
+        rel_2_abs = lambda f, rg : rg[0] + f * (rg[1] - rg[0])
             
-            return rg[0] + f * (rg[1] - rg[0])
-        
         ax_xlim = ax.get_xlim()
         ax_ylim = ax.get_ylim()
         font = matplotlib.font_manager.FontProperties(
@@ -1945,16 +1941,21 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 plot_temp_info = json.load(file)
                 axes_info = plot_temp_info['temp_axes']
             if axes_info and self.fig.axes:
-                if len(axes_info) == len(self.fig.axes):
-                    axes = self.fig.axes
-                    for i, ax_info in enumerate(axes_info):
-                        self.plot_temp_artist_status(ax_info, axes[i])
-                    self.draw()
+                if plot_temp_info['figure_type'] == self.__class__.__name__:
+                    if len(axes_info) == len(self.fig.axes):
+                        axes = self.fig.axes
+                        for i, ax_info in enumerate(axes_info):
+                            self.plot_temp_artist_status(ax_info, axes[i])
+                        self.draw()
+                    else:
+                        QMessageBox.information(self,
+                                                QCoreApplication.translate('FastPlotCanvas', '模板应用提示'),
+                                                QCoreApplication.translate('FastPlotCanvas', '坐标个数不对，模板不可用！'))
                 else:
                     QMessageBox.information(self,
                                             QCoreApplication.translate('FastPlotCanvas', '模板应用提示'),
-                                            QCoreApplication.translate('FastPlotCanvas', '坐标个数不对，模板不可用！'))
-        except IOError:
+                                            QCoreApplication.translate('FastPlotCanvas', '模板无法应用此类型图！'))
+        except:
             QMessageBox.information(self,
                                     QCoreApplication.translate('FastPlotCanvas', '模板应用提示'),
                                     QCoreApplication.translate('FastPlotCanvas', '模板应用时出现错误！'))

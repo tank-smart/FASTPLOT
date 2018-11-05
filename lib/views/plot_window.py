@@ -18,7 +18,7 @@
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
                              QMessageBox, QScrollArea, QProgressDialog,
-                             QTabWidget, QApplication, QFrame)
+                             QTabWidget, QApplication, QFrame, QDialog)
 from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
                           QIODevice, Qt)
 from PyQt5.QtGui import QIcon, QKeyEvent, QFont
@@ -29,7 +29,7 @@ from PyQt5.QtGui import QIcon, QKeyEvent, QFont
 from models.figure_model import (FastPlotCanvas, SingleAxisPlotCanvasBase,
                                  SingleAxisXTimePlotCanvas, StackAxisPlotCanvas,
                                  SingleAxisPlotCanvas)
-from views.custom_dialog import DisplayParaValuesDialog
+from views.custom_dialog import DisplayParaValuesDialog, SelectPlotTemplateDialog
 import views.config_info as CONFIG
 # =============================================================================
 # FigureWindow
@@ -1014,7 +1014,15 @@ class PlotWindow(QWidget):
             
     def slot_sel_plot_temp(self):
         
-        self.current_canva.apply_plot_temp('test')
+        if self.current_canva.fig.axes:
+            dialog = SelectPlotTemplateDialog(self)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                self.current_canva.apply_plot_temp(dialog.sel_temp)
+        else:
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('PlotWindow', '模板应用提示'),
+                                    QCoreApplication.translate('PlotWindow', '尚未绘图...'))
             
 #    实现按下Esc键后当前操作取消的功能
     def keyPressEvent(self, event : QKeyEvent):

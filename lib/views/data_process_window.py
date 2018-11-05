@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpacerItem,
 # =============================================================================
 # Package models imports
 # =============================================================================
-from views.custom_dialog import (SelectTemplateDialog, SaveTemplateDialog,
+from views.custom_dialog import (SelectParasTemplateDialog, SaveTemplateDialog,
                                  ParameterExportDialog)
 from models.datafile_model import Normal_DataFile
 import views.config_info as CONFIG
@@ -279,7 +279,7 @@ class DataProcessWindow(QWidget):
             input_paras = []
             paras_noexist = []
             isexist = False
-            dialog = SelectTemplateDialog(self, templates)
+            dialog = SelectParasTemplateDialog(self, templates)
             return_signal = dialog.exec_()
             if (return_signal == QDialog.Accepted):
                 if dict_files:
