@@ -28,6 +28,7 @@ import views.config_info as CONFIG
 
 class DataDictWindow(QWidget):
     signal_data_dict_changed = pyqtSignal(dict)
+    signal_close_dd_dock = pyqtSignal()
 # =============================================================================
 # 初始化    
 # =============================================================================    
@@ -38,6 +39,7 @@ class DataDictWindow(QWidget):
         self.data_dict = {}
         self.current_para_item = None
         self.dir_import = CONFIG.SETUP_DIR
+        self.current_para_change_status = False
         
     def setup(self):
 
@@ -121,6 +123,10 @@ class DataDictWindow(QWidget):
         self.btn_cancel.setMinimumSize(QSize(0, 24))
         self.btn_cancel.setMaximumSize(QSize(16777215, 24))
         self.horizontalLayout_2.addWidget(self.btn_cancel)
+        self.btn_close = QPushButton(self.group_box_parachara)
+        self.btn_close.setMinimumSize(QSize(0, 24))
+        self.btn_close.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout_2.addWidget(self.btn_close)
         self.verticalLayout_3.addLayout(self.horizontalLayout_2)
         
         spacerItem = QSpacerItem(20, 302, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -140,6 +146,7 @@ class DataDictWindow(QWidget):
         
         self.btn_save.clicked.connect(self.slot_save)
         self.btn_cancel.clicked.connect(self.slot_cancel)
+        self.btn_close.clicked.connect(self.slot_close)
         
         self.retranslateUi()
 #        加载数据字典
@@ -181,6 +188,16 @@ class DataDictWindow(QWidget):
     def slot_display_para(self, item):
         
         if item:
+            if self.current_para_change_status:
+                message = QMessageBox.warning(self,
+                              QCoreApplication.translate('DataDictWindow', '保存提示'),
+                              QCoreApplication.translate('DataDictWindow',
+                                                         '字典：' + self.label_symbol.text() + '未保存，是否保存？'),
+                              QMessageBox.Yes | QMessageBox.No)
+                if (message == QMessageBox.Yes):
+                    self.slot_save()
+                else:
+                    self.current_para_change_status = False
             self.current_para_item = item
             symbol = item.text(0)
             paraname = self.data_dict[symbol][0]
@@ -208,10 +225,16 @@ class DataDictWindow(QWidget):
                 self.line_edit_paraname.setText(self.data_dict[symbol][0])
             if not self.line_edit_paraname.text():
                 self.line_edit_paraname.setText('')
+            text = self.line_edit_paraname.text()
+            if text != self.data_dict[symbol][0]:
+                self.current_para_change_status = True
+            else:
+                self.current_para_change_status = False
                 
     def slot_unit_change(self):
         
         if self.current_para_item:
+            self.current_para_change_status = True
             symbol = self.label_symbol.text()
             text = self.line_edit_unit.text()
             text = text.split(',')
@@ -222,6 +245,11 @@ class DataDictWindow(QWidget):
                 self.line_edit_unit.setText(self.data_dict[symbol][1])
             if not self.line_edit_unit.text():
                 self.line_edit_unit.setText('')
+            text = self.line_edit_unit.text()
+            if text != self.data_dict[symbol][1]:
+                self.current_para_change_status = True
+            else:
+                self.current_para_change_status = False
                 
     def slot_save(self):
         
@@ -247,10 +275,12 @@ class DataDictWindow(QWidget):
             QMessageBox.information(self,
                                     QCoreApplication.translate('DataDictWindow', '保存提示'),
                                     QCoreApplication.translate('DataDictWindow', '保存成功！'))
+            self.current_para_change_status = False
             
     def slot_cancel(self):
         
         if self.current_para_item:
+            self.current_para_change_status = False
             self.slot_display_para(self.current_para_item)
             
     def slot_add_dict(self, symbol : str):
@@ -353,6 +383,19 @@ class DataDictWindow(QWidget):
                                                                    <p>3.示例：</p>
                                                                    <br>FCM1_Vmo,最大使用速度,kn
                                                                    <br>ACE1_STATUS,ACE1状态,NaN'''))
+    def slot_close(self):
+        
+        if self.current_para_change_status:
+            message = QMessageBox.warning(self,
+                          QCoreApplication.translate('DataDictWindow', '关闭提示'),
+                          QCoreApplication.translate('DataDictWindow',
+                                                     '字典：' + self.label_symbol.text() + '未保存，是否保存后退出？'),
+                          QMessageBox.Yes | QMessageBox.No)
+            if (message == QMessageBox.Yes):
+                self.slot_save()
+            else:
+                self.slot_cancel()
+        self.signal_close_dd_dock.emit()
 # =============================================================================
 # 功能函数模块
 # =============================================================================
@@ -440,3 +483,4 @@ class DataDictWindow(QWidget):
         self.group_box_unit.setTitle(_translate('DataDictWindow', '单位'))
         self.btn_save.setText(_translate('DataDictWindow', '保存'))
         self.btn_cancel.setText(_translate('DataDictWindow', '取消'))
+        self.btn_close.setText(_translate('DataDictWindow', '关闭窗口'))

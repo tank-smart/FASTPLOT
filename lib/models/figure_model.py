@@ -1913,9 +1913,9 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                         temp['temp_axes'].append(temp[axis_name])
                         self.save_plot_temp_artist_info(temp[axis_name], axis)
                     try:
-                        with open(CONFIG.SETUP_DIR + '\\data\\plot_temp\\' + temp_name + '.json', 'w') as file:
+                        with open(CONFIG.SETUP_DIR + '\\data\\plot_temps\\' + temp_name + '.json', 'w') as file:
                             json.dump(temp, file)
-                            self.fig.savefig(CONFIG.SETUP_DIR + '\\data\\plot_temp\\' + temp_name + '.png')
+                            self.fig.savefig(CONFIG.SETUP_DIR + '\\data\\plot_temps\\' + temp_name + '.png')
                         QMessageBox.information(self,
                                                 QCoreApplication.translate('FastPlotCanvas', '保存提示'), 
                                                 QCoreApplication.translate('FastPlotCanvas', '保存成功'))
@@ -1937,7 +1937,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
 #        导入模板信息
         try:
             plot_temp_info = {}
-            with open(CONFIG.SETUP_DIR + '\\data\\plot_temp\\' + temp_name + '.json', 'r') as file:
+            with open(CONFIG.SETUP_DIR + '\\data\\plot_temps\\' + temp_name + '.json', 'r') as file:
                 plot_temp_info = json.load(file)
                 axes_info = plot_temp_info['temp_axes']
             if axes_info and self.fig.axes:

@@ -1018,7 +1018,8 @@ class PlotWindow(QWidget):
             dialog = SelectPlotTemplateDialog(self)
             return_signal = dialog.exec_()
             if (return_signal == QDialog.Accepted):
-                self.current_canva.apply_plot_temp(dialog.sel_temp)
+                if dialog.sel_temp:
+                    self.current_canva.apply_plot_temp(dialog.sel_temp)
         else:
             QMessageBox.information(self,
                                     QCoreApplication.translate('PlotWindow', '模板应用提示'),

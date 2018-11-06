@@ -412,9 +412,13 @@ class MainWindow(QMainWindow):
         self.data_process_page.signal_send_status.connect(
                 self.slot_display_status_info)
         self.data_process_page.signal_close_dock.connect(
-                self.slot_close_dp_wind)
+                self.data_process_fun_win.close)
+#        数据筛选窗口的信号槽连接
+        self.data_sift_page.signal_close_ds_dock.connect(
+                self.data_sift_fun_win.close)
 #        数据字典窗口与主窗口和其他窗口的信号与槽连接
-        
+        self.data_dict_page.signal_close_dd_dock.connect(
+                self.data_dict_fun_win.close)
 #        绘图窗口与主窗口和其他窗口的信号与槽连接
         self.plot_page.signal_send_status.connect(
                 self.slot_display_status_info)
@@ -430,6 +434,9 @@ class MainWindow(QMainWindow):
                 self.data_process_page.slot_import_datafactory)
         self.mathematics_page.signal_sendto_ananlysis.connect(
                 self.action_data_process.trigger)
+#        数据模板窗口的信号与槽连接
+        self.para_temp_page.signal_close_pt_dock.connect(
+                self.para_temp_fun_win.close)
 
 # =============================================================================
 # Slots模块            
@@ -682,10 +689,6 @@ class MainWindow(QMainWindow):
         if (return_signal == QDialog.Accepted):
             for index in range(self.plot_page.tab_widget_figure.count()):
                 self.plot_page.tab_widget_figure.widget(index).canva.update_config_info()
-                
-    def slot_close_dp_wind(self):
-        
-        self.data_process_fun_win.close()
 
 # =============================================================================
 # 功能函数模块

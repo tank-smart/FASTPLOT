@@ -14,7 +14,7 @@
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import (QSize, QCoreApplication, Qt, QObject)
+from PyQt5.QtCore import (QSize, QCoreApplication, Qt, QObject, pyqtSignal)
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
                              QTabWidget, QPushButton, QGroupBox,
@@ -86,6 +86,7 @@ class SiftResultViewWidget(QWidget):
 
 class DataSiftWindow(QWidget):
     
+    signal_close_ds_dock = pyqtSignal()
 # =============================================================================
 # 初始化    
 # =============================================================================    
@@ -167,6 +168,10 @@ class DataSiftWindow(QWidget):
         self.btn_cancel.setMinimumSize(QSize(0, 24))
         self.btn_cancel.setMaximumSize(QSize(16777215, 24))
         self.hlayout_btn_sc.addWidget(self.btn_cancel)
+        self.btn_close = QPushButton(self.group_box_expression)
+        self.btn_close.setMinimumSize(QSize(0, 24))
+        self.btn_close.setMaximumSize(QSize(16777215, 24))
+        self.hlayout_btn_sc.addWidget(self.btn_close)
         self.verticalLayout_4.addLayout(self.hlayout_btn_sc)
         
         self.verticalLayout_4.setStretch(0, 2)
@@ -184,6 +189,7 @@ class DataSiftWindow(QWidget):
 #        self.button_box_sift.rejected.connect(self.slot_sift_cancel)
         self.btn_confirm.clicked.connect(self.slot_sift_ok)
         self.btn_cancel.clicked.connect(self.slot_sift_cancel)
+        self.btn_close.clicked.connect(self.slot_close)
         
         self.plain_text_edit_expression.customContextMenuRequested.connect(
                 self.expression_context_menu)
@@ -288,6 +294,10 @@ class DataSiftWindow(QWidget):
 #        self.tree_widget_aggragate_para.clear()
         self.sift_search_paras = []
         
+    def slot_close(self):
+        
+        self.signal_close_ds_dock.emit()
+        
     def expression_context_menu(self, pos):
 
         menu = QMenu(self.plain_text_edit_expression)
@@ -381,3 +391,4 @@ class DataSiftWindow(QWidget):
         self.tab_widget_datasift.setTabText(self.tab_widget_datasift.indexOf(self.tab_sift), _translate('DataAnalysisWindow', '数据筛选'))
         self.btn_confirm.setText(_translate('DataManageWindow', '确定'))
         self.btn_cancel.setText(_translate('DataManageWindow', '清空输入'))
+        self.btn_close.setText(_translate('DataManageWindow', '关闭窗口'))

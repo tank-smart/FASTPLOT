@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 # =============================================================================
 # Dialog Content
-#
+# 
 # SaveTemplateDialog
-# SelectTemplateDialog
+# SelectTemplateBaseDialog
+# SelectParasTemplateDialog
+# SelectPlotTemplateDialog
+# MathScriptDialog
 # SelParasDialog
 # SelParasDialog_xparasetting
 # ParaSetup_Dialog
@@ -47,7 +50,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                              QAction, QMenu, QStackedWidget, QWidget,
                              QCheckBox, QTableWidget, QTableWidgetItem,
                              QSpinBox, QDialogButtonBox, QGridLayout,
-                             QGraphicsScene, QGraphicsView, QGraphicsPixmapItem)
+                             QGraphicsScene, QGraphicsView, QPlainTextEdit)
 
 # =============================================================================
 # Package models imports
@@ -166,16 +169,21 @@ class SelectTemplateBaseDialog(QDialog):
         self.horizontalLayout.addWidget(self.button_cancel)
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
-        self.button_cancel.clicked.connect(self.reject)
-        self.button_confirm.clicked.connect(self.accept)
+        self.signal_slot_connect()
         
         self.retranslateUi()
         
     def accept(self):
         
         item = self.list_temps.currentItem()
-        self.sel_temp = item.text()
+        if item:
+            self.sel_temp = item.text()
         QDialog.accept(self)
+        
+    def signal_slot_connect(self):
+        
+        self.button_cancel.clicked.connect(self.reject)
+        self.button_confirm.clicked.connect(self.accept)
         
     def retranslateUi(self):
         _translate = QCoreApplication.translate
@@ -262,10 +270,16 @@ class SelectPlotTemplateDialog(SelectTemplateBaseDialog):
         
     def load_templates(self):
         
-        dirs = os.listdir(CONFIG.SETUP_DIR + '\\data\\plot_temp')
+        dirs = []
+        try:
+            dirs = os.listdir(CONFIG.SETUP_DIR + '\\data\\plot_temps')
+        except FileNotFoundError:
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('SelectPlotTemplateDialog', '提示'),
+                                    QCoreApplication.translate('SelectPlotTemplateDialog', '找不到模板数据存储路径！'))
         for d in dirs:
             name,suffix = os.path.splitext(d)
-            self.templates[name] = CONFIG.SETUP_DIR + '\\data\\plot_temp' + d
+            self.templates[name] = CONFIG.SETUP_DIR + '\\data\\plot_temps' + d
         if self.templates:
             for i, name in enumerate(self.templates):
                 item = QListWidgetItem(name, self.list_temps)
@@ -277,7 +291,7 @@ class SelectPlotTemplateDialog(SelectTemplateBaseDialog):
     def slot_display_plot_temp(self, item):
         
         name = item.text()
-        temp_png_dir = CONFIG.SETUP_DIR + '\\data\\plot_temp\\' + name + '.png'
+        temp_png_dir = CONFIG.SETUP_DIR + '\\data\\plot_temps\\' + name + '.png'
         self.gp_scene.clear()
         if os.path.isfile(temp_png_dir):
             temp_png_pixmap = QPixmap(temp_png_dir)
@@ -286,6 +300,159 @@ class SelectPlotTemplateDialog(SelectTemplateBaseDialog):
             temp_png_pixmap = temp_png_pixmap.scaled(482, 382, transformMode = Qt.SmoothTransformation)
 #            print('w %d, h %d' % (self.preview_widget.width(), self.preview_widget.height()))
             self.gp_scene.addPixmap(temp_png_pixmap)
+            
+class MathScriptDialog(SelectTemplateBaseDialog):
+    
+    def __init__(self, parent = None):
+        
+        super().__init__(parent)
+#        UI改动
+        self.script_edit_win = QPlainTextEdit(self)
+        self.verticalLayout_2.addWidget(self.script_edit_win)
+        
+        self.setWindowTitle(QCoreApplication.translate('MathScriptDialog', '计算脚本'))
+        self.label_temp.setText(QCoreApplication.translate('MathScriptDialog', '脚本列表'))
+        self.label_preview.setText(QCoreApplication.translate('MathScriptDialog', '编辑脚本'))
+        self.button_confirm.setText(QCoreApplication.translate('MathScriptDialog', '保存'))
+        self.button_cancel.setText(QCoreApplication.translate('MathScriptDialog', '重置'))
+        self.button_exec.setText(QCoreApplication.translate('MathScriptDialog', '执行'))
+        
+#        脚本的字符串
+        self.script = ''
+        self.dict_scripts = {}
+        self.current_script_item = None
+        self.load_scripts()
+        
+    def signal_slot_connect(self):
+        
+        self.button_exec = QPushButton(self)
+        self.horizontalLayout.addWidget(self.button_exec)
+        self.list_temps.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.action_create_scp = QAction(self.list_temps)
+        self.action_create_scp.setText(QCoreApplication.
+                                       translate('MathScriptDialog', '创建脚本'))
+        self.action_delete_scp = QAction(self.list_temps)
+        self.action_delete_scp.setText(QCoreApplication.
+                                       translate('MathScriptDialog', '删除脚本'))
+        
+        self.button_confirm.clicked.connect(self.slot_save_script)
+        self.button_cancel.clicked.connect(self.slot_reset_script)
+        self.button_exec.clicked.connect(self.accept)
+        self.list_temps.customContextMenuRequested.connect(
+                self.on_tree_context_menu)
+        self.action_create_scp.triggered.connect(self.slot_create_scp)
+        self.action_delete_scp.triggered.connect(self.slot_delete_scp)
+        self.list_temps.itemClicked.connect(self.slot_display_script)
+        
+    def on_tree_context_menu(self, pos):
+#        记录右击时鼠标所在的item
+        sel_item = self.list_temps.itemAt(pos)
+        
+#        创建菜单，添加动作，显示菜单
+        menu = QMenu(self.list_temps)
+        menu.addActions([self.action_create_scp,
+                         self.action_delete_scp])
+#        如果鼠标不在item上，不显示右键菜单
+        if sel_item:
+            self.action_delete_scp.setEnabled(True)
+        else:
+            self.action_delete_scp.setEnabled(False)
+        menu.exec_(self.list_temps.mapToGlobal(pos))
+    
+    def slot_create_scp(self):
+        
+        temp_name = 'untitled0'
+        i = 1
+        while temp_name in self.dict_scripts:
+            temp_name = 'untitled' + str(i)
+            i += 1
+        self.dict_scripts[temp_name] = CONFIG.SETUP_DIR + '\\data\\math_scripts\\' + temp_name + '.json'
+        item = QListWidgetItem(temp_name, self.list_temps)
+        item.setIcon(self.tempicon)
+        self.current_script_item = item
+        self.list_temps.setCurrentItem(item)
+        self.script_edit_win.clear()
+        try:
+            with open(self.dict_scripts[temp_name], 'w') as file:
+                json.dump(self.script_edit_win.toPlainText(), file)
+        except:
+            pass
+    
+    def slot_delete_scp(self):
+        
+        if self.current_script_item:
+            message = QMessageBox.warning(self,
+                                          QCoreApplication.translate('SelectPlotTemplateDialog', '删除脚本'),
+                                          QCoreApplication.translate('SelectPlotTemplateDialog', '确定要删除所选脚本吗'),
+                                          QMessageBox.Yes | QMessageBox.No)
+            if (message == QMessageBox.Yes):
+                self.list_temps.takeItem(self.list_temps.row(self.current_script_item))
+                os.remove(self.dict_scripts[self.current_script_item.text()])
+                self.dict_scripts.pop(self.current_script_item.text())
+                if self.list_temps:
+                    self.slot_display_script(self.list_temps.currentItem())
+                    self.list_temps.setCurrentItem(self.list_temps.currentItem())
+                else:
+                    self.script_edit_win.clear()
+        
+#    保存当前脚本
+    def slot_save_script(self):
+        
+        script_name = self.current_script_item.text()
+        try:
+            with open(CONFIG.SETUP_DIR + '\\data\\math_scripts\\' + script_name + '.json', 'w') as file:
+                json.dump(self.script_edit_win.toPlainText(), file)
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('SelectPlotTemplateDialog', '提示'),
+                                    QCoreApplication.translate('SelectPlotTemplateDialog', '保存成功！'))
+        except:
+            pass
+    
+#    还原脚本的最初状态
+    def slot_reset_script(self):
+        
+        if self.current_script_item:
+            self.slot_display_script(self.current_script_item)
+    
+#    执行脚本
+    def accept(self):
+        
+        self.script = self.script_edit_win.toPlainText()
+        QDialog.accept(self)
+
+    def slot_display_script(self, item):
+        
+        name = item.text()
+        script_dir = CONFIG.SETUP_DIR + '\\data\\math_scripts\\' + name + '.json'
+        try:
+            with open(script_dir, 'r') as file:
+                script = json.load(file)
+                self.current_script_item = item
+                self.script_edit_win.clear()
+                self.script_edit_win.setPlainText(script)
+        except:
+            pass
+
+    def load_scripts(self):
+        
+        dirs = []
+        try:
+            dirs = os.listdir(CONFIG.SETUP_DIR + '\\data\\math_scripts')
+        except FileNotFoundError:
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('SelectPlotTemplateDialog', '提示'),
+                                    QCoreApplication.translate('SelectPlotTemplateDialog', '找不到计算脚本存储路径！'))
+        for d in dirs:
+            name,suffix = os.path.splitext(d)
+            self.dict_scripts[name] = CONFIG.SETUP_DIR + '\\data\\math_scripts\\' + d
+        if self.dict_scripts:
+            for i, name in enumerate(self.dict_scripts):
+                item = QListWidgetItem(name, self.list_temps)
+                item.setIcon(self.tempicon)
+                if i == 0:
+                    self.slot_display_script(item)
+            self.list_temps.setCurrentRow(0)
+            
 
 class SelParasDialog(QDialog):
 
