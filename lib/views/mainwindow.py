@@ -38,7 +38,7 @@ from views.data_process_window import DataProcessWindow
 from views.mathematics_window import MathematicsWindow
 from views.para_temp_window import ParaTempWindow
 from views.data_dict_window import DataDictWindow
-from views.custom_dialog import FileProcessDialog, OptionDialog
+from views.custom_dialog import FileProcessDialog, OptionDialog, ImportDataFileDialog
 import views.config_info as CONFIG
 # =============================================================================
 # Main Window
@@ -244,6 +244,8 @@ class MainWindow(QMainWindow):
 #        创建动作
         self.action_open_normal_datafile = QAction(self)
         self.action_open_normal_datafile.setIcon(QIcon(CONFIG.ICON_OPEN_NORDATA))
+        self.action_open_datafile = QAction(self)
+#        self.action_open_datafile.setIcon(QIcon(CONFIG.ICON_OPEN_NORDATA))
         self.action_file_process = QAction(self)
         self.action_exit = QAction(self)
         self.action_exit.setIcon(QIcon(CONFIG.ICON_EIXT))
@@ -284,6 +286,7 @@ class MainWindow(QMainWindow):
 #        将动作添加到对应的菜单下       
 #        self.menu_open.addAction(self.action_open_normal_datafile)
         self.menu_file.addActions([self.action_open_normal_datafile,
+                                   self.action_open_datafile,
                                    self.action_file_process])
         self.menu_file.addSeparator()
         self.menu_file.addAction(self.action_exit)
@@ -346,6 +349,8 @@ class MainWindow(QMainWindow):
 #       主窗口的信号连接        
         self.action_open_normal_datafile.triggered.connect(
                 self.slot_open_normal_datafile)
+        self.action_open_datafile.triggered.connect(
+                self.slot_open_datafile)
 #        文件分析
         self.action_file_process.triggered.connect(self.slot_file_process)
 #        按下按钮显示相应的页面
@@ -464,17 +469,21 @@ class MainWindow(QMainWindow):
         ex_files = []
         nor_datafiles = []
         file_dir_l = []
-        init_dir = CONFIG.OPTION['dir of importing']
+        init_dir = CONFIG.OPTION['dir of quick import']
         if os.path.exists(init_dir):
             file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
-                    self, 'Open', init_dir, 'Datafiles (*.txt *.csv *.dat)')
+                    self, QCoreApplication.translate('MainWindow', '快速导入'), 
+                    init_dir,
+                    QCoreApplication.translate('MainWindow', '普通试飞数据文件(*.txt)'))
         else:
             file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
-                    self, 'Open', CONFIG.SETUP_DIR, 'Datafiles (*.txt *.csv *.dat)')
+                    self, self, QCoreApplication.translate('MainWindow', '快速打开'),
+                    CONFIG.SETUP_DIR,
+                    QCoreApplication.translate('MainWindow', '普通试飞数据文件(*.txt)'))
         if file_dir_list:
             file_dir_list = [file.replace('/','\\') for file in file_dir_list]
             if os.path.exists(file_dir_list[0]):
-                CONFIG.OPTION['dir of importing'] = os.path.dirname(file_dir_list[0])
+                CONFIG.OPTION['dir of quick import'] = os.path.dirname(file_dir_list[0])
             for file_dir in file_dir_list:
                 if not(file_dir in self.current_files):
                     try:
@@ -487,7 +496,7 @@ class MainWindow(QMainWindow):
                 else:
                     ex_files.append(file_dir)
             if nor_datafiles:
-                print_info = '以下文件不是数据文件：'
+                print_info = '以下文件不是普通试飞数据文件：'
                 for file in nor_datafiles:
                     print_info += ('<br>' + file)
                 QMessageBox.information(self,
@@ -512,6 +521,32 @@ class MainWindow(QMainWindow):
             self.slot_current_files_change()
         if import_file_dirs:
             self.signal_import_datafiles.emit(import_file_dirs)
+            
+    def slot_open_datafile(self):
+        
+        dialog = ImportDataFileDialog(self)
+        return_signal = dialog.exec_()
+        if return_signal == QDialog.Accepted:
+#            数据文件路径
+            datafile_dir = dialog.datafile_dir
+            print(datafile_dir)
+#            数据类型，普通试飞数据、GPS数据、QAR数据、自定义数据
+            datafile_type = dialog.datafile_type
+            print(datafile_type)
+            
+#            只有当数据类型为自定义数据时，以下参数才有数据
+#            导入起始行 - 1
+            skiprows = dialog.skiprows
+            print(skiprows)
+#            时间列为0时表示无时间
+            timecol = dialog.timecol
+            print(timecol)
+#            分隔符
+            sep = dialog.sep
+            print(sep)
+#            时间格式
+            time_format = dialog.time_format
+            print(time_format)
 
 #    与关于退出有关的显示
     def slot_exit(self):
@@ -735,9 +770,10 @@ class MainWindow(QMainWindow):
 #        self.menu_window.setTitle(_translate('MainWindow', '窗口'))
         self.menu_help.setTitle(_translate('MainWindow', '帮助'))
         self.toolbar.setWindowTitle(_translate('MainWindow', '工具栏'))
-        self.action_open_normal_datafile.setText(_translate('MainWindow', '打开通用数据'))
-        self.action_open_normal_datafile.setToolTip(_translate('MainWindow', '打开通用数据'))
-        self.action_file_process.setText(_translate('MainWindow', '文件导出'))
+        self.action_open_normal_datafile.setText(_translate('MainWindow', '快速导入'))
+        self.action_open_normal_datafile.setToolTip(_translate('MainWindow', '快速导入'))
+        self.action_open_datafile.setText(_translate('MainWindow', '数据导入'))
+        self.action_file_process.setText(_translate('MainWindow', '文件数据导出'))
         self.action_exit.setText(_translate('MainWindow', '退出'))
         self.action_mathematics.setText(_translate('MainWindow', '数学计算'))
         self.action_data_process.setText(_translate('MainWindow', '参数选择'))

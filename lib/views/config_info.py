@@ -18,7 +18,8 @@ DIR_HELP_VIDEO = SETUP_DIR + r'\help\videos'
 # 软件设置
 # =============================================================================
 #默认设置
-OPTION = {'dir of importing' : '',
+OPTION = {'dir of quick import' : '',
+          'dir of custom import' : '',
           'data dict scope paralist' : True,
           'data dict scope plot' : True,
           'data dict scope style' : 1,#0-参数名，1-软件标识符(参数名)，2-参数名(软件标识符)

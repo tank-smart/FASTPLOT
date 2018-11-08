@@ -23,6 +23,8 @@
 # OptionDialog
 # DsiplayParaInfoBaseDialog
 # DisplayParaValuesDialog
+# DisplayParaAggregateInfoDialog
+# ImportDataFileDialog
 # =============================================================================
 # =============================================================================
 # Imports
@@ -343,6 +345,7 @@ class MathScriptDialog(SelectTemplateBaseDialog):
         self.action_create_scp.triggered.connect(self.slot_create_scp)
         self.action_delete_scp.triggered.connect(self.slot_delete_scp)
         self.list_temps.itemClicked.connect(self.slot_display_script)
+        self.list_temps.itemChanged.connect(self.slot_script_name_change)
         
     def on_tree_context_menu(self, pos):
 #        记录右击时鼠标所在的item
@@ -368,9 +371,13 @@ class MathScriptDialog(SelectTemplateBaseDialog):
             i += 1
         self.dict_scripts[temp_name] = CONFIG.SETUP_DIR + '\\data\\math_scripts\\' + temp_name + '.json'
         item = QListWidgetItem(temp_name, self.list_temps)
+        item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+        item.setData(Qt.UserRole, temp_name)
         item.setIcon(self.tempicon)
         self.current_script_item = item
         self.list_temps.setCurrentItem(item)
+#        self.list_temps.openPersistentEditor(item)
+        self.list_temps.editItem(item)
         self.script_edit_win.clear()
         try:
             with open(self.dict_scripts[temp_name], 'w') as file:
@@ -413,6 +420,21 @@ class MathScriptDialog(SelectTemplateBaseDialog):
         
         if self.current_script_item:
             self.slot_display_script(self.current_script_item)
+            
+    def slot_script_name_change(self, item):
+        
+        new_name = item.text()
+        old_name = item.data(Qt.UserRole)
+        if new_name and old_name:
+            if new_name != old_name:
+                new_dir = CONFIG.SETUP_DIR + '\\data\\math_scripts\\' + new_name + '.json'
+                os.rename(self.dict_scripts[old_name], new_dir)
+                del self.dict_scripts[old_name]
+                self.dict_scripts[new_name] = new_dir
+                item.setData(Qt.UserRole, new_name)
+        else:
+            item.setText(item.data(Qt.UserRole))
+            
     
 #    执行脚本
     def accept(self):
@@ -448,7 +470,10 @@ class MathScriptDialog(SelectTemplateBaseDialog):
         if self.dict_scripts:
             for i, name in enumerate(self.dict_scripts):
                 item = QListWidgetItem(name, self.list_temps)
+                item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable | Qt.ItemIsSelectable)
+#                item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsEditable)
                 item.setIcon(self.tempicon)
+                item.setData(Qt.UserRole, name)
                 if i == 0:
                     self.slot_display_script(item)
             self.list_temps.setCurrentRow(0)
@@ -635,7 +660,7 @@ class ParasList_DropEvent(QListWidget):
 
     signal_drop_paras = pyqtSignal(tuple)    
 
-    def __init__(self, parent = None, name = "yaxis"):
+    def __init__(self, parent = None, name = 'yaxis'):
         super().__init__(parent)
 #        接受拖放
         self.setAcceptDrops(True)
@@ -711,70 +736,70 @@ class ParaSetup_Dialog(QDialog):
         self._data_dict = None
         
     def setup(self):
-        self.setObjectName("Dialog")
+        self.setObjectName('Dialog')
         self.resize(576, 486)
         self.buttonBox = QDialogButtonBox(self)
         self.buttonBox.setGeometry(QRect(180, 430, 341, 32))
         self.buttonBox.setOrientation(Qt.Horizontal)
         self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
-        self.buttonBox.button(QDialogButtonBox.Ok).setText("确认")
-        self.buttonBox.button(QDialogButtonBox.Cancel).setText("取消")
-        self.buttonBox.setObjectName("buttonBox")
+        self.buttonBox.button(QDialogButtonBox.Ok).setText('确认')
+        self.buttonBox.button(QDialogButtonBox.Cancel).setText('取消')
+        self.buttonBox.setObjectName('buttonBox')
         self.gridLayoutWidget = QWidget(self)
         self.gridLayoutWidget.setGeometry(QRect(9, 9, 551, 401))
-        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
+        self.gridLayoutWidget.setObjectName('gridLayoutWidget')
         self.gridLayout = QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout.setObjectName("gridLayout")
+        self.gridLayout.setObjectName('gridLayout')
         self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.horizontalLayout.setObjectName('horizontalLayout')
         self.toolButton_3 = QToolButton(self.gridLayoutWidget)
-        self.toolButton_3.setObjectName("toolButton_3")
+        self.toolButton_3.setObjectName('toolButton_3')
         self.horizontalLayout.addWidget(self.toolButton_3)
         self.toolButton_4 = QToolButton(self.gridLayoutWidget)
-        self.toolButton_4.setObjectName("toolButton_4")
+        self.toolButton_4.setObjectName('toolButton_4')
         self.horizontalLayout.addWidget(self.toolButton_4)
         self.toolButton_5 = QToolButton(self.gridLayoutWidget)
-        self.toolButton_5.setObjectName("toolButton_5")
+        self.toolButton_5.setObjectName('toolButton_5')
         self.horizontalLayout.addWidget(self.toolButton_5)
         self.toolButton_6 = QToolButton(self.gridLayoutWidget)
-        self.toolButton_6.setObjectName("toolButton_6")
+        self.toolButton_6.setObjectName('toolButton_6')
         self.horizontalLayout.addWidget(self.toolButton_6)
         self.gridLayout.addLayout(self.horizontalLayout, 6, 2, 1, 1)
         self.horizontalLayout_3 = QHBoxLayout()
-        self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+        self.horizontalLayout_3.setObjectName('horizontalLayout_3')
         self.toolButton_1 = QToolButton(self.gridLayoutWidget)
-        self.toolButton_1.setObjectName("toolButton_1")
+        self.toolButton_1.setObjectName('toolButton_1')
         self.horizontalLayout_3.addWidget(self.toolButton_1)
         self.toolButton_2 = QToolButton(self.gridLayoutWidget)
-        self.toolButton_2.setObjectName("toolButton_2")
+        self.toolButton_2.setObjectName('toolButton_2')
         self.horizontalLayout_3.addWidget(self.toolButton_2)
         self.gridLayout.addLayout(self.horizontalLayout_3, 6, 1, 1, 1)
 #        self.listWidget = QListWidget(self.gridLayoutWidget)
-        self.listWidget = ParasList_DropEvent(self.gridLayoutWidget, "xaxis")
+        self.listWidget = ParasList_DropEvent(self.gridLayoutWidget, 'xaxis')
 #        self.listWidget.setAcceptDrops(True)
-        self.listWidget.setObjectName("listWidget")
+        self.listWidget.setObjectName('listWidget')
         item = QListWidgetItem()
         self.listWidget.addItem(item)
         self.gridLayout.addWidget(self.listWidget, 9, 1, 1, 1)
         self.label_2 = QLabel(self.gridLayoutWidget)
         font = QFont()
-        font.setFamily("Agency FB")
+        font.setFamily('Agency FB')
         font.setPointSize(10)
         self.label_2.setFont(font)
-        self.label_2.setObjectName("label_2")
+        self.label_2.setObjectName('label_2')
         self.gridLayout.addWidget(self.label_2, 1, 2, 1, 1)
         self.label = QLabel(self.gridLayoutWidget)
         font = QFont()
-        font.setFamily("Agency FB")
+        font.setFamily('Agency FB')
         font.setPointSize(10)
         self.label.setFont(font)
-        self.label.setObjectName("label")
+        self.label.setObjectName('label')
         self.gridLayout.addWidget(self.label, 1, 1, 1, 1)
 #        self.listWidget_2 = QListWidget(self.gridLayoutWidget)
-        self.listWidget_2 = ParasList_DropEvent(self.gridLayoutWidget, "yaxis")
+        self.listWidget_2 = ParasList_DropEvent(self.gridLayoutWidget, 'yaxis')
 #        self.listWidget_2.setAcceptDrops(True)
-        self.listWidget_2.setObjectName("listWidget_2")
+        self.listWidget_2.setObjectName('listWidget_2')
         self.gridLayout.addWidget(self.listWidget_2, 9, 2, 1, 1)
 
         self.retranslateUi()
@@ -790,7 +815,7 @@ class ParaSetup_Dialog(QDialog):
         self.toolButton_6.clicked.connect(self.slot_delete_paras)
         self.toolButton_2.clicked.connect(self.slot_set_timeaxis)
         self.toolButton_1.clicked.connect(self.slot_change_paras)
-#        QtCore.QMetaObject.connectSlotsByName(self)
+#        QMetaObject.connectSlotsByName(self)
         
 ##    重写拖放相关的事件
 ##    设置部件可接受的MIME type列表，此处的类型是自定义的
@@ -808,7 +833,7 @@ class ParaSetup_Dialog(QDialog):
 #        
 #        paras = {}
 #        if event.mimeData().hasFormat('application/x-parasname'):
-#            print("righthaha")
+#            print('righthaha')
 #            item_data = event.mimeData().data('application/x-parasname')
 #            item_stream = QDataStream(item_data, QIODevice.ReadOnly)
 ##            对拖进来的数据进行解析
@@ -840,7 +865,7 @@ class ParaSetup_Dialog(QDialog):
         
         flag, datadict, sorted_paras = flag_datadict_and_paralist
         
-        if flag == "xaxis" and sorted_paras:
+        if flag == 'xaxis' and sorted_paras:
             if len(sorted_paras) != 1:
                 print_msg = 'X轴参数个数不为1，将选用第一个参数作为X轴参数：'
                 ms_box = QMessageBox(QMessageBox.Information,
@@ -867,7 +892,7 @@ class ParaSetup_Dialog(QDialog):
             self.listWidget.item(0).setData(Qt.UserRole, (xpara, file_dir))
 
             
-        if flag == "yaxis" and sorted_paras:
+        if flag == 'yaxis' and sorted_paras:
             
             ex_paras = []
 #            norfile_list = {}
@@ -953,7 +978,7 @@ class ParaSetup_Dialog(QDialog):
                 
                 
     def slot_set_timeaxis(self):
-        self.listWidget.item(0).setText("Time（时间）")
+        self.listWidget.item(0).setText('Time（时间）')
 
 #Y轴toolbuttton操作 
 
@@ -1090,7 +1115,7 @@ class ParaSetup_Dialog(QDialog):
         
         if self.listWidget:
             item = self.listWidget.item(0)
-            if item.text() == "Time（时间）":
+            if item.text() == 'Time（时间）':
                 xpara = None
             else:
                 paraname, file_dir = item.data(Qt.UserRole)
@@ -1121,21 +1146,21 @@ class ParaSetup_Dialog(QDialog):
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate("Dialog", "自定义绘图设置"))
-#        self.setWhatsThis(_translate("Dialog", "<html><head/><body><p align=\"center\"><span style=\" font-size:10pt; font-weight:600;\">Y轴参数</span></p></body></html>"))
-        self.toolButton_3.setText(_translate("Dialog", "添加参数..."))
-        self.toolButton_4.setText(_translate("Dialog", "上移"))
-        self.toolButton_5.setText(_translate("Dialog", "下移"))
-        self.toolButton_6.setText(_translate("Dialog", "删除参数"))
-        self.toolButton_1.setText(_translate("Dialog", "修改参数..."))
-        self.toolButton_2.setText(_translate("Dialog", "设置时间参数"))
+        self.setWindowTitle(_translate('Dialog', '自定义绘图设置'))
+#        self.setWhatsThis(_translate('Dialog', '<html><head/><body><p align=\'center\'><span style=\' font-size:10pt; font-weight:600;\'>Y轴参数</span></p></body></html>'))
+        self.toolButton_3.setText(_translate('Dialog', '添加参数...'))
+        self.toolButton_4.setText(_translate('Dialog', '上移'))
+        self.toolButton_5.setText(_translate('Dialog', '下移'))
+        self.toolButton_6.setText(_translate('Dialog', '删除参数'))
+        self.toolButton_1.setText(_translate('Dialog', '修改参数...'))
+        self.toolButton_2.setText(_translate('Dialog', '设置时间参数'))
         __sortingEnabled = self.listWidget.isSortingEnabled()
         self.listWidget.setSortingEnabled(False)
         item = self.listWidget.item(0)
-        item.setText(_translate("Dialog", "Time（时间）"))
+        item.setText(_translate('Dialog', 'Time（时间）'))
         self.listWidget.setSortingEnabled(__sortingEnabled)
-        self.label_2.setText(_translate("Dialog", "Y轴参数设置"))
-        self.label.setText(_translate("Dialog", "X轴参数设置"))    
+        self.label_2.setText(_translate('Dialog', 'Y轴参数设置'))
+        self.label.setText(_translate('Dialog', 'X轴参数设置'))    
 
 class Base_LineSettingDialog(QDialog):
 
@@ -2819,7 +2844,7 @@ class ParameterExportDialog(QDialog):
         self.combo_box_filetype.setItemText(0, _translate('ParameterExportDialog', 'TXT file'))
         self.combo_box_filetype.setItemText(1, _translate('ParameterExportDialog', 'CSV file'))
         self.combo_box_filetype.setItemText(2, _translate('ParameterExportDialog', 'MAT file'))
-        self.push_btn_confirm.setText(_translate('ParameterExportDialog', '保存'))
+        self.push_btn_confirm.setText(_translate('ParameterExportDialog', '导出'))
         self.push_btn_cancel.setText(_translate('ParameterExportDialog', '取消'))
         
 class FileProcessDialog(QDialog):
@@ -3403,7 +3428,7 @@ class FileProcessDialog(QDialog):
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate('FileProcessDialog', '文件导出'))
+        self.setWindowTitle(_translate('FileProcessDialog', '文件数据导出'))
         self.group_box_preview.setTitle(_translate('FileProcessDialog', '预览'))
         self.tree_widget_files.headerItem().setText(0, _translate('FileProcessDialog', '文件名'))
         self.tree_widget_files.headerItem().setText(1, _translate('FileProcessDialog', '起始时间'))
@@ -3420,10 +3445,10 @@ class FileProcessDialog(QDialog):
         self.label_file_name.setText(_translate('FileProcessDialog', '文件名'))
         self.label_file_dir.setText(_translate('FileProcessDialog', '文件路径'))
         self.tool_btn_sel_filedir.setText(_translate('FileProcessDialog', '...'))
-        self.combo_box_filetype.setItemText(0, _translate('ParameterExportDialog', 'TXT file'))
-        self.combo_box_filetype.setItemText(1, _translate('ParameterExportDialog', 'CSV file'))
-        self.combo_box_filetype.setItemText(2, _translate('ParameterExportDialog', 'MAT file'))
-        self.push_btn_confirm.setText(_translate('FileProcessDialog', '保存'))
+        self.combo_box_filetype.setItemText(0, _translate('FileProcessDialog', 'TXT file'))
+        self.combo_box_filetype.setItemText(1, _translate('FileProcessDialog', 'CSV file'))
+        self.combo_box_filetype.setItemText(2, _translate('FileProcessDialog', 'MAT file'))
+        self.push_btn_confirm.setText(_translate('FileProcessDialog', '导出'))
         self.push_btn_cancel.setText(_translate('FileProcessDialog', '取消'))
         
 class SelFunctionDialog(QDialog):
@@ -4051,6 +4076,231 @@ class DisplayParaAggregateInfoDialog(DsiplayParaInfoBaseDialog):
         self.group_box_tip.setTitle(_translate('DisplayParaAggregateInfoDialog', '时间段'))
         self.label_tip.setText(_translate('DisplayParaAggregateInfoDialog', '00:00:00.000 - 00:00:00.000'))
         self.group_box_para_info.setTitle(_translate('DisplayParaAggregateInfoDialog', '参数信息'))
+        
+class ImportDataFileDialog(QDialog):
+    
+    def __init__(self, parent = None):
+    
+        super().__init__(parent)
+#        数据文件路径
+        self.datafile_dir = ''
+#        数据类型，普通试飞数据、GPS数据、QAR数据、自定义数据
+        self.datafile_type = ''
+#        导入起始行 - 1
+        self.skiprows = 0
+#        时间列为0时表示无时间
+        self.timecol = 0
+#        分隔符
+        self.sep = ''
+#        时间格式
+        self.time_format = ''
+        self.setup()
+        
+    def setup(self):
+        
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
+        self.resize(450, 220)
+        self.verticalLayout_3 = QVBoxLayout(self)
+        self.verticalLayout_3.setContentsMargins(4, 4, 4, 4)
+        self.verticalLayout_3.setSpacing(4)
+        self.gb_sel_file = QGroupBox(self)
+        self.horizontalLayout = QHBoxLayout(self.gb_sel_file)
+        self.horizontalLayout.setContentsMargins(2, 2, 2, 2)
+        self.horizontalLayout.setSpacing(2)
+        self.line_edit_file_dir = QLineEdit(self.gb_sel_file)
+        self.line_edit_file_dir.setReadOnly(True)
+        self.line_edit_file_dir.setMinimumSize(QSize(0, 24))
+        self.line_edit_file_dir.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.line_edit_file_dir)
+        self.btn_sel_file = QPushButton(self.gb_sel_file)
+        self.btn_sel_file.setMinimumSize(QSize(24, 24))
+        self.btn_sel_file.setMaximumSize(QSize(24, 24))
+        self.horizontalLayout.addWidget(self.btn_sel_file)
+        self.verticalLayout_3.addWidget(self.gb_sel_file)
+        self.gb_data_type = QGroupBox(self)
+        self.horizontalLayout_2 = QHBoxLayout(self.gb_data_type)
+        self.horizontalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.horizontalLayout_2.setSpacing(2)
+        self.cb_data_type = QComboBox(self.gb_data_type)
+        self.cb_data_type.setMinimumSize(QSize(200, 24))
+        self.cb_data_type.setMaximumSize(QSize(200, 24))
+#        普通试飞数据
+        self.cb_data_type.addItem('', 'normal datafile')
+#        GPS数据
+        self.cb_data_type.addItem('', 'GPS datafile')
+#        QAR数据
+        self.cb_data_type.addItem('', 'QAR datafile')
+#        自定义数据
+        self.cb_data_type.addItem('', 'custom datafile')
+        self.horizontalLayout_2.addWidget(self.cb_data_type)
+        spacerItem = QSpacerItem(231, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_2.addItem(spacerItem)
+        self.verticalLayout_3.addWidget(self.gb_data_type)
+        self.gb_import_datafile = QGroupBox(self)
+        self.horizontalLayout_7 = QHBoxLayout(self.gb_import_datafile)
+        self.horizontalLayout_7.setContentsMargins(2, 2, 2, 2)
+        self.frame_left = QFrame(self.gb_import_datafile)
+        self.frame_left.setFrameShape(QFrame.StyledPanel)
+        self.frame_left.setFrameShadow(QFrame.Raised)
+        self.verticalLayout = QVBoxLayout(self.frame_left)
+        self.verticalLayout.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout.setSpacing(2)
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.label_first_line_num = QLabel(self.frame_left)
+        self.label_first_line_num.setMinimumSize(QSize(140, 24))
+        self.label_first_line_num.setMaximumSize(QSize(140, 24))
+        self.horizontalLayout_4.addWidget(self.label_first_line_num)
+        self.spb_first_line_num = QSpinBox(self.frame_left)
+        self.spb_first_line_num.setMinimum(1)
+        self.spb_first_line_num.setMinimumSize(QSize(60, 24))
+        self.spb_first_line_num.setMaximumSize(QSize(60, 24))
+        self.horizontalLayout_4.addWidget(self.spb_first_line_num)
+        spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_4.addItem(spacerItem1)
+        self.verticalLayout.addLayout(self.horizontalLayout_4)
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.label_time_col = QLabel(self.frame_left)
+        self.label_time_col.setMinimumSize(QSize(140, 24))
+        self.label_time_col.setMaximumSize(QSize(140, 24))
+        self.horizontalLayout_6.addWidget(self.label_time_col)
+        self.spb_time_col = QSpinBox(self.frame_left)
+        self.spb_time_col.setValue(1)
+        self.spb_time_col.setMinimumSize(QSize(60, 24))
+        self.spb_time_col.setMaximumSize(QSize(60, 24))
+        self.horizontalLayout_6.addWidget(self.spb_time_col)
+        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_6.addItem(spacerItem2)
+        self.verticalLayout.addLayout(self.horizontalLayout_6)
+        self.horizontalLayout_7.addWidget(self.frame_left)
+        self.frame_left_2 = QFrame(self.gb_import_datafile)
+        self.frame_left_2.setFrameShape(QFrame.StyledPanel)
+        self.frame_left_2.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_2 = QVBoxLayout(self.frame_left_2)
+        self.verticalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_2.setSpacing(2)
+        self.horizontalLayout_8 = QHBoxLayout()
+        spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem3)
+        self.label_sep = QLabel(self.frame_left_2)
+        self.label_sep.setMinimumSize(QSize(80, 24))
+        self.label_sep.setMaximumSize(QSize(80, 24))
+        self.horizontalLayout_8.addWidget(self.label_sep)
+        self.cb_sep = QComboBox(self.frame_left_2)
+        self.cb_sep.setMinimumSize(QSize(120, 24))
+        self.cb_sep.setMaximumSize(QSize(120, 24))
+#        tab键分隔
+        self.cb_sep.addItem('', r'\t')
+#        分号分隔
+        self.cb_sep.addItem('', ';')
+#        逗号分隔
+        self.cb_sep.addItem('' ',')
+#        空格分隔
+        self.cb_sep.addItem('', r'\s+')
+        self.horizontalLayout_8.addWidget(self.cb_sep)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_8)
+        self.horizontalLayout_9 = QHBoxLayout()
+        spacerItem4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_9.addItem(spacerItem4)
+        self.label_time_format = QLabel(self.frame_left_2)
+        self.label_time_format.setMinimumSize(QSize(80, 24))
+        self.label_time_format.setMaximumSize(QSize(80, 24))
+        self.horizontalLayout_9.addWidget(self.label_time_format)
+        self.cb_time_format = QComboBox(self.frame_left_2)
+        self.cb_time_format.setMinimumSize(QSize(120, 24))
+        self.cb_time_format.setMaximumSize(QSize(120, 24))
+        self.cb_time_format.addItem('')
+        self.cb_time_format.addItem('')
+        self.cb_time_format.addItem('')
+        self.cb_time_format.addItem('')
+        self.horizontalLayout_9.addWidget(self.cb_time_format)
+        self.verticalLayout_2.addLayout(self.horizontalLayout_9)
+        self.horizontalLayout_7.addWidget(self.frame_left_2)
+        self.verticalLayout_3.addWidget(self.gb_import_datafile)
+        spacerItem5 = QSpacerItem(20, 5, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_3.addItem(spacerItem5)
+        self.horizontalLayout_3 = QHBoxLayout()
+        spacerItem6 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_3.addItem(spacerItem6)
+        self.btn_confirm = QPushButton(self)
+        self.btn_confirm.setMinimumSize(QSize(0, 24))
+        self.btn_confirm.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout_3.addWidget(self.btn_confirm)
+        self.btn_cancel = QPushButton(self)
+        self.btn_cancel.setMinimumSize(QSize(0, 24))
+        self.btn_cancel.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout_3.addWidget(self.btn_cancel)
+        self.verticalLayout_3.addLayout(self.horizontalLayout_3)
+        
+        
+        self.gb_import_datafile.setVisible(False)
+        self.btn_confirm.clicked.connect(self.accept)
+        self.btn_cancel.clicked.connect(self.reject)
+        self.btn_sel_file.clicked.connect(self.slot_sel_datafile)
+        self.cb_data_type.currentIndexChanged.connect(self.slot_data_type_change)
+
+        self.retranslateUi()
+        
+    def accept(self):
+        
+        self.datafile_dir = self.line_edit_file_dir.text()
+        self.datafile_type = self.cb_data_type.currentData()
+#        自定义数据
+        if self.cb_data_type.currentIndex() == 3:
+            self.skiprows = self.spb_first_line_num.value() - 1
+            self.timecol = self.spb_time_col.value()
+            self.time_format = self.cb_time_format.currentText()
+            self.sep = self.cb_sep.currentData()
+        QDialog.accept(self)
+        
+#    让用户选择项目的路径
+    def slot_sel_datafile(self):
+        
+        if CONFIG.OPTION['dir of custom import']:
+            sel_dir = CONFIG.OPTION['dir of custom import']
+        else:
+            sel_dir = CONFIG.SETUP_DIR
+        filename, temp = QFileDialog.getOpenFileName(self, QCoreApplication.translate('ImportDataFileDialog', '选择文件'),
+                                                     sel_dir,
+                                                     QCoreApplication.translate('ImportDataFileDialog', '数据文件(*.*)'))
+        if filename:
+            CONFIG.OPTION['dir of custom import'] = os.path.dirname(filename)
+            self.line_edit_file_dir.setText(filename)
+            
+    def slot_data_type_change(self, index):
+        
+        if index == 3:
+            self.gb_import_datafile.setVisible(True)
+        else:
+            self.gb_import_datafile.setVisible(False)
+
+    def retranslateUi(self):
+        
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('ImportDataFileDialog', '数据导入'))
+        self.gb_sel_file.setTitle(_translate('ImportDataFileDialog', '选择文件'))
+        self.btn_sel_file.setText(_translate('ImportDataFileDialog', '...'))
+        self.gb_data_type.setTitle(_translate('ImportDataFileDialog', '数据类型'))
+        self.cb_data_type.setItemText(0, _translate('ImportDataFileDialog', '普通试飞数据'))
+        self.cb_data_type.setItemText(1, _translate('ImportDataFileDialog', 'GPS数据'))
+        self.cb_data_type.setItemText(2, _translate('ImportDataFileDialog', 'QAR数据'))
+        self.cb_data_type.setItemText(3, _translate('ImportDataFileDialog', '自定义数据'))
+        self.gb_import_datafile.setTitle(_translate('ImportDataFileDialog', '文件读取方式'))
+        self.label_first_line_num.setText(_translate('ImportDataFileDialog', '导入起始行'))
+        self.label_time_col.setText(_translate('ImportDataFileDialog', '时间列（0表示无时间列）'))
+        self.label_sep.setText(_translate('ImportDataFileDialog', '分隔符'))
+        self.cb_sep.setItemText(0, _translate('ImportDataFileDialog', 'Tab键'))
+        self.cb_sep.setItemText(1, _translate('ImportDataFileDialog', '分号'))
+        self.cb_sep.setItemText(2, _translate('ImportDataFileDialog', '逗号'))
+        self.cb_sep.setItemText(3, _translate('ImportDataFileDialog', '空格'))
+        self.label_time_format.setText(_translate('ImportDataFileDialog', '时间格式'))
+        self.cb_time_format.setItemText(0, _translate('ImportDataFileDialog', 'HH:MM:SS:FFF'))
+        self.cb_time_format.setItemText(1, _translate('ImportDataFileDialog', 'HH:MM:SS:FFFFFF'))
+        self.cb_time_format.setItemText(2, _translate('ImportDataFileDialog', 'HH:MM:SS.FFF'))
+        self.cb_time_format.setItemText(3, _translate('ImportDataFileDialog', 'HH:MM:SS:FFFFFF'))
+        self.btn_confirm.setText(_translate('ImportDataFileDialog', '导入'))
+        self.btn_cancel.setText(_translate('ImportDataFileDialog', '取消'))
         
 #测试用     
 if __name__ == '__main__':

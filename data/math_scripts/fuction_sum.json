@@ -1,0 +1,1 @@
+"def f_sum(li):\n    s = 0\n    for l in li:\n        s += l\n    return s"
