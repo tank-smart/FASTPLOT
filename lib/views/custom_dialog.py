@@ -4234,7 +4234,7 @@ class ImportDataFileDialog(QDialog):
         self.verticalLayout_3.addLayout(self.horizontalLayout_3)
         
         
-        self.gb_import_datafile.setVisible(False)
+        self.gb_import_datafile.setEnabled(False)
         self.btn_confirm.clicked.connect(self.accept)
         self.btn_cancel.clicked.connect(self.reject)
         self.btn_sel_file.clicked.connect(self.slot_sel_datafile)
@@ -4271,9 +4271,9 @@ class ImportDataFileDialog(QDialog):
     def slot_data_type_change(self, index):
         
         if index == 3:
-            self.gb_import_datafile.setVisible(True)
+            self.gb_import_datafile.setEnabled(True)
         else:
-            self.gb_import_datafile.setVisible(False)
+            self.gb_import_datafile.setEnabled(False)
 
     def retranslateUi(self):
         
