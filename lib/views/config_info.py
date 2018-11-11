@@ -4,7 +4,6 @@
 import sys
 import os.path as osp
 import matplotlib
-#import frozen_dir
 # =============================================================================
 # 软件名
 # =============================================================================
@@ -13,15 +12,14 @@ SOFTNAME = 'FastPlot(beta 0.2)'
 # 路径
 # =============================================================================
 SETUP_DIR = osp.abspath(osp.join(osp.dirname(sys.argv[0]), osp.pardir))
-
-#SETUP_DIR = frozen_dir.app_path()
-DIR_HELP_DOC = SETUP_DIR + r'\data\docs'
-DIR_HELP_VIDEO = SETUP_DIR + r'\data\videos'
+DIR_HELP_DOC = SETUP_DIR + r'\help\docs'
+DIR_HELP_VIDEO = SETUP_DIR + r'\help\videos'
 # =============================================================================
 # 软件设置
 # =============================================================================
 #默认设置
-OPTION = {'dir of importing' : '',
+OPTION = {'dir of quick import' : '',
+          'dir of custom import' : '',
           'data dict scope paralist' : True,
           'data dict scope plot' : True,
           'data dict scope style' : 1,#0-参数名，1-软件标识符(参数名)，2-参数名(软件标识符)

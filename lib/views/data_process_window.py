@@ -16,7 +16,7 @@
 # =============================================================================
 from PyQt5.QtCore import (QSize, QCoreApplication, Qt, pyqtSignal,
                           QDataStream, QIODevice)
-from PyQt5.QtGui import QIcon, QDragEnterEvent, QDropEvent
+from PyQt5.QtGui import QIcon, QDragEnterEvent, QDropEvent, QFont
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpacerItem, 
                              QSizePolicy, QMessageBox, QTreeWidget,
                              QTreeWidgetItem, QDialog, QToolButton, 
@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpacerItem,
 # =============================================================================
 # Package models imports
 # =============================================================================
-from views.custom_dialog import (SelectTemplateDialog, SaveTemplateDialog,
+from views.custom_dialog import (SelectParasTemplateDialog, SaveTemplateDialog,
                                  ParameterExportDialog)
 from models.datafile_model import Normal_DataFile
 import views.config_info as CONFIG
@@ -78,6 +78,7 @@ class DataProcessWindow(QWidget):
     signal_request_temps = pyqtSignal(str)
     signal_save_temp = pyqtSignal(dict)
     signal_send_status = pyqtSignal(str, int)
+    signal_close_dock = pyqtSignal()
 # =============================================================================
 # 初始化    
 # =============================================================================    
@@ -97,6 +98,9 @@ class DataProcessWindow(QWidget):
 # =============================================================================        
     def setup(self):
 
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.verticalLayout_9 = QVBoxLayout(self)
         self.verticalLayout_9.setContentsMargins(2, 0, 2, 0)
         self.verticalLayout_9.setSpacing(2)
@@ -275,7 +279,7 @@ class DataProcessWindow(QWidget):
             input_paras = []
             paras_noexist = []
             isexist = False
-            dialog = SelectTemplateDialog(self, templates)
+            dialog = SelectParasTemplateDialog(self, templates)
             return_signal = dialog.exec_()
             if (return_signal == QDialog.Accepted):
                 if dict_files:
@@ -350,6 +354,7 @@ class DataProcessWindow(QWidget):
     def slot_plot(self):
         
         if self.tree_widget_paralist:
+            self.signal_close_dock.emit()
             items = self.tree_widget_paralist.selectedItems()
             if items:
                 self.signal_para_for_plot.emit(self.get_sel_paras_in_tuple())

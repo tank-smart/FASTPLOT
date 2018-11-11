@@ -18,10 +18,10 @@
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
                              QMessageBox, QScrollArea, QProgressDialog,
-                             QTabWidget, QApplication, QFrame)
+                             QTabWidget, QApplication, QFrame, QDialog)
 from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
                           QIODevice, Qt)
-from PyQt5.QtGui import QIcon, QKeyEvent
+from PyQt5.QtGui import QIcon, QKeyEvent, QFont
 
 # =============================================================================
 # Package views imports
@@ -29,7 +29,7 @@ from PyQt5.QtGui import QIcon, QKeyEvent
 from models.figure_model import (FastPlotCanvas, SingleAxisPlotCanvasBase,
                                  SingleAxisXTimePlotCanvas, StackAxisPlotCanvas,
                                  SingleAxisPlotCanvas)
-from views.custom_dialog import DisplayParaValuesDialog
+from views.custom_dialog import DisplayParaValuesDialog, SelectPlotTemplateDialog
 import views.config_info as CONFIG
 # =============================================================================
 # FigureWindow
@@ -131,6 +131,9 @@ class PlotWindow(QWidget):
 # =============================================================================
     def setup(self):
         
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
 #        该窗口的主布局器，水平
         self.horizontalLayout_2 = QHBoxLayout(self)
         self.horizontalLayout_2.setContentsMargins(0, 0, 0, 0)
@@ -299,6 +302,18 @@ class PlotWindow(QWidget):
         self.button_add_line.setIconSize(QSize(22, 22))
         self.button_add_line.setIcon(QIcon(CONFIG.ICON_LINE))
         self.verticalLayout.addWidget(self.button_add_line)
+        self.button_save_temp = QToolButton(self.widget_plot_tools)
+        self.button_save_temp.setMinimumSize(QSize(30, 30))
+        self.button_save_temp.setMaximumSize(QSize(30, 30))
+        self.button_save_temp.setIconSize(QSize(22, 22))
+        self.button_save_temp.setIcon(QIcon(CONFIG.ICON_SAVE_TEMP))
+        self.verticalLayout.addWidget(self.button_save_temp)
+        self.button_sel_temp = QToolButton(self.widget_plot_tools)
+        self.button_sel_temp.setMinimumSize(QSize(30, 30))
+        self.button_sel_temp.setMaximumSize(QSize(30, 30))
+        self.button_sel_temp.setIconSize(QSize(22, 22))
+        self.button_sel_temp.setIcon(QIcon(CONFIG.ICON_SEL_TEMP))
+        self.verticalLayout.addWidget(self.button_sel_temp)
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         
@@ -380,6 +395,7 @@ class PlotWindow(QWidget):
         self.button_add_hl.clicked.connect(self.slot_add_hline)
         self.button_add_vl.clicked.connect(self.slot_add_vline)
         self.button_add_line.clicked.connect(self.slot_add_line)
+        self.button_sel_temp.clicked.connect(self.slot_sel_plot_temp)
 
 #        self.combo_box_time.activated.connect(self.slot_display_paravalue_ontime)
 #        self.tool_btn_time.clicked.connect(self.slot_import_paravalue)
@@ -403,12 +419,14 @@ class PlotWindow(QWidget):
         self.button_home.clicked.connect(self.current_canva.slot_home)
         self.button_back.clicked.connect(self.current_canva.toolbar.back)
         self.button_forward.clicked.connect(self.current_canva.toolbar.forward)
+        self.button_save_temp.clicked.connect(self.current_canva.save_plot_temp)
         self.current_fig_win.signal_resize.connect(self.slot_resize_canvas)
         self.current_fig_win.signal_drop_paras.connect(self.slot_plot)
 #        画布的右键菜单
         self.signal_is_display_menu.connect(self.current_canva.slot_set_display_menu)
         
         self.current_canva.signal_added_artist.connect(self.slot_uncheck_add_artist_btn)
+        self.current_canva.signal_adjust_win.connect(self.adjust_fig_win)
         
 #        self.current_canva.signal_cursor_xdata.connect(self.slot_display_paravalue)
 #        self.current_canva.signal_send_time.connect(self.slot_save_time)
@@ -423,12 +441,14 @@ class PlotWindow(QWidget):
         self.button_home.clicked.disconnect(self.current_canva.slot_home)
         self.button_back.clicked.disconnect(self.current_canva.toolbar.back)
         self.button_forward.clicked.disconnect(self.current_canva.toolbar.forward)
+        self.button_save_temp.clicked.disconnect(self.current_canva.save_plot_temp)
         self.current_fig_win.signal_resize.disconnect(self.slot_resize_canvas)
         self.current_fig_win.signal_drop_paras.disconnect(self.slot_plot)
 #        画布的右键菜单
         self.signal_is_display_menu.disconnect(self.current_canva.slot_set_display_menu)
         
         self.current_canva.signal_added_artist.connect(self.slot_uncheck_add_artist_btn)
+        self.current_canva.signal_adjust_win.disconnect(self.adjust_fig_win)
 #        self.current_canva.signal_cursor_xdata.disconnect(self.slot_display_paravalue)
 #        self.current_canva.signal_send_time.disconnect(self.slot_save_time)
 #        self.current_canva.signal_send_tinterval.disconnect(self.slot_save_tinterval)
@@ -468,6 +488,11 @@ class PlotWindow(QWidget):
             return
         
         if datadict and sorted_paras:
+#            在绘图前把正在进行的操作都停止
+#            if (self.current_clicked_btn and 
+#                self.current_clicked_btn.isChecked()):
+#                    self.current_clicked_btn.click()
+#                    self.current_clicked_btn = None
             self.current_canva._data_dict = self._data_dict
             
             self.signal_send_status.emit('绘图中...', 0)
@@ -476,9 +501,7 @@ class PlotWindow(QWidget):
             self.pDialog_close()
             self.signal_send_status.emit('绘图完成！', 1500)
             
-            self.current_count_axes = self.current_canva.count_axes
-            
-            self.adjust_fig_win()
+#            self.adjust_fig_win()
             
     def slot_resize_canvas(self, scroll_area_size):
         
@@ -494,6 +517,7 @@ class PlotWindow(QWidget):
             
     def adjust_fig_win(self):
         
+        self.current_count_axes = self.current_canva.count_axes
         if self.current_count_axes > 4:
             self.current_fig_win.setWidgetResizable(False)
 #            乘以1.05是估计的，刚好能放下四张图，
@@ -510,7 +534,7 @@ class PlotWindow(QWidget):
             else:
                 height = int(self.current_fig_win.height() * 1.05) / 4
                 self.current_canva.resize(self.current_fig_win.width() - 19,
-                                       self.current_count_axes * height)
+                                          self.current_count_axes * height)
         else:
             self.current_fig_win.setWidgetResizable(True)
         
@@ -740,8 +764,10 @@ class PlotWindow(QWidget):
                   QCoreApplication.translate('PlotWindow', '确定要清除画布吗'),
                   QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
-                if self.button_get_paravalue.isChecked():
-                    self.button_get_paravalue.click()
+                if (self.current_clicked_btn and 
+                    self.current_clicked_btn.isChecked()):
+                        self.current_clicked_btn.click()
+                        self.current_clicked_btn = None
                 self.current_canva.slot_clear_canvas()
 #                如果画的图多会出现滚动条，此时清除画布，滚动条不会消失，因此采用此行解决
                 self.current_fig_win.setWidgetResizable(True)
@@ -757,8 +783,10 @@ class PlotWindow(QWidget):
     def slot_save_figure(self):
         
         if self.current_canva.fig.axes:
-            if self.button_get_paravalue.isChecked():
-                self.button_get_paravalue.click()
+            if (self.current_clicked_btn and 
+                self.current_clicked_btn.isChecked()):
+                    self.current_clicked_btn.click()
+                    self.current_clicked_btn = None
 #            将画布变形成合适的尺寸
             self.current_fig_win.setWidgetResizable(False)
             self.on_saving_fig = True
@@ -983,6 +1011,19 @@ class PlotWindow(QWidget):
             self.current_canva.slot_add_arb_markline()
         else:
             self.current_canva.slot_disconnect()
+            
+    def slot_sel_plot_temp(self):
+        
+        if self.current_canva.fig.axes:
+            dialog = SelectPlotTemplateDialog(self)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                if dialog.sel_temp:
+                    self.current_canva.apply_plot_temp(dialog.sel_temp)
+        else:
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('PlotWindow', '模板应用提示'),
+                                    QCoreApplication.translate('PlotWindow', '尚未绘图...'))
             
 #    实现按下Esc键后当前操作取消的功能
     def keyPressEvent(self, event : QKeyEvent):

@@ -15,7 +15,7 @@
 # Qt imports
 # =============================================================================
 from PyQt5.QtCore import QCoreApplication, Qt, pyqtSignal
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTreeWidget, QMenu, QAction,
                              QTreeWidgetItem, QGroupBox, QAbstractItemView,
                              QHeaderView, QMessageBox)
@@ -44,6 +44,9 @@ class MathematicsWindow(QWidget):
         
     def setup(self):
 
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.verticalLayout = QVBoxLayout(self)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.group_box_commandline = QGroupBox(self)

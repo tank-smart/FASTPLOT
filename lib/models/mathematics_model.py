@@ -28,7 +28,7 @@ from PyQt5.QtCore import (Qt, QRegExp, QCoreApplication, pyqtSignal)
 from models.datafile_model import Normal_DataFile
 from models.data_model import DataFactory
 from models.analysis_model import DataAnalysis
-from views.custom_dialog import SelParasDialog
+from views.custom_dialog import SelParasDialog, MathScriptDialog
 
 #用于将特定字符加高亮
 class Highlighter(QSyntaxHighlighter):
@@ -128,7 +128,10 @@ class MathematicsEditor(QPlainTextEdit):
 #        添加右键动作
         self.action_add_para = QAction(self)
         self.action_add_para.setText(QCoreApplication.
-                                   translate('MathematicsEditor', '添加参数'))
+                                     translate('MathematicsEditor', '添加参数'))
+        self.action_script = QAction(self)
+        self.action_script.setText(QCoreApplication.
+                                   translate('MathematicsEditor', '计算脚本'))
         self.action_pre_exper = QAction(self)
         self.action_pre_exper.setText(QCoreApplication.
                                       translate('MathematicsEditor', '上一条表达式'))
@@ -138,6 +141,7 @@ class MathematicsEditor(QPlainTextEdit):
         
         self.customContextMenuRequested.connect(self.conmandline_context_menu)
         self.action_add_para.triggered.connect(self.slot_add_para)
+        self.action_script.triggered.connect(self.slot_math_script)
         self.action_clear_editor.triggered.connect(self.slot_clear)
         self.action_pre_exper.triggered.connect(self.slot_insert_pre_exper)
         
@@ -510,6 +514,7 @@ class MathematicsEditor(QPlainTextEdit):
         
         menu = QMenu(self)
         menu.addActions([self.action_add_para,
+                         self.action_script,
                          self.action_pre_exper,
                          self.action_clear_editor])
         if self.pre_exper:
@@ -575,6 +580,13 @@ class MathematicsEditor(QPlainTextEdit):
     #        先匹配参数名，如果不是参数再认为是变量
             token_exprs.append((r'[A-Za-z][A-Za-z0-9_]*', self.VAR))
             self.token_exprs = token_exprs
+    
+    def slot_math_script(self):
+        
+        dialog = MathScriptDialog(self)
+        return_signal = dialog.exec_()
+        if (return_signal == QDialog.Accepted):
+            print(dialog.script)
                     
 # =============================================================================
 # 功能函数模块   

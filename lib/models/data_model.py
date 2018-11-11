@@ -237,6 +237,14 @@ class DataFactory(object):
                 return (None, None)
         else:
             return (None, None)
+        
+    def delete_col(self, index : str):
+        
+        if type(index) == str and index != '':
+            para_list = self.get_paralist()
+            if para_list and (index in para_list):
+                self.data = self.data.drop(index, axis = 1)
+                self.data_paralist = self.data.columns.values.tolist()
 
 #---------yanhua加        
     def get_shape(self):
