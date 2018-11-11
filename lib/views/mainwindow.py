@@ -477,7 +477,7 @@ class MainWindow(QMainWindow):
                     QCoreApplication.translate('MainWindow', '普通试飞数据文件(*.txt)'))
         else:
             file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
-                    self, self, QCoreApplication.translate('MainWindow', '快速打开'),
+                    self, QCoreApplication.translate('MainWindow', '快速打开'),
                     CONFIG.SETUP_DIR,
                     QCoreApplication.translate('MainWindow', '普通试飞数据文件(*.txt)'))
         if file_dir_list:
