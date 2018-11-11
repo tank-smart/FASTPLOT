@@ -20,16 +20,21 @@ def to_intlist(time):
     return [result_time.hour, result_time.minute, result_time.second, result_time.microsecond]
 
 #可计算datatime类型或时间字符串，若计算不成功则抛出异常
+#起始若为采样点，那么计数到以最靠近且小于终止时间的那个采样点结束
 def count_between_time(start_time, stop_time, fre):
     
     start = to_datetime(start_time)
-        
     stop = to_datetime(stop_time)
     
-    return abs(int(((stop.hour - start.hour) * 3600 +
-                    (stop.minute - start.minute) * 60 +
-                    (stop.second - start.second) +
-                    (stop.microsecond - start.microsecond) / 1000000) * fre))
+    abs_delta = ((stop.hour - start.hour) * 3600 +
+                 (stop.minute - start.minute) * 60 +
+                 (stop.second - start.second) +
+                 (stop.microsecond - start.microsecond) / 1000000) * fre
+    
+    if abs_delta >= 0:
+        return int(abs_delta)
+    else:
+        return -1
 
 #可判断datatime类型或时间字符串
 #比较两个时间的大小，time1大于time2返回1，等于返回0，小于返回-1

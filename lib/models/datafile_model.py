@@ -307,6 +307,7 @@ class Normal_DataFile(DataFile):
             filedir=self.filedir
         if sep=='':
             sep=self.sep
+#            注意excel文件读取必须为rb模式
         with open(filedir,'r') as f:
             if filedir.endswith(('.txt','.csv')):
                 if sep=='all':
@@ -378,6 +379,7 @@ class Normal_DataFile(DataFile):
             filedir=self.filedir
         if sep=='':
             sep=self.sep
+#            注意若是excel文件读取需要rb模式
         with open(filedir,'r') as f:
             if (start_time and stop_time):
 #                count_between_time函数返回的是两个时间的差值
@@ -412,6 +414,7 @@ class Normal_DataFile(DataFile):
                         df=pd.read_table(f,sep=sep,usecols=cols,index_col=False,engine='c')
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=cols,index_col=False)
+                    
 #            定义参数顺序
             df = df[cols]
             return df
@@ -431,3 +434,19 @@ class Normal_DataFile(DataFile):
             if filedir.endswith(('.xls','.xlsx')):
                 df=pd.read_excel(f,header=None,usecols=cols,skiprows=skiprows)
         return df
+    
+#DataFile 的统一接口    
+class DataFile_Factory(object):
+    
+    def __new__(cls, filedir='', sep='\s+', filetype = 'Normal_DataFile'):
+        if filedir.endswith(('.txt','.csv')):
+            instance = Normal_DataFile(filedir, sep)
+        elif filedir.endswith(('.xls','.xlsx')):
+            instance = Excel_DataFile(filedir, sep)
+        return instance
+    
+    
+if __name__ == '__main__':
+    filedir = r'D:\flightdata\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt'
+    DF=DataFile_Factory(filedir)
+    ss=Normal_DataFile(filedir)

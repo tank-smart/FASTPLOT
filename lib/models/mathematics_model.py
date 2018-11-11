@@ -13,6 +13,7 @@
 # =============================================================================
 import re
 import pandas as pd
+import math
 # =============================================================================
 # Qt imports
 # =============================================================================
@@ -26,12 +27,13 @@ from PyQt5.QtCore import (Qt, QRegExp, QCoreApplication, pyqtSignal)
 # =============================================================================
 from models.datafile_model import Normal_DataFile
 from models.data_model import DataFactory
+from models.analysis_model import DataAnalysis
 from views.custom_dialog import SelParasDialog
 
 #用于将特定字符加高亮
 class Highlighter(QSyntaxHighlighter):
    
-    def __init__(self, parent = None, paras : list = None):
+    def __init__(self, parent = None, paras : list = None, funcs : list = None):
         
         super().__init__(parent)
         
@@ -39,12 +41,18 @@ class Highlighter(QSyntaxHighlighter):
         self.para_format = QTextCharFormat()
         self.para_format.setForeground(Qt.blue)
 #        self.para_format.setFontItalic(True)
+        self.func_format = QTextCharFormat()
+        self.func_format.setForeground(Qt.magenta)
         
         self.highlight_rules = []
 #        定义需要高亮的参数字符
         for para in paras:
             pattern = QRegExp(r'\b' + para + r'\b')
             self.highlight_rules.append((pattern, self.para_format))
+ 
+        for func in funcs:
+            pattern = QRegExp(r'\b' + func + r'\b')
+            self.highlight_rules.append((pattern, self.func_format))
 
 #    重载函数  
     def highlightBlock(self, text : str):
@@ -92,6 +100,10 @@ class MathematicsEditor(QPlainTextEdit):
                 ('\-', self.RESERVED),
                 ('\*', self.RESERVED),
                 ('\/', self.RESERVED),
+                ('\.', self.RESERVED),
+                ('\,', self.RESERVED),
+                ('\^', self.RESERVED),
+                ('\'', self.RESERVED),
                 ('[0-9]+\.[0-9]+', self.FLOAT),
                 ('[0-9]+', self.INT),
                 (r'[A-Za-z][A-Za-z0-9_]*', self.VAR)]
@@ -131,7 +143,7 @@ class MathematicsEditor(QPlainTextEdit):
         
 #        判断用户是在哪里输入文字，只有在当前textblock内才能输入
         self.cursorPositionChanged.connect(self.slot_cursor_pos)
-        self.blockCountChanged.connect(self.slot_exec_block)
+        self.blockCountChanged.connect(self.slot_exec_block_Test)
 
 # =============================================================================
 # slots模块
@@ -284,8 +296,112 @@ class MathematicsEditor(QPlainTextEdit):
                         QCoreApplication.translate("MathematicsEditor", "提示"),
                         QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
 
+    def slot_exec_block_Test(self, count):
+        
+#        经过slot_cursor_pos和keyPressEvent函数，已保证了MATLAB那种代码交互效果
+#        所以当blockcount变化时，当前的block是新输入block，前一个block是需要执行的代码
+        document = self.document()
+        current_block = document.lastBlock()
+        exec_block = current_block.previous()
+        exec_text = exec_block.text()
+        if (len(exec_text) > 2):
+#            剔除输入标志'>>'
+            exec_text = exec_text[2 : ]
+            self.pre_exper = exec_text
+#            解析exec_text，如果满足要求，则执行运算
+#            if self.lex(exec_text) and self.paras_on_expr:
+            flag=self.lex(exec_text)
+            if flag!=-1:
+                if flag==1:
+                    self.read_paras()
+                    #注：这边的时间其实并没有什么意义
+#                    self.time_treat(self.paras_)
+#                    self.scope['reg_df']=reg_df
+                    
+    #                将参数的数据读入内存
+#                    for paraname in self.paras_on_expr:
+#                        self.time_df = paraname.index
+#                        exper = paraname + ' = reg_df[\'' + paraname + '\']'
+#                        exec(exper,self.scope)
+                try:
+                    
+                    if exec_text.find('=')!=-1:        
+                        exec(exec_text,self.scope)
+                        result_name=exec_text.split('=')[0]            
+                        result=eval(result_name,self.scope)
+                        
+#                        self.paras_on_expr.append(result_name)
+#                        print(result)
+                    else:
+#                       注意此时result是series对象
+                        result = eval(exec_text,self.scope)
+                        result_name='Result'+str(self.count+1)
+                        if result is not None:
+                            self.count = self.count+1
+                            
+#                       判断结果是否仍然是时间序列
+                    if result is not None:
+                        
+#                        if self.time_df is not None and isinstance(result, type(self.time_df)) and (len(result) == len(self.time_df)):
+                        if isinstance(result, pd.Series) or isinstance(result, pd.DataFrame):
+#                            print(self.time_df)
+                            
+                            result = result.reset_index()
+                            print(result.iloc[:,0])
+                            
+                            df_result = pd.DataFrame({'Time' : result.iloc[:,0], 
+                                                      result_name: result.iloc[:,1]}, columns = ['Time', result_name])
+#                        否则认为是一个数
+#                            
+                        else:
+                            
+                            df_result = pd.DataFrame({'Label' : [1],
+                                                      result_name: result}, columns = ['Label', result_name])
+#                            print(df_result)
+                        self.signal_compute_result.emit(df_result)
+                    else:
+                        pass
+                except:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("MathematicsEditor", "提示"),
+                            QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
+            else:
+                QMessageBox.information(self,
+                        QCoreApplication.translate("MathematicsEditor", "提示"),
+                        QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
+
+    def read_paras(self):
+        
+        dict_files = self.dict_current_files()
+#        因为self.paras_on_expr只是一个参数列表，所以要先将其规整下，方便按文件读取
+        for para in self.paras_on_expr:
+            for file_dir in dict_files:
+                if para in dict_files[file_dir]:
+                    df = DataFactory(file_dir, [para])
+                    df = df.data.set_index(df.data.columns[0])
+                                       
+                    para_df = df.iloc[:,0]
+#                    para_df = df.data.iloc[:,1]
+#                    df_time = df.data.iloc[:,0]
+#                    exec('para=para_df',self.scope)
+#                    print(para_df.index)
+                    self.scope[para] = para_df
+#                    print(para_df)
+#                    self.scope[para+'time'] = df_time
+                    
+        
+
     def scope_setup(self):
         self.scope['clear']=self.clc
+        self.scope['describe'] = self.describe
+        self.scope['add']=self.add
+        self.scope['sub']=self.sub
+        self.scope['mul']=self.mul
+        self.scope['div']=self.div
+        self.scope['help']=self.help_me()
+        self.scope['resample']=self.resample
+        self.scope['sqrt']=self.sqrt
+        self.funcs = ['abs','add','sub','mul','div','resample','sqrt','pow']
 
     def clc(self):
         self.scope={}
@@ -293,6 +409,101 @@ class MathematicsEditor(QPlainTextEdit):
         self.time_df=None
         self.count=0
         self.signal_clc.emit(True)
+        
+    def sqrt(self, series):
+        result = pow(series, 0.5)
+        return result
+    
+    def describe(self, series):
+        attr = series.describe()
+#        print(str(attr))
+        return str(attr)
+
+#    忽略时间序列的二元计算装饰器    
+    def force_operator(func):
+        def wrapper(self, left, right):
+            if isinstance(left, pd.Series) and isinstance(right, pd.Series):
+                if(len(left)>=len(right)):
+                    index=left.index
+                else:
+                    index=right.index
+                
+                new_left=left.reset_index(drop=True)
+                new_right=right.reset_index(drop=True)
+                result = func(self, new_left, new_right)
+                result.index = index
+            else:
+                result = left + right
+            return result
+        return wrapper
+
+    def add(self, left, right):
+        if isinstance(left, pd.Series) and isinstance(right, pd.Series):
+        
+            if(len(left)>=len(right)):
+                index=left.index
+            else:
+                index=right.index
+            
+            new_left=left.reset_index(drop=True)
+            new_right=right.reset_index(drop=True)
+            result=new_left.add(new_right, fill_value=None)
+            result.index=index
+            
+        else:
+            result = left+right
+        return result
+    
+    @force_operator
+    def sub(self, left, right):
+        result = left.sub(right, fill_value=None)
+        return result
+    
+    @force_operator
+    def mul(self, left, right):
+        result = left.mul(right, fill_value=None)
+        return result
+
+    @force_operator    
+    def div(self, left, right):
+        result = left.div(right, fill_value=None)
+        return result
+    
+    def resample(self, series, freq):
+        df_series=series.reset_index()
+        df=DataFactory(df_series)
+        series_freq=df.sample_frequency
+        analysis=DataAnalysis()
+        if series_freq>=freq:
+            result=analysis.downsample(df_series, freq)
+        else:
+            result=analysis.upsample(df_series, freq)
+#        输出Series
+        result=result.set_index(result.columns[0]).iloc[:,0]
+        return result
+        
+        
+        
+    
+    def help_me(self):
+        tell_you = \
+        """
+        add(left, right)    无限制加法，会把较长参数的序列作为结果的时间序列
+        parameter.between(left,right)  返回判断left<=series<=right的bool序列
+        describe(series)    描述参数信息：包括count,mean,std,min,25%,50%,75%,max
+        clear()             清除结果和内存
+        parameter.cov(other) 求两个参数序列的协方差
+        parameter.corr(other) 求两个参数序列的相关系数
+        parameter.sum()       求和
+        parameter.pow(other)
+        resample(parameter, freq)  升降频
+        """
+        return tell_you
+    
+        
+            
+        
+        
 #------------yanhua
                 
     def conmandline_context_menu(self, pos):
@@ -335,9 +546,13 @@ class MathematicsEditor(QPlainTextEdit):
         for file in files:
             normal_file = Normal_DataFile(file)
             paras += normal_file.paras_in_file
+        
         if paras:
 #            更新需要高亮的参数
-            self.highlighter = Highlighter(self.document(), paras)
+            self.highlighter = Highlighter(self.document(), paras, self.funcs)
+#        if self.funcs:
+#            
+#            self.func_highlighter = Highlighter(self.document(), self.funcs, Qt.magenta)
             token_exprs = [
     #                前两个表达式匹配空格和注释
                     ('\s+', None),
@@ -348,6 +563,10 @@ class MathematicsEditor(QPlainTextEdit):
                     ('\-', self.RESERVED),
                     ('\*', self.RESERVED),
                     ('\/', self.RESERVED),
+                    ('\.', self.RESERVED),
+                    ('\,', self.RESERVED),
+                    ('\^', self.RESERVED),
+                    ('\'', self.RESERVED),
                     ('[0-9]+\.[0-9]+', self.FLOAT),
                     ('[0-9]+', self.INT)]
             
@@ -456,6 +675,7 @@ class MathematicsEditor(QPlainTextEdit):
             if first_data:
                 df = DataFactory(file_dir, dict_paras[file_dir])
                 if df.is_concat(first_data):
+                    
                     df_list.append(df.data[df.get_paralist()])
                 else:
 #                    这里进行同步处理，处理不了返回None
@@ -467,3 +687,18 @@ class MathematicsEditor(QPlainTextEdit):
         df_all = pd.concat(df_list,axis = 1,join = 'outer',
                            ignore_index = False)
         return df_all
+    
+if __name__ == '__main__':
+    
+    file_dir = r'D:\flightdata\shoufei_AGIdata\FTPD-C919-10101-PD-170505-G-01-000FTE-664003-32_AGI.txt'
+    file = Normal_DataFile(file_dir)
+    df1 = DataFactory(file_dir, [file.paras_in_file[1]])
+    df1 = df1.data.set_index(df1.data.columns[0])                                  
+    para_df1 = df1.iloc[:,0]
+    df2 = DataFactory(file_dir, [file.paras_in_file[2]])
+    df2 = df2.data.set_index(df2.data.columns[0])                                  
+    para_df2 = df2.iloc[:,0]
+    me = MathematicsEditor()
+    result = me.div(para_df1,para_df2)
+    print(result)
+    

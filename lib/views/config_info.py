@@ -4,10 +4,17 @@
 import sys
 import os.path as osp
 import matplotlib
+#import frozen_dir
+# =============================================================================
+# 软件名
+# =============================================================================
+SOFTNAME = 'FastPlot(beta 0.2)'
 # =============================================================================
 # 路径
 # =============================================================================
 SETUP_DIR = osp.abspath(osp.join(osp.dirname(sys.argv[0]), osp.pardir))
+
+#SETUP_DIR = frozen_dir.app_path()
 DIR_HELP_DOC = SETUP_DIR + r'\data\docs'
 DIR_HELP_VIDEO = SETUP_DIR + r'\data\videos'
 # =============================================================================
@@ -17,7 +24,15 @@ DIR_HELP_VIDEO = SETUP_DIR + r'\data\videos'
 OPTION = {'dir of importing' : '',
           'data dict scope paralist' : True,
           'data dict scope plot' : True,
-          'data dict scope style' : 1}#0-参数名，1-软件标识符(参数名)，2-参数名(软件标识符)
+          'data dict scope style' : 1,#0-参数名，1-软件标识符(参数名)，2-参数名(软件标识符)
+          'work dir' : SETUP_DIR,
+          'plot fontsize' : 8,
+          'plot fontcolor' : '#aa0000',
+          'plot font arrow' : False,
+          'plot font bbox' : True,
+          'plot markline style' : '--',
+          'plot markline color' : '#aa0000',
+          'plot markline marker' : 'None'}
 # =============================================================================
 # 字体
 # =============================================================================
@@ -29,7 +44,7 @@ FONT_MSYH = matplotlib.font_manager.FontProperties(
 # =============================================================================
 FTCC_LOGO = SETUP_DIR + r'\lib\icon\ftcc.png'
 
-ICON_WINDOW = SETUP_DIR + r'\lib\icon\fastplot.ico'
+ICON_WINDOW = SETUP_DIR + r'\lib\icon\fastplot.png'
 
 ICON_ABOUT = SETUP_DIR + r'\lib\icon\information.ico'
 ICON_DATA_ABSTRACT = SETUP_DIR + r'\lib\icon\data_abstract.ico'
@@ -67,6 +82,7 @@ ICON_PARA = SETUP_DIR + r'\lib\icon\parameter.ico'
 ICON_PARA_DICT = SETUP_DIR + r'\lib\icon\para_dict.ico'
 ICON_PARA_TEMP = SETUP_DIR + r'\lib\icon\para_temp.ico'
 ICON_PARA_VALUE = SETUP_DIR + r'\lib\icon\para_value.ico'
+ICON_PLOT_WIN = SETUP_DIR + r'\lib\icon\plot_win.ico'
 ICON_PLOT = SETUP_DIR + r'\lib\icon\quick_plot.ico'
 #ICON_PLOT_SETTING = SETUP_DIR + r'\lib\icon\plot_setting.ico'
 

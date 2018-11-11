@@ -4,14 +4,21 @@
 #
 # SaveTemplateDialog
 # SelParasDialog
+# SelParasDialog_xparasetting
+# ParaSetup_Dialog
+# Base_LineSettingDialog
 # LineSettingDialog
 # AnnotationSettingDialog
+# Base_AxisSettingDialog
 # AxisSettingDialog
+# StackAxisSettingDialog
 # FigureCanvasSetiingDialog
 # ParameterExportDialog
 # FileProcessDialog
 # SelFunctionDialog
 # OptionDialog
+# DsiplayParaInfoBaseDialog
+# DisplayParaValuesDialog
 # =============================================================================
 # =============================================================================
 # Imports
@@ -26,8 +33,8 @@ import matplotlib.dates as mdates
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import (QSize, QCoreApplication, Qt, pyqtSignal, 
-                          QObject, QRect, QDataStream, QIODevice)
+from PyQt5.QtCore import (QSize, QCoreApplication, Qt, pyqtSignal, QObject,
+                          QDataStream, QIODevice, QRect)
 from PyQt5.QtGui import QFont, QIcon, QColor, QPalette
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
                              QLineEdit, QSpacerItem, QSizePolicy,
@@ -37,7 +44,8 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                              QColorDialog, QGroupBox, QTreeWidget,
                              QTreeWidgetItem, QHeaderView, QFileDialog,
                              QAction, QMenu, QStackedWidget, QWidget,
-                             QCheckBox, QDialogButtonBox, QGridLayout)
+                             QCheckBox, QTableWidget, QTableWidgetItem,
+                             QSpinBox, QDialogButtonBox, QGridLayout)
 
 # =============================================================================
 # Package models imports
@@ -948,6 +956,15 @@ class Base_LineSettingDialog(QDialog):
                                  'Triangle_up', 'Triangle_left', 'Triangle_right',
                                  'Tri_down', 'Tri_up', 'Tri_left', 'Tri_right', 
                                  'Square', 'Star', 'Plus', 'x', 'Diamond']
+#        判断是否是取值标记线，是的话就将文字标注对象保存起来
+        self.text_mark = None
+        ax = self.markline.axes
+        if ax:
+            list_text = ax.findobj(Annotation)
+            for text in list_text:
+                if self.markline.get_gid() and self.markline.get_gid() == text.get_gid():
+                    self.text_mark = text
+        
         self.setup()
     
     def setup(self):
@@ -1220,7 +1237,7 @@ class Base_LineSettingDialog(QDialog):
         self.color_view.setPalette(QPalette(color))
 #        按##RRGGBB的格式赋值颜色
         self.line_color = color.name()
-
+        
     def linetype(self, line : Line2D):
         
         x0 = line.get_xdata()[0]
@@ -1277,7 +1294,34 @@ class LineSettingDialog(Base_LineSettingDialog):
     def __init__(self, parent = None, line : Line2D = None):
 
         super().__init__(parent, line)
+        if self.linetype != 'Horizontal':
+            self.line_edit_line_x0.editingFinished.connect(self.time_change)
+        if self.linetype == 'Line':
+            self.line_edit_line_x1.editingFinished.connect(self.time_change)
             
+    def time_change(self):
+        
+        sender = QObject.sender(self)
+        time = sender.text()
+        if Time_Model.is_std_format(time):
+            if sender == self.line_edit_line_x0:
+                self.line_edit_line_x0.setText(Time_Model.timestr_to_stdtimestr(time))
+            if sender == self.line_edit_line_x1:
+                self.line_edit_line_x1.setText(Time_Model.timestr_to_stdtimestr(time))
+        else:
+            if sender == self.line_edit_line_x0:
+                self.line_edit_line_x0.setText(self.value_to_text(self.line_xdata[0]))
+            if sender == self.line_edit_line_x1:
+                self.line_edit_line_x1.setText(self.value_to_text(self.line_xdata[1]))
+            QMessageBox.information(self,
+                            QCoreApplication.translate('LineSettingDialog', '输入提示'),
+                            QCoreApplication.translate('LineSettingDialog', '''<b>请输入正确时间格式</b>
+                                                       <br>HH
+                                                       <br>HH:MM
+                                                       <br>HH:MM:SS
+                                                       <br>HH:MM:SS.FFF
+                                                       <br>HH:MM:SS:FFF'''))
+
     def value_to_text(self, value):
         time = mdates.num2date(value).time().isoformat(timespec='milliseconds')
         text = str(time)
@@ -1304,6 +1348,8 @@ class AnnotationSettingDialog(QDialog):
         self.text_size = annotation.get_fontsize()
         self.text_color = Color.to_hex(annotation.get_color())
         self.text_style = annotation.get_style()
+        self.text_arrow = annotation.arrow_patch.get_visible()
+        self.text_bbox = annotation.get_bbox_patch().get_visible()
         self.enum_text_style = ['normal', 'italic', 'oblique']
         self.enum_text_style_name = ['Normal', 'Italic', 'Oblique']
         
@@ -1407,10 +1453,40 @@ class AnnotationSettingDialog(QDialog):
 #            self.combo_box_text_style.setItemData(i, self.enum_text_style[i], Qt.UserRole)
 #        index = self.enum_text_style.index(self.text_style)
 #        self.combo_box_text_style.setCurrentIndex(index)  
-        
-        
+
 #        self.horizontalLayout_6.addWidget(self.combo_box_text_style)
 #        self.verticalLayout.addLayout(self.horizontalLayout_6)
+        
+        self.hlayout_arrow = QHBoxLayout()
+        self.label_arrow = QLabel(self)
+        self.label_arrow.setMinimumSize(QSize(75, 24))
+        self.label_arrow.setMaximumSize(QSize(75, 24))
+        self.hlayout_arrow.addWidget(self.label_arrow)
+        self.check_box_arrow = QCheckBox(self)
+        self.check_box_arrow.setMinimumSize(QSize(0, 24))
+        self.check_box_arrow.setMaximumSize(QSize(16777215, 24))
+        if self.text_arrow:
+            self.check_box_arrow.setChecked(True)
+        else:
+            self.check_box_arrow.setChecked(False)
+        self.hlayout_arrow.addWidget(self.check_box_arrow)
+        self.verticalLayout.addLayout(self.hlayout_arrow)
+        
+        self.hlayout_bbox = QHBoxLayout()
+        self.label_bbox = QLabel(self)
+        self.label_bbox.setMinimumSize(QSize(75, 24))
+        self.label_bbox.setMaximumSize(QSize(75, 24))
+        self.hlayout_bbox.addWidget(self.label_bbox)
+        self.check_box_bbox = QCheckBox(self)
+        self.check_box_bbox.setMinimumSize(QSize(0, 24))
+        self.check_box_bbox.setMaximumSize(QSize(16777215, 24))
+        if self.text_bbox:
+            self.check_box_bbox.setChecked(True)
+        else:
+            self.check_box_bbox.setChecked(False)
+        self.hlayout_bbox.addWidget(self.check_box_bbox)
+        self.verticalLayout.addLayout(self.hlayout_bbox)
+
         self.line_2 = QFrame(self)
         self.line_2.setFrameShape(QFrame.HLine)
         self.line_2.setFrameShadow(QFrame.Sunken)
@@ -1443,13 +1519,29 @@ class AnnotationSettingDialog(QDialog):
             self.text_size = int(self.line_edit_text_size.text())
         except:
             pass
+        self.text_arrow = self.check_box_arrow.isChecked()
 #        self.text_style = self.combo_box_text_style.currentData()
+        self.text_bbox = self.check_box_bbox.isChecked()
         
         self.annotation.set_text(self.text)
         self.annotation.set_rotation(self.text_rotation)
         self.annotation.set_size(self.text_size)
         self.annotation.set_color(self.text_color)
         self.annotation.set_style(self.text_style)
+        if self.text_arrow:
+            self.annotation.arrow_patch.set_visible(True)
+            self.annotation.arrow_patch.set_color(self.text_color)
+        else:
+            self.annotation.arrow_patch.set_visible(False)
+            self.annotation.arrow_patch.set_color(self.text_color)
+        if self.text_bbox:
+            self.annotation.set_bbox(dict(boxstyle = 'square, pad = 0.5', 
+                                          fc = 'w', ec = self.text_color,
+                                          visible = True))
+        else:
+            self.annotation.set_bbox(dict(boxstyle = 'square, pad = 0.5', 
+                                          fc = 'w', ec = self.text_color,
+                                          visible = False))
         
         QDialog.accept(self)
         
@@ -1469,6 +1561,8 @@ class AnnotationSettingDialog(QDialog):
         self.label_text_size.setText(_translate('AnnotationSettingDialog', '文字大小'))
         self.label_text_color.setText(_translate('AnnotationSettingDialog', '文字颜色'))
         self.tool_btn_text_color.setText(_translate('AnnotationSettingDialog', 'C'))
+        self.label_arrow.setText(_translate('AnnotationSettingDialog', '箭头'))
+        self.label_bbox.setText(_translate('AnnotationSettingDialog', '边框'))
 #        self.label_line_text_style.setText(_translate('AnnotationSettingDialog', '文字样式'))
 #        self.combo_box_text_style.setItemText(0, _translate('AnnotationSettingDialog', 'Normal'))
 #        self.combo_box_text_style.setItemText(1, _translate('AnnotationSettingDialog', 'Italic'))
@@ -1506,7 +1600,8 @@ class Base_AxisSettingDialog(QDialog):
         lines = axes.get_lines()
         for line in lines:
             line_info = {}
-            if line.pickable():
+#            忽略取值线和标记线
+            if line.pickable() or line.get_gid() == 'getvalue':
                 pass
             else:
                 line_info['line'] = line
@@ -2020,96 +2115,56 @@ class AxisSettingDialog(Base_AxisSettingDialog):
         value = mdates.date2num(Time_Model.str_to_datetime(text))
         return value            
 
+class StackAxisSettingDialog(AxisSettingDialog):
 
+    def __init__(self, parent = None, axes : Axes = None, layout_info : tuple = None):
 
-class FigureCanvasSetiingDialog(QDialog):
-
-    def __init__(self, parent = None, axes : Axes = None):
+        super().__init__(parent, axes)
         
-        super().__init__(parent)
+        self.num_yscales, self.num_scales_between_ylabel, self.num_view_yscales, self.num_yview_scales, self.i = layout_info
+        self.view_llimit = axes.get_yticks()[0]
+        self.view_ulimit = axes.get_yticks()[2]
+        self.line_edit_y_top.setText(str(self.view_ulimit))
+        self.line_edit_y_bottom.setText(str(self.view_llimit))
         
-        self.axes = axes
-        self.axis_fontsize = axes[0].get_yticklabels()[0].get_fontsize()
-        self.legend_fontsize = axes[0].get_legend()._fontsize
-        
-        self.setup()
-        
-    def setup(self):
-        
-        font = QFont()
-        font.setFamily('微软雅黑')
-        self.setFont(font)
-        self.resize(260, 140)
-        self.verticalLayout_2 = QVBoxLayout(self)
-        self.verticalLayout_2.setContentsMargins(4, 4, 4, 4)
-        self.verticalLayout_2.setSpacing(4)
-        self.group_box_fontsize = QGroupBox(self)
-        self.verticalLayout = QVBoxLayout(self.group_box_fontsize)
-        self.verticalLayout.setContentsMargins(2, 2, 2, 2)
-        self.verticalLayout.setSpacing(2)
-        self.horizontalLayout = QHBoxLayout()
-        self.label_axis_fn = QLabel(self.group_box_fontsize)
-        self.label_axis_fn.setMinimumSize(QSize(75, 24))
-        self.label_axis_fn.setMaximumSize(QSize(75, 24))
-        self.horizontalLayout.addWidget(self.label_axis_fn)
-        self.line_edit_axis_fn = QLineEdit(self.group_box_fontsize)
-        self.line_edit_axis_fn.setText(str(self.axis_fontsize))
-        self.line_edit_axis_fn.setMinimumSize(QSize(0, 24))
-        self.line_edit_axis_fn.setMaximumSize(QSize(16777215, 24))
-        self.horizontalLayout.addWidget(self.line_edit_axis_fn)
-        self.verticalLayout.addLayout(self.horizontalLayout)
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.label_legend_fn = QLabel(self.group_box_fontsize)
-        self.label_legend_fn.setMinimumSize(QSize(75, 24))
-        self.label_legend_fn.setMaximumSize(QSize(75, 24))
-        self.horizontalLayout_2.addWidget(self.label_legend_fn)
-        self.line_edit_legend_fn = QLineEdit(self.group_box_fontsize)
-        self.line_edit_legend_fn.setText(str(self.legend_fontsize))
-        self.line_edit_legend_fn.setMinimumSize(QSize(0, 24))
-        self.line_edit_legend_fn.setMaximumSize(QSize(16777215, 24))
-        self.horizontalLayout_2.addWidget(self.line_edit_legend_fn)
-        self.verticalLayout.addLayout(self.horizontalLayout_2)
-        self.verticalLayout_2.addWidget(self.group_box_fontsize)
-        self.horizontalLayout_3 = QHBoxLayout()
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.horizontalLayout_3.addItem(spacerItem)
-        self.push_btn_confirm = QPushButton(self)
-        self.push_btn_confirm.setMinimumSize(QSize(0, 24))
-        self.push_btn_confirm.setMaximumSize(QSize(16777215, 24))
-        self.horizontalLayout_3.addWidget(self.push_btn_confirm)
-        self.push_btn_cancel = QPushButton(self)
-        self.push_btn_cancel.setMinimumSize(QSize(0, 24))
-        self.push_btn_cancel.setMaximumSize(QSize(16777215, 24))
-        self.horizontalLayout_3.addWidget(self.push_btn_cancel)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_3)
-
-        self.retranslateUi()
-        
-        self.push_btn_confirm.clicked.connect(self.accept)
-        self.push_btn_cancel.clicked.connect(self.reject)
-
     def accept(self):
         
         try:
-            self.legend_fontsize = float(self.line_edit_legend_fn.text())
-            self.axis_fontsize = float(self.line_edit_axis_fn.text())
+            str_x_left = self.line_edit_x_left.text()
+            str_x_right = self.line_edit_x_right.text()
+            str_y_bottom = self.line_edit_y_bottom.text()
+            str_y_top = self.line_edit_y_top.text()
+#            将时间转换为浮点值坐标
+            x0 = self.text_to_value(str_x_left)
+            x1 = self.text_to_value(str_x_right)
+#            x0 = mdates.date2num(Time_Model.str_to_datetime(str_x_left))
+#            x1 = mdates.date2num(Time_Model.str_to_datetime(str_x_right))
+            self.xlim = (x0, x1)
+            self.view_llimit = float(str_y_bottom)
+            self.view_ulimit = float(str_y_top)
+            new_scale = (self.view_ulimit - self.view_llimit) / self.num_yview_scales
+            self.ylim = (self.view_llimit - (self.num_yscales - self.num_scales_between_ylabel * self.i - self.num_view_yscales) * new_scale / self.num_yview_scales, 
+                         self.view_ulimit + self.num_scales_between_ylabel * self.i * new_scale / self.num_yview_scales)
         except:
             pass
-        for axis in self.axes:
-            axis.tick_params(labelsize = self.axis_fontsize)
-            axis.legend(fontsize=self.legend_fontsize, loc=(0,1),
-                        frameon=False, borderpad = 0.15)
+        self.axes.set_xlim(self.xlim)
+        self.axes.set_ylim(self.ylim)
+        self.axes.set_yticks([self.view_llimit,(self.view_llimit + self.view_ulimit) / 2, self.view_ulimit])
+        self.axes.spines['left'].set_bounds(self.view_llimit, self.view_ulimit)
+        
+#        设置图注
+        curve = self.curves[0]
+        curve['line'].set_label(curve['line_label'])
+        self.axes.set_ylabel(curve['line_label'])
+        curve['line'].set_linestyle(curve['linestyle'])
+        curve['line'].set_color(curve['line_color'])
+        self.axes.spines['left'].set_color(curve['line_color'])
+        self.axes.tick_params(axis='y', colors=curve['line_color'])
+        self.axes.set_ylabel(self.axes.get_ylabel(), color = curve['line_color'])
+        curve['line'].set_linewidth(curve['linewidth'])
+        curve['line'].set_marker(curve['line_marker'])
         
         QDialog.accept(self)
-
-    def retranslateUi(self):
-        _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate('FigureCanvasSetiingDialog', '画布设置'))
-        self.group_box_fontsize.setTitle(_translate('FigureCanvasSetiingDialog', '文字大小'))
-        self.label_axis_fn.setText(_translate('FigureCanvasSetiingDialog', '刻度文字'))
-        self.label_legend_fn.setText(_translate('FigureCanvasSetiingDialog', '图注文字'))
-        self.push_btn_confirm.setText(_translate('FigureCanvasSetiingDialog', '确定'))
-        self.push_btn_cancel.setText(_translate('FigureCanvasSetiingDialog', '取消'))
             
 class ParameterExportDialog(QDialog):
     
@@ -2123,6 +2178,10 @@ class ParameterExportDialog(QDialog):
         self.file_info = {}
         self.current_file_dir = ''
         self._data_dict = None
+        if os.path.exists(CONFIG.OPTION['work dir']):
+            self.dir = CONFIG.OPTION['work dir']
+        else:
+            self.dir = CONFIG.SETUP_DIR
         
         self.setup()
         self.dict_data = {}
@@ -2279,9 +2338,10 @@ class ParameterExportDialog(QDialog):
     def slot_sel_dir(self):
         
         filedir = QFileDialog.getExistingDirectory(self, QCoreApplication.translate('ParameterExportDialog', '导出路径'),
-                                                   CONFIG.SETUP_DIR)
+                                                   self.dir)
         if filedir:
             filedir = filedir.replace('/','\\')
+            self.dir = filedir
             self.line_edit_file_dir.setText(filedir)
             
     def slot_change_current_file(self, item):
@@ -2439,10 +2499,10 @@ class ParameterExportDialog(QDialog):
             index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
 #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
             if file_dir[0] == '_':
-                data = self.dict_data[file_dir].get_trange_data(stime, etime)
+                real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
             else:
                 data = DataFactory(file_dir, paralist)
-                data = data.get_trange_data(stime, etime)
+                real_timerange, data = data.get_trange_data(stime, etime)
             filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
             file_outpout = DataFile(filepath)
 #            导出TXT文件
@@ -2523,7 +2583,7 @@ class ParameterExportDialog(QDialog):
         self.line_edit_starttime.setText(stime)
         self.line_edit_endtime.setText(etime)
         self.line_edit_file_name.setText(f)
-        self.line_edit_file_dir.setText(CONFIG.SETUP_DIR)
+        self.line_edit_file_dir.setText(self.dir)
         
     def load_data_dict(self):
         
@@ -2570,6 +2630,10 @@ class FileProcessDialog(QDialog):
         self.file_info = {}
         self.current_interval_item = None
         self.current_floder_item = None
+        if os.path.exists(CONFIG.OPTION['work dir']):
+            self.dir = CONFIG.OPTION['work dir']
+        else:
+            self.dir = CONFIG.SETUP_DIR
         
         self.setup()
         self.display_file_info(files, time_intervals)
@@ -2835,9 +2899,10 @@ class FileProcessDialog(QDialog):
     def slot_sel_dir(self):
         
         filedir = QFileDialog.getExistingDirectory(self, QCoreApplication.translate('FileProcessDialog', '导出路径'),
-                                                   CONFIG.SETUP_DIR)
+                                                   self.dir)
         if filedir:
             filedir = filedir.replace('/','\\')
+            self.dir = filedir
             self.line_edit_file_dir.setText(filedir)
             
     def slot_change_current_file(self, item):
@@ -3128,7 +3193,7 @@ class FileProcessDialog(QDialog):
         self.line_edit_endtime.setText(display_etime)
         self.line_edit_fre.setText(str(display_f))
         self.line_edit_file_name.setText(display_fname)
-        self.line_edit_file_dir.setText(CONFIG.SETUP_DIR)
+        self.line_edit_file_dir.setText(self.dir)      
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
@@ -3238,6 +3303,11 @@ class OptionDialog(QDialog):
     
     def __init__(self, parent = None):
     
+        if not os.path.exists(CONFIG.OPTION['work dir']):
+            CONFIG.OPTION['work dir'] = CONFIG.SETUP_DIR
+#        按#RRGGBB格式赋值
+        self.font_color = Color.to_hex(CONFIG.OPTION['plot fontcolor'])
+        self.line_color = Color.to_hex(CONFIG.OPTION['plot markline color'])
         super().__init__(parent)
         
         self.setup()
@@ -3263,20 +3333,172 @@ class OptionDialog(QDialog):
         self.list_option.addItem(item)
         self.horizontalLayout_2.addWidget(self.list_option)
         self.stack_option_win = QStackedWidget(self)
+        
         self.page_general = QWidget()
         self.verticalLayout_2 = QVBoxLayout(self.page_general)
-        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.label = QLabel(self.page_general)
-        self.label.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_2.addWidget(self.label)
+        self.verticalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_2.setSpacing(2)
+        self.groupBox_2 = QGroupBox(self.page_general)
+        self.horizontalLayout_4 = QHBoxLayout(self.groupBox_2)
+        self.horizontalLayout_4.setContentsMargins(2, 2, 2, 2)
+        self.horizontalLayout_4.setSpacing(2)
+        self.line_edit_work_dir = QLineEdit(self.groupBox_2)
+        self.line_edit_work_dir.setMinimumSize(QSize(0, 24))
+        self.line_edit_work_dir.setMaximumSize(QSize(16777215, 24))
+        self.line_edit_work_dir.setReadOnly(True)
+        self.line_edit_work_dir.setText(CONFIG.OPTION['work dir'])
+        self.horizontalLayout_4.addWidget(self.line_edit_work_dir)
+        self.btn_sel_work_dir = QToolButton(self.groupBox_2)
+        self.btn_sel_work_dir.setMinimumSize(QSize(24, 24))
+        self.btn_sel_work_dir.setMaximumSize(QSize(24, 24))
+        self.horizontalLayout_4.addWidget(self.btn_sel_work_dir)
+        self.verticalLayout_2.addWidget(self.groupBox_2)
+        spacerItem = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem)
         self.stack_option_win.addWidget(self.page_general)
+        
         self.page_plot = QWidget()
         self.verticalLayout_3 = QVBoxLayout(self.page_plot)
-        self.verticalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.label_2 = QLabel(self.page_plot)
-        self.label_2.setAlignment(Qt.AlignCenter)
-        self.verticalLayout_3.addWidget(self.label_2)
+        self.verticalLayout_3.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_3.setSpacing(2)
+        self.group_box_text = QGroupBox(self.page_plot)
+        self.verticalLayout_6 = QVBoxLayout(self.group_box_text)
+        self.verticalLayout_6.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_6.setSpacing(2)
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setSpacing(2)
+        self.label_fontszie = QLabel(self.group_box_text)
+        self.label_fontszie.setMinimumSize(QSize(100, 24))
+        self.label_fontszie.setMaximumSize(QSize(100, 24))
+        self.horizontalLayout_5.addWidget(self.label_fontszie)
+        self.spinBox = QSpinBox(self.group_box_text)
+        self.spinBox.setMinimumSize(QSize(0, 24))
+        self.spinBox.setMaximumSize(QSize(16777215, 24))
+        self.spinBox.setValue(CONFIG.OPTION['plot fontsize'])
+#        字体大小范围在1-40内
+#        self.spinBox.setRange(1, 40)
+        self.horizontalLayout_5.addWidget(self.spinBox)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_5)
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setSpacing(2)
+        self.label_fontcolor = QLabel(self.group_box_text)
+        self.label_fontcolor.setMinimumSize(QSize(100, 24))
+        self.label_fontcolor.setMaximumSize(QSize(100, 24))
+        self.horizontalLayout_6.addWidget(self.label_fontcolor)
+        self.label_color = QLabel(self.group_box_text)
+        self.label_color.setMinimumSize(QSize(0, 24))
+        self.label_color.setMaximumSize(QSize(16777215, 24))
+        self.label_color.setPalette(QPalette(QColor(self.font_color)))
+        self.label_color.setAutoFillBackground(True)
+        self.horizontalLayout_6.addWidget(self.label_color)
+        self.btn_sel_color = QToolButton(self.group_box_text)
+        self.btn_sel_color.setMinimumSize(QSize(24, 24))
+        self.btn_sel_color.setMaximumSize(QSize(24, 24))
+        self.horizontalLayout_6.addWidget(self.btn_sel_color)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_6)
+        
+        self.hlayout_arrow = QHBoxLayout()
+        self.label_arrow = QLabel(self)
+        self.label_arrow.setMinimumSize(QSize(100, 24))
+        self.label_arrow.setMaximumSize(QSize(100, 24))
+        self.hlayout_arrow.addWidget(self.label_arrow)
+        self.check_box_arrow = QCheckBox(self)
+        self.check_box_arrow.setMinimumSize(QSize(0, 24))
+        self.check_box_arrow.setMaximumSize(QSize(16777215, 24))
+        if CONFIG.OPTION['plot font arrow']:
+            self.check_box_arrow.setChecked(True)
+        else:
+            self.check_box_arrow.setChecked(False)
+        self.hlayout_arrow.addWidget(self.check_box_arrow)
+        self.verticalLayout_6.addLayout(self.hlayout_arrow)
+        
+        self.hlayout_bbox = QHBoxLayout()
+        self.label_bbox = QLabel(self)
+        self.label_bbox.setMinimumSize(QSize(100, 24))
+        self.label_bbox.setMaximumSize(QSize(100, 24))
+        self.hlayout_bbox.addWidget(self.label_bbox)
+        self.check_box_bbox = QCheckBox(self)
+        self.check_box_bbox.setMinimumSize(QSize(0, 24))
+        self.check_box_bbox.setMaximumSize(QSize(16777215, 24))
+        if CONFIG.OPTION['plot font bbox']:
+            self.check_box_bbox.setChecked(True)
+        else:
+            self.check_box_bbox.setChecked(False)
+        self.hlayout_bbox.addWidget(self.check_box_bbox)
+        self.verticalLayout_6.addLayout(self.hlayout_bbox)
+        
+        self.verticalLayout_3.addWidget(self.group_box_text)
+        self.group_box_line = QGroupBox(self.page_plot)
+        self.verticalLayout_7 = QVBoxLayout(self.group_box_line)
+        self.verticalLayout_7.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_7.setSpacing(2)
+        self.horizontalLayout_7 = QHBoxLayout()
+        self.label_ls = QLabel(self.group_box_line)
+        self.label_ls.setMinimumSize(QSize(100, 24))
+        self.label_ls.setMaximumSize(QSize(100, 24))
+        self.horizontalLayout_7.addWidget(self.label_ls)
+        self.cb_ls = QComboBox(self.group_box_line)
+        self.cb_ls.setMinimumSize(QSize(0, 24))
+        self.cb_ls.setMaximumSize(QSize(16777215, 24))  
+        enum_linestyle = ['None','-', '--', '-.', ':']
+        count = len(enum_linestyle)
+        for i in range(count):
+            self.cb_ls.addItem('')
+            self.cb_ls.setItemData(i, enum_linestyle[i], Qt.UserRole)
+        index = enum_linestyle.index(CONFIG.OPTION['plot markline style'])
+        self.cb_ls.setCurrentIndex(index)
+        
+        self.horizontalLayout_7.addWidget(self.cb_ls)
+        self.verticalLayout_7.addLayout(self.horizontalLayout_7)
+#        self.horizontalLayout_8 = QHBoxLayout()
+#        self.label_lw = QLabel(self.group_box_line)
+#        self.label_lw.setMinimumSize(QSize(100, 24))
+#        self.label_lw.setMaximumSize(QSize(100, 24))
+#        self.horizontalLayout_8.addWidget(self.label_lw)
+#        self.spin_box_lw = QSpinBox(self.group_box_line)
+#        self.spin_box_lw.setMinimumSize(QSize(0, 24))
+#        self.spin_box_lw.setMaximumSize(QSize(16777215, 24))
+#        self.horizontalLayout_8.addWidget(self.spin_box_lw)
+#        self.verticalLayout_7.addLayout(self.horizontalLayout_8)
+        self.horizontalLayout_9 = QHBoxLayout()
+        self.label_lc = QLabel(self.group_box_line)
+        self.label_lc.setMinimumSize(QSize(100, 24))
+        self.label_lc.setMaximumSize(QSize(100, 24))
+        self.horizontalLayout_9.addWidget(self.label_lc)
+        self.label_lc_view = QLabel(self.group_box_line)
+        self.label_lc_view.setMinimumSize(QSize(0, 24))
+        self.label_lc_view.setMaximumSize(QSize(16777215, 24))
+        self.label_lc_view.setPalette(QPalette(QColor(self.line_color)))
+        self.label_lc_view.setAutoFillBackground(True)
+        self.horizontalLayout_9.addWidget(self.label_lc_view)
+        self.btn_sel_lc = QToolButton(self.group_box_line)
+        self.btn_sel_lc.setMinimumSize(QSize(24, 24))
+        self.btn_sel_lc.setMaximumSize(QSize(24, 24))
+        self.horizontalLayout_9.addWidget(self.btn_sel_lc)
+        self.verticalLayout_7.addLayout(self.horizontalLayout_9)
+        self.horizontalLayout_10 = QHBoxLayout()
+        self.label_lm = QLabel(self.group_box_line)
+        self.label_lm.setMinimumSize(QSize(100, 24))
+        self.label_lm.setMaximumSize(QSize(100, 24))
+        self.horizontalLayout_10.addWidget(self.label_lm)
+        self.cb_lm = QComboBox(self.group_box_line)
+        self.cb_lm.setMinimumSize(QSize(0, 24))
+        self.cb_lm.setMaximumSize(QSize(16777215, 24))
+        enum_marker = ['None', '.', 'o', 'v', '^', '<', '>', '1', '2',
+                            '3', '4', 's', '*', '+', 'x', 'D']
+        count = len(enum_marker)
+        for i in range(count):
+            self.cb_lm.addItem('')
+            self.cb_lm.setItemData(i, enum_marker[i], Qt.UserRole)
+        index = enum_marker.index(CONFIG.OPTION['plot markline marker'])
+        self.cb_lm.setCurrentIndex(index)
+        self.horizontalLayout_10.addWidget(self.cb_lm)
+        self.verticalLayout_7.addLayout(self.horizontalLayout_10)
+        self.verticalLayout_3.addWidget(self.group_box_line)
+        spacerItem1 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalLayout_3.addItem(spacerItem1)
         self.stack_option_win.addWidget(self.page_plot)
+        
         self.page_data_dict = QWidget()
         self.verticalLayout_5 = QVBoxLayout(self.page_data_dict)
         self.verticalLayout_5.setContentsMargins(2, 2, 2, 2)
@@ -3352,6 +3574,12 @@ class OptionDialog(QDialog):
         self.list_option.currentRowChanged.connect(self.slot_option_win_change)
         self.cb_paralist_win.stateChanged.connect(self.slot_pw_check_change)
         
+#        通用设置页
+        self.btn_sel_work_dir.clicked.connect(self.slot_sel_work_dir)
+#        绘图设置页
+        self.btn_sel_color.clicked.connect(self.slot_sel_font_color)
+        self.btn_sel_lc.clicked.connect(self.slot_sel_lc)
+        
         self.retranslateUi()
         
     def accept(self):
@@ -3365,13 +3593,45 @@ class OptionDialog(QDialog):
             CONFIG.OPTION['data dict scope plot'] = True
         else:
             CONFIG.OPTION['data dict scope plot'] = False
+        CONFIG.OPTION['work dir'] = self.line_edit_work_dir.text()
+        CONFIG.OPTION['plot fontsize'] = self.spinBox.value()
+        CONFIG.OPTION['plot fontcolor'] = self.font_color
+        CONFIG.OPTION['plot font arrow'] = self.check_box_arrow.isChecked()
+        CONFIG.OPTION['plot font bbox'] = self.check_box_bbox.isChecked()
+        CONFIG.OPTION['plot markline style'] = self.cb_ls.currentData()
+        CONFIG.OPTION['plot markline color'] = self.line_color
+        CONFIG.OPTION['plot markline marker'] = self.cb_lm.currentData()
+        
+        try:
+    #        打开保存模板的文件（将从头写入，覆盖之前的内容）
+            with open(CONFIG.SETUP_DIR + r'\data\configuration.json', 'w') as file:
+                json.dump(CONFIG.OPTION, file)
+        except IOError:
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('OptionDialog', '软件配置提示'),
+                                    QCoreApplication.translate('OptionDialog', '无法保存软件配置！'))
+        
         QDialog.accept(self)
         
     def reset(self):
         
-        self.cb_paralist_win.setChecked(True)
-        self.cb_plot_win.setChecked(True)
-        
+        index = self.stack_option_win.currentIndex()
+        if index == 0:
+            self.line_edit_work_dir.setText(CONFIG.SETUP_DIR)
+        if index == 1:
+            self.spinBox.setValue(8)
+            self.font_color = '#aa0000'
+            self.label_color.setPalette(QPalette(QColor(self.font_color)))
+            self.check_box_arrow.setChecked(False)
+            self.check_box_bbox.setChecked(True)
+            self.cb_ls.setCurrentIndex(2)
+            self.line_color = '#aa0000'
+            self.label_lc_view.setPalette(QPalette(QColor(self.line_color)))
+            self.cb_lm.setCurrentIndex(0)
+        if index == 2:
+            self.cb_paralist_win.setChecked(True)
+            self.cb_plot_win.setChecked(True)
+            self.com_box_style.setCurrentIndex(1)  
     
     def slot_option_win_change(self, cur_row):
         
@@ -3383,6 +3643,28 @@ class OptionDialog(QDialog):
             self.com_box_style.setEnabled(True)
         else:
             self.com_box_style.setEnabled(False)
+            
+    def slot_sel_work_dir(self):
+        
+        filedir = QFileDialog.getExistingDirectory(self, QCoreApplication.translate('OptionDialog', '设置工作路径'),
+                                                   CONFIG.OPTION['work dir'])
+        if filedir:
+            filedir = filedir.replace('/','\\')
+            self.line_edit_work_dir.setText(filedir)
+            
+    def slot_sel_font_color(self):
+        
+        color = QColorDialog.getColor(QColor(self.font_color), self, 'Select Color')
+        self.label_color.setPalette(QPalette(color))
+#        按##RRGGBB的格式赋值颜色
+        self.font_color = color.name()
+    
+    def slot_sel_lc(self):
+        
+        color = QColorDialog.getColor(QColor(self.line_color), self, 'Select Color')
+        self.label_lc_view.setPalette(QPalette(color))
+#        按##RRGGBB的格式赋值颜色
+        self.line_color = color.name()
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
@@ -3396,8 +3678,6 @@ class OptionDialog(QDialog):
         item = self.list_option.item(2)
         item.setText(_translate('OptionDialog', '数据字典'))
         self.list_option.setSortingEnabled(__sortingEnabled)
-        self.label.setText(_translate('OptionDialog', 'TBD'))
-        self.label_2.setText(_translate('OptionDialog', 'TBD'))
         self.groupBox.setTitle(_translate('OptionDialog', '作用范围'))
         self.cb_paralist_win.setText(_translate('OptionDialog', '参数列表'))
         self.com_box_style.setItemText(0, _translate('OptionDialog', '参数名'))
@@ -3408,11 +3688,168 @@ class OptionDialog(QDialog):
         self.btn_ok.setText(_translate('OptionDialog', '确认'))
         self.btn_cancel.setText(_translate('OptionDialog', '取消'))
 #        self.btn_apply.setText(_translate('OptionDialog', '应用'))
+        self.groupBox_2.setTitle(_translate('OptionDialog', '工作路径'))
+        self.btn_sel_work_dir.setText(_translate('OptionDialog', '...'))
+        self.group_box_text.setTitle(_translate('OptionDialog', '文字标注'))
+        self.label_fontszie.setText(_translate('OptionDialog', '字体大小'))
+        self.label_fontcolor.setText(_translate('OptionDialog', '字体颜色'))
+        self.label_arrow.setText(_translate('OptionDialog', '箭头'))
+        self.label_bbox.setText(_translate('OptionDialog', '边框'))
+        self.label_color.setText(_translate('OptionDialog', ''))
+        self.btn_sel_color.setText(_translate('OptionDialog', 'C'))
+        self.group_box_line.setTitle(_translate('OptionDialog', '标注线'))
+        self.label_ls.setText(_translate('OptionDialog', '线型'))
+#        self.label_lw.setText(_translate('OptionDialog', '线宽'))
+        self.label_lc.setText(_translate('OptionDialog', '颜色'))
+        self.label_lc_view.setText(_translate('OptionDialog', ''))
+        self.btn_sel_lc.setText(_translate('OptionDialog', 'C'))
+        self.label_lm.setText(_translate('OptionDialog', '标记'))
+        
+        enum_linestyle_name = ['Nothing', 'Solid', 'Dashed', 
+                                    'Dashdot', 'Dotted']
+        count = len(enum_linestyle_name)
+        for i in range(count):
+            self.cb_ls.setItemText(i, _translate('OptionDialog',
+                                                 enum_linestyle_name[i]))
+        enum_marker_name = ['Nothing', 'Point', 'Circle', 'Triangle_down',
+                                 'Triangle_up', 'Triangle_left', 'Triangle_right',
+                                 'Tri_down', 'Tri_up', 'Tri_left', 'Tri_right', 
+                                 'Square', 'Star', 'Plus', 'x', 'Diamond']
+        count = len(enum_marker_name)
+        for i in range(count):
+            self.cb_lm.setItemText(i, _translate('OptionDialog',
+                                                 enum_marker_name[i]))
 
+class DsiplayParaInfoBaseDialog(QDialog):
+    
+    def __init__(self, parent = None, cols : int = 0, cols_info : list = []):
+    
+        super().__init__(parent)
+
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
+        self.resize(250, 480)
+        self.verticalLayout_3 = QVBoxLayout(self)
+        self.verticalLayout_3.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_3.setSpacing(2)
+        self.group_box_tip = QGroupBox(self)
+        self.verticalLayout = QVBoxLayout(self.group_box_tip)
+        self.verticalLayout.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout.setSpacing(2)
+        self.label_tip = QLabel(self.group_box_tip)
+        self.label_tip.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.label_tip.setMinimumSize(QSize(0, 24))
+        self.label_tip.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout.addWidget(self.label_tip)
+        self.verticalLayout_3.addWidget(self.group_box_tip)
+        self.group_box_para_info = QGroupBox(self)
+        self.verticalLayout_2 = QVBoxLayout(self.group_box_para_info)
+        self.verticalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_2.setSpacing(2)
+        self.table_widget_para_info = QTableWidget(self.group_box_para_info)
+        self.table_widget_para_info.setColumnCount(cols)
+        self.table_widget_para_info.setRowCount(0)
+        for i in range(cols):
+            item = QTableWidgetItem()
+            self.table_widget_para_info.setHorizontalHeaderItem(i, item)
+        self.table_widget_para_info.horizontalHeader().setDefaultSectionSize(119)
+        self.table_widget_para_info.horizontalHeader().setDefaultAlignment(Qt.AlignLeft)
+        self.table_widget_para_info.verticalHeader().setVisible(False)
+        self.verticalLayout_2.addWidget(self.table_widget_para_info)
+        self.verticalLayout_3.addWidget(self.group_box_para_info)
+
+        self.retranslateUi(cols_info)
+
+    def retranslateUi(self, cols_info):
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('DsiplayParaInfoBaseDialog', '标题'))
+        self.group_box_tip.setTitle(_translate('DsiplayParaInfoBaseDialog', '提示信息'))
+        self.label_tip.setText(_translate('DsiplayParaInfoBaseDialog', '提示信息'))
+        self.group_box_para_info.setTitle(_translate('DsiplayParaInfoBaseDialog', '参数信息'))
+        for i, info in enumerate(cols_info):
+            item = self.table_widget_para_info.horizontalHeaderItem(i)
+            item.setText(_translate('DisplayParaValuesDialog', info))
+
+class DisplayParaValuesDialog(DsiplayParaInfoBaseDialog):
+    
+    def __init__(self, parent = None):
+    
+        super().__init__(parent, 2, ['参数名', '参数值'])
+
+        self.retranslateUi_custom()
+
+#    实时显示参数值
+    def slot_display_paravalue(self, time : str, paravalue : list):
+        
+#        显示时间
+        if time != '':
+            self.label_tip.setText(time)
+        else:
+            self.label_tip.setText('No Data!')
+        
+        count = len(paravalue)
+        self.table_widget_para_info.clearContents()
+        self.table_widget_para_info.setRowCount(count)
+        for row, para_tuple in enumerate(paravalue):
+            paraname, value = para_tuple
+            item1 = QTableWidgetItem(paraname)
+            self.table_widget_para_info.setItem(row, 0, item1)
+            item2 = QTableWidgetItem(str(value))
+            self.table_widget_para_info.setItem(row, 1, item2)
+
+    def retranslateUi_custom(self):
+        
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('DisplayParaValuesDialog', '参数值'))
+        self.group_box_tip.setTitle(_translate('DisplayParaValuesDialog', '时刻'))
+        self.label_tip.setText(_translate('DisplayParaValuesDialog', '00:00:00.000'))
+        self.group_box_para_info.setTitle(_translate('DisplayParaValuesDialog', '参数信息'))
+        
+class DisplayParaAggregateInfoDialog(DsiplayParaInfoBaseDialog):
+
+    def __init__(self, parent = None):
+    
+        super().__init__(parent, 4, ['参数名', '平均值', '最大值', '最小值'])
+
+        self.resize(488, 480)
+
+        self.retranslateUi_custom()
+        
+    def display_para_agg_info(self, time_info : tuple, para_info_list : list):
+        
+#        显示时间
+        if time_info != '':
+            self.label_tip.setText(time_info[0] + ' - ' + time_info[1])
+        else:
+            self.label_tip.setText('No Data!')
+        
+        count = len(para_info_list)
+        self.table_widget_para_info.clearContents()
+        self.table_widget_para_info.setRowCount(count)
+        for row, para_tuple in enumerate(para_info_list):
+            paraname, mean_, max_, min_ = para_tuple
+            item1 = QTableWidgetItem(paraname)
+            self.table_widget_para_info.setItem(row, 0, item1)
+            item2 = QTableWidgetItem(str(mean_))
+            self.table_widget_para_info.setItem(row, 1, item2)
+            item3 = QTableWidgetItem(str(max_))
+            self.table_widget_para_info.setItem(row, 2, item3)
+            item4 = QTableWidgetItem(str(min_))
+            self.table_widget_para_info.setItem(row, 3, item4)
+        
+    def retranslateUi_custom(self):
+        
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('DisplayParaAggregateInfoDialog', '数据聚合'))
+        self.group_box_tip.setTitle(_translate('DisplayParaAggregateInfoDialog', '时间段'))
+        self.label_tip.setText(_translate('DisplayParaAggregateInfoDialog', '00:00:00.000 - 00:00:00.000'))
+        self.group_box_para_info.setTitle(_translate('DisplayParaAggregateInfoDialog', '参数信息'))
+        
 #测试用     
 if __name__ == '__main__':
     
     app = QApplication(sys.argv)
-    d = OptionDialog()
+    d = DisplayParaValuesDialog()
     d.show()
     app.exec_()

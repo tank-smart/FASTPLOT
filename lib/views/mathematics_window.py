@@ -212,7 +212,7 @@ class MathematicsWindow(QWidget):
             max_value = result[col_list[1]].max()
             min_value = result[col_list[1]].min()
 #            yanhua修改结束
-            item.setText(1, 'Time Series: ' + result.iloc[0, 0] + ' - ' + result.iloc[-1, 0])
+            item.setText(1, 'Time Series: ' + str(result.iloc[0, 0]) + ' - ' + str(result.iloc[-1, 0]))
             item.setText(2, str(max_value))
             item.setText(3, str(min_value))
             self.dict_result_paras[paraname] = DataFactory(result)
