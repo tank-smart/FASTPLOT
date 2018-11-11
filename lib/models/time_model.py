@@ -150,6 +150,14 @@ def and_time_intervals(tar_t : tuple, scr_t : tuple):
             if compare(etime, lim_etime) == 1:
                 result_et = lim_etime
     return (result_st, result_et)
+
+def datetime_to_origintime(dt : Pytime):
+    if dt:
+        strtime = dt.time().isoformat(timespec='milliseconds')
+        strtime = strtime.replace('.', ':')
+        return strtime
+    else:
+        return None
     
 if __name__ == '__main__':
 #    print(is_in_range('6:13','12:13:47.291','6:14:47.291'))

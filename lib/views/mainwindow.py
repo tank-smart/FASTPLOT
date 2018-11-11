@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar,
 # =============================================================================
 from views.plot_window import PlotWindow
 from views.paralist_window import ParalistWindow
-from models.datafile_model import Normal_DataFile
+from models.datafile_model import Normal_DataFile, GPS_DataFile
 from views.data_sift_window import DataSiftWindow
 from views.data_process_window import DataProcessWindow
 from views.mathematics_window import MathematicsWindow
@@ -529,9 +529,14 @@ class MainWindow(QMainWindow):
         if return_signal == QDialog.Accepted:
 #            数据文件路径
             datafile_dir = dialog.datafile_dir
-            print(datafile_dir)
+            
 #            数据类型，普通试飞数据、GPS数据、QAR数据、自定义数据
             datafile_type = dialog.datafile_type
+            if datafile_type == 'GPS datafile':
+                print(datafile_dir)
+                gps_file = GPS_DataFile(datafile_dir)
+            print(gps_file.paras_in_file)
+                
             print(datafile_type)
             
 #            只有当数据类型为自定义数据时，以下参数才有数据

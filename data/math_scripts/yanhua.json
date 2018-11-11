@@ -1,0 +1,1 @@
+"def f_sum(li):\n    s = 0\n    for l in li:\n        s += l\n    return s\na=FADEC_LA_Corrected_N1_Speed\nb=resample(a,8)\nc=f_sum(b)\noutput('c')"

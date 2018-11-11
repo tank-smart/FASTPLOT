@@ -58,7 +58,13 @@ class DataFile(object):
     def get_name(self,filedir=''):
         if filedir=='':
             filedir=self.filedir
-        pos = filedir.rindex('\\')
+        try:
+            pos = filedir.rindex('\\')
+        except:
+            try:
+                pos = filedir.rindex('/')
+            except:
+                pos = -1
         filename = filedir[pos+1:]
         return filename
     
@@ -434,6 +440,98 @@ class Normal_DataFile(DataFile):
             if filedir.endswith(('.xls','.xlsx')):
                 df=pd.read_excel(f,header=None,usecols=cols,skiprows=skiprows)
         return df
+
+class GPS_DataFile(DataFile):
+    def __init__(self,filedir='',sep='\s+',skiprows=15):
+        super().__init__(filedir,sep)
+        self.skiprows=skiprows
+#        self.info_list=self.get_info(filedir)
+        self.paras_in_file=self.get_paraslist(filedir)
+#        self.time_range=self.get_timerange(filedir)  #！可能造成IO过多，使得速度变慢
+#        self.sample_frequency = self.get_sample_frequency(filedir)
+
+    def header_input(self,filedir='',sep='',skiprows=None): 
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        if skiprows is None:
+            skiprows=self.skiprows
+#            注意excel文件读取必须为rb模式
+        with open(filedir,'r') as f:
+            if filedir.endswith(('.txt','.csv')):
+                if sep=='all':
+                    #Use str or object to preserve and not interpret dtype
+                    df=pd.read_table(f,sep='\s+|\t|,|;',header=None,nrows=2,skiprows=skiprows,engine='python',dtype=object)
+                    #or only input the columns index:nrows=0,remove header=None
+                else:
+                    df=pd.read_table(f,sep=sep,header=None,nrows=2,skiprows=skiprows,engine='c',dtype=object)
+            if filedir.endswith(('.xls','.xlsx')):
+                df=pd.read_excel(f,header=None,nrows=1)
+#                df=df.iloc[0,:]  #deprecated as pandas version updated 
+        df=df.iloc[0,:]+df.iloc[1,:]
+        return df       
+
+    def cols_input(self,filedir='',cols=[],sep='\s+',start_time='',stop_time='',skiprows=None):  #without chunkinput now!!
+
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        if skiprows is None:
+            skiprows=self.skiprows
+#            注意若是excel文件读取需要rb模式
+        with open(filedir,'r') as f:
+            if (start_time and stop_time):
+#                count_between_time函数返回的是两个时间的差值
+                start_rows = Time.count_between_time(self.time_range[0],
+                                                             start_time, self.sample_frequency)
+                stop_rows = Time.count_between_time(self.time_range[0],
+                                                            stop_time, self.sample_frequency)
+                if filedir.endswith(('.txt','.csv')):
+                    if sep=='all':
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,
+#                                         range是左闭右开
+                                         skiprows=list(range(1,start_rows+1)),
+                                         nrows=stop_rows-start_rows+1,
+                                         index_col=False,
+                                         engine='python')
+                    else:
+                        df=pd.read_table(f,sep=sep,usecols=cols,
+                                         skiprows=list(range(1,start_rows+1)),
+                                         nrows=stop_rows-start_rows+1,
+                                         index_col=False,
+                                         engine='c')
+                if filedir.endswith(('.xls','.xlsx')):
+                    df=pd.read_excel(f,usecols=cols,
+                                     skiprows=list(range(1,start_rows+1)),
+                                     nrows=stop_rows-start_rows+1,
+                                     index_col=False)
+            else:
+                if filedir.endswith(('.txt','.csv')):
+                    if sep=='all':
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,index_col=False,engine='python')
+                    else:
+                        df=pd.read_table(f,sep=sep,usecols=cols,index_col=False,engine='c')
+                if filedir.endswith(('.xls','.xlsx')):
+                    df=pd.read_excel(f,usecols=cols,index_col=False)
+                    
+#            定义参数顺序
+            df = df[cols]
+            return df
+
+    def get_paraslist(self,filedir=''):
+        para_name = self.header_input(filedir,sep='\s+')
+        para_list = para_name.values.tolist()
+        return para_list
+    
+    def get_info(self,filedir=''):
+        if filedir:
+            lpos=filedir.rindex('\\')
+            rpos=filedir.rindex('.')
+            info_name=filedir[lpos+1:rpos]
+            info_list=info_name.split('-')
+        return info_list
     
 #DataFile 的统一接口    
 class DataFile_Factory(object):
@@ -447,6 +545,8 @@ class DataFile_Factory(object):
     
     
 if __name__ == '__main__':
-    filedir = r'D:\flightdata\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt'
-    DF=DataFile_Factory(filedir)
-    ss=Normal_DataFile(filedir)
+    filedir = r'D:\flightdata\gps data\970_-20130509-1-gps.txt'
+#    DF=DataFile_Factory(filedir)
+#    ss=Normal_DataFile(filedir)
+    gpsdata = GPS_DataFile(filedir)
+    df=gpsdata.header_input(filedir)

@@ -18,7 +18,7 @@ import math
 # Qt imports
 # =============================================================================
 from PyQt5.QtWidgets import (QPlainTextEdit, QMessageBox, QAction, QDialog,
-                             QMenu)
+                             QMenu, QApplication)
 from PyQt5.QtGui import (QSyntaxHighlighter, QTextCharFormat, QTextCursor)
 from PyQt5.QtCore import (Qt, QRegExp, QCoreApplication, pyqtSignal)
 
@@ -27,6 +27,7 @@ from PyQt5.QtCore import (Qt, QRegExp, QCoreApplication, pyqtSignal)
 # =============================================================================
 from models.datafile_model import Normal_DataFile
 from models.data_model import DataFactory
+import models.time_model as Time
 from models.analysis_model import DataAnalysis
 from views.custom_dialog import SelParasDialog, MathScriptDialog
 
@@ -82,6 +83,7 @@ class MathematicsEditor(QPlainTextEdit):
         self.scope={}
         self.time_df=None
         self.count=0
+        self.script_dialog = MathScriptDialog(self)
 #----------       yanhua 加结束
         self.pre_exper = ''
         self.RESERVED = 'RESERVED'
@@ -104,6 +106,9 @@ class MathematicsEditor(QPlainTextEdit):
                 ('\,', self.RESERVED),
                 ('\^', self.RESERVED),
                 ('\'', self.RESERVED),
+                ('\:', self.RESERVED),
+                ('\[', self.RESERVED),
+                ('\]', self.RESERVED),
                 ('[0-9]+\.[0-9]+', self.FLOAT),
                 ('[0-9]+', self.INT),
                 (r'[A-Za-z][A-Za-z0-9_]*', self.VAR)]
@@ -351,7 +356,6 @@ class MathematicsEditor(QPlainTextEdit):
 #                            print(self.time_df)
                             
                             result = result.reset_index()
-                            print(result.iloc[:,0])
                             
                             df_result = pd.DataFrame({'Time' : result.iloc[:,0], 
                                                       result_name: result.iloc[:,1]}, columns = ['Time', result_name])
@@ -383,7 +387,7 @@ class MathematicsEditor(QPlainTextEdit):
                 if para in dict_files[file_dir]:
                     df = DataFactory(file_dir, [para])
                     df = df.data.set_index(df.data.columns[0])
-                                       
+#                    dataframe to series                   
                     para_df = df.iloc[:,0]
 #                    para_df = df.data.iloc[:,1]
 #                    df_time = df.data.iloc[:,0]
@@ -405,7 +409,9 @@ class MathematicsEditor(QPlainTextEdit):
         self.scope['help']=self.help_me()
         self.scope['resample']=self.resample
         self.scope['sqrt']=self.sqrt
-        self.funcs = ['abs','add','sub','mul','div','resample','sqrt','pow']
+        self.scope['set_t0']=self.set_t0
+        self.scope['output']=self.output
+        self.funcs = ['abs','add','sub','mul','div','resample','sqrt','pow','set_t0']
 
     def clc(self):
         self.scope={}
@@ -485,8 +491,43 @@ class MathematicsEditor(QPlainTextEdit):
 #        输出Series
         result=result.set_index(result.columns[0]).iloc[:,0]
         return result
-        
-        
+
+#    时间初始化为从0开始
+    def set_t0(self, series):
+        if isinstance(series, pd.Series):
+            QApplication.processEvents()
+            df_series = series.reset_index()
+            timeseries = pd.to_datetime(df_series.iloc[:,0],format='%H:%M:%S:%f')
+            index_start = Time.str_to_datetime(series.index[0])
+            dtime = index_start - Time.str_to_datetime('00:00:00:000')
+            timeseries = timeseries - dtime
+            df_series.iloc[:,0] = timeseries.apply(lambda x: x.strftime('%H:%M:%S:%f'))
+            result=df_series.set_index(df_series.columns[0]).iloc[:,0]
+        return result   
+
+    def output(self, result_name : str = None):
+        result = eval(result_name,self.scope)
+        if result is not None:
+#            result_name = list(dict(result = result).keys())[0]
+            
+#                        if self.time_df is not None and isinstance(result, type(self.time_df)) and (len(result) == len(self.time_df)):
+            if isinstance(result, pd.Series) or isinstance(result, pd.DataFrame):
+#                            print(self.time_df)
+                
+                result = result.reset_index()
+                
+                df_result = pd.DataFrame({'Time' : result.iloc[:,0], 
+                                          result_name: result.iloc[:,1]}, columns = ['Time', result_name])
+#                        否则认为是一个数
+#                            
+            else:
+                
+                df_result = pd.DataFrame({'Label' : [1],
+                                          result_name: result}, columns = ['Label', result_name])
+#                            print(df_result)
+            self.signal_compute_result.emit(df_result)
+        else:
+            pass
         
     
     def help_me(self):
@@ -555,6 +596,7 @@ class MathematicsEditor(QPlainTextEdit):
         if paras:
 #            更新需要高亮的参数
             self.highlighter = Highlighter(self.document(), paras, self.funcs)
+            self.dialog_highlighter = Highlighter(self.script_dialog.script_edit_win.document(), paras, self.funcs)
 #        if self.funcs:
 #            
 #            self.func_highlighter = Highlighter(self.document(), self.funcs, Qt.magenta)
@@ -572,6 +614,9 @@ class MathematicsEditor(QPlainTextEdit):
                     ('\,', self.RESERVED),
                     ('\^', self.RESERVED),
                     ('\'', self.RESERVED),
+                    ('\:', self.RESERVED),
+                    ('\[', self.RESERVED),
+                    ('\]', self.RESERVED),
                     ('[0-9]+\.[0-9]+', self.FLOAT),
                     ('[0-9]+', self.INT)]
             
@@ -583,10 +628,41 @@ class MathematicsEditor(QPlainTextEdit):
     
     def slot_math_script(self):
         
-        dialog = MathScriptDialog(self)
-        return_signal = dialog.exec_()
+#        self.script_dialog = MathScriptDialog(self)
+        return_signal = self.script_dialog.exec_()
         if (return_signal == QDialog.Accepted):
-            print(dialog.script)
+            
+#            self.pre_exper = exec_text
+#            解析exec_text，如果满足要求，则执行运算
+#            if self.lex(exec_text) and self.paras_on_expr:
+            flag=self.lex(self.script_dialog.script)
+            if flag!=-1:
+                if flag==1:
+                    self.read_paras()
+                    #注：这边的时间其实并没有什么意义
+#                    self.time_treat(self.paras_)
+#                    self.scope['reg_df']=reg_df
+                    
+    #                将参数的数据读入内存
+#                    for paraname in self.paras_on_expr:
+#                        self.time_df = paraname.index
+#                        exper = paraname + ' = reg_df[\'' + paraname + '\']'
+#                        exec(exper,self.scope)
+                try:
+                    
+                    exec(self.script_dialog.script, self.scope)
+                    
+                            
+#                       判断结果是否仍然是时间序列
+
+                except:
+                    QMessageBox.information(self,
+                            QCoreApplication.translate("MathematicsEditor", "提示"),
+                            QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
+            else:
+                QMessageBox.information(self,
+                        QCoreApplication.translate("MathematicsEditor", "提示"),
+                        QCoreApplication.translate("MathematicsEditor", '无法执行这条语句'))
                     
 # =============================================================================
 # 功能函数模块   
@@ -712,5 +788,6 @@ if __name__ == '__main__':
     para_df2 = df2.iloc[:,0]
     me = MathematicsEditor()
     result = me.div(para_df1,para_df2)
+    result = me.set_t0(para_df1)
     print(result)
     
