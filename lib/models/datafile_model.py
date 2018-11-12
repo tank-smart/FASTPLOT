@@ -481,6 +481,11 @@ class GPS_DataFile(DataFile):
         if skiprows is None:
             skiprows=self.skiprows
 #            注意若是excel文件读取需要rb模式
+        if cols:
+            s = time.time()
+            num_cols = [cols.index(idx) for idx in cols]
+            e = time.time()
+            
         with open(filedir,'r') as f:
             if (start_time and stop_time):
 #                count_between_time函数返回的是两个时间的差值
@@ -490,32 +495,32 @@ class GPS_DataFile(DataFile):
                                                             stop_time, self.sample_frequency)
                 if filedir.endswith(('.txt','.csv')):
                     if sep=='all':
-                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=num_cols,
 #                                         range是左闭右开
-                                         skiprows=list(range(1,start_rows+1)),
+                                         skiprows=skiprows+start_rows+3,
                                          nrows=stop_rows-start_rows+1,
                                          index_col=False,
                                          engine='python')
                     else:
-                        df=pd.read_table(f,sep=sep,usecols=cols,
-                                         skiprows=list(range(1,start_rows+1)),
+                        df=pd.read_table(f,sep=sep,usecols=num_cols,
+                                         skiprows=skiprows+start_rows+3,
                                          nrows=stop_rows-start_rows+1,
                                          index_col=False,
                                          engine='c')
                 if filedir.endswith(('.xls','.xlsx')):
-                    df=pd.read_excel(f,usecols=cols,
-                                     skiprows=list(range(1,start_rows+1)),
+                    df=pd.read_excel(f,usecols=num_cols,
+                                     skiprows=skiprows+start_rows+3,
                                      nrows=stop_rows-start_rows+1,
                                      index_col=False)
             else:
                 if filedir.endswith(('.txt','.csv')):
                     if sep=='all':
-                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,index_col=False,engine='python')
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=num_cols,skiprows=skiprows+2,index_col=False,engine='python')
                     else:
-                        df=pd.read_table(f,sep=sep,usecols=cols,index_col=False,engine='c')
+                        df=pd.read_table(f,sep=sep,usecols=num_cols,skiprows=skiprows+2,index_col=False,engine='c')
                 if filedir.endswith(('.xls','.xlsx')):
-                    df=pd.read_excel(f,usecols=cols,index_col=False)
-                    
+                    df=pd.read_excel(f,usecols=cols,skiprows=skiprows+2,index_col=False)
+            df.columns = cols
 #            定义参数顺序
             df = df[cols]
             return df
@@ -536,11 +541,15 @@ class GPS_DataFile(DataFile):
 #DataFile 的统一接口    
 class DataFile_Factory(object):
     
-    def __new__(cls, filedir='', sep='\s+', filetype = 'Normal_DataFile'):
-        if filedir.endswith(('.txt','.csv')):
+    def __new__(cls, filedir='', sep='\s+', filetype = 'normal datafile'):
+        if filetype == 'normal datafile':
             instance = Normal_DataFile(filedir, sep)
-        elif filedir.endswith(('.xls','.xlsx')):
-            instance = Excel_DataFile(filedir, sep)
+        elif filetype == 'GPS datafile':
+            instance = GPS_DataFile(filedir, sep)
+#        if filedir.endswith(('.txt','.csv')):
+#            instance = Normal_DataFile(filedir, sep)
+#        elif filedir.endswith(('.xls','.xlsx')):
+#            instance = Excel_DataFile(filedir, sep)
         return instance
     
     

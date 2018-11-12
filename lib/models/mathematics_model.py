@@ -25,7 +25,7 @@ from PyQt5.QtCore import (Qt, QRegExp, QCoreApplication, pyqtSignal)
 # =============================================================================
 # Package views imports
 # =============================================================================
-from models.datafile_model import Normal_DataFile
+from models.datafile_model import Normal_DataFile, DataFile_Factory
 from models.data_model import DataFactory
 import models.time_model as Time
 from models.analysis_model import DataAnalysis
@@ -585,13 +585,15 @@ class MathematicsEditor(QPlainTextEdit):
             text_cursor.insertText(self.pre_exper)
             self.setTextCursor(text_cursor)
             
-    def slot_update_current_files(self, files : list):
+    def slot_update_current_files(self, files : list, dict_filetype : dict):
         
         self._current_files = files
         paras = []
         for file in files:
-            normal_file = Normal_DataFile(file)
-            paras += normal_file.paras_in_file
+            file_fac = DataFile_Factory(file, filetype = dict_filetype[file])
+            paras += file_fac.paras_in_file
+#            normal_file = Normal_DataFile(file)
+#            paras += normal_file.paras_in_file
         
         if paras:
 #            更新需要高亮的参数

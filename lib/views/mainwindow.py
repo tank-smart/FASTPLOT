@@ -58,6 +58,8 @@ class MainWindow(QMainWindow):
 
 #        已导入的文件
         self.current_files = []
+#        文件路径映射的文件类型
+        self.dict_filetype = {}
 #        所涉及的结果文件，列表类型
         self.resultfile_group = {}
 #        功能窗口之前显示的页面
@@ -490,6 +492,7 @@ class MainWindow(QMainWindow):
                         normal_file = Normal_DataFile(file_dir)
                         import_file_dirs[file_dir] = normal_file.paras_in_file
                         file_dir_l.append(file_dir)
+                        self.dict_filetype[file_dir] = 'normal datafile'
                     except:
 #                        这样处理不太好，如果不是文件本身错误而仅是代码错误也会一并认为是文件本身错误
                         nor_datafiles.append(file_dir)
@@ -523,35 +526,84 @@ class MainWindow(QMainWindow):
             self.signal_import_datafiles.emit(import_file_dirs)
             
     def slot_open_datafile(self):
-        
+        import_file_dirs = {}
+        ex_files = []
+        nor_datafiles = []
+        file_dir_l = []
         dialog = ImportDataFileDialog(self)
         return_signal = dialog.exec_()
         if return_signal == QDialog.Accepted:
 #            数据文件路径
             datafile_dir = dialog.datafile_dir
+            file_dir_list = [datafile_dir]
+            if file_dir_list:
+                file_dir_list = [file.replace('/','\\') for file in file_dir_list]
+#                if os.path.exists(file_dir_list[0]):
+#                    CONFIG.OPTION['dir of quick import'] = os.path.dirname(file_dir_list[0])
+                for file_dir in file_dir_list:
+                    if not(file_dir in self.current_files):
+                        datafile_type = dialog.datafile_type
+                        try:
+                            if datafile_type == 'GPS datafile':
+                                gps_file = GPS_DataFile(datafile_dir)
+                                import_file_dirs[file_dir] = gps_file.paras_in_file
+                                file_dir_l.append(file_dir)
+                                self.dict_filetype[file_dir] = 'GPS datafile'
+                        except:
+    #                        这样处理不太好，如果不是文件本身错误而仅是代码错误也会一并认为是文件本身错误
+                            nor_datafiles.append(file_dir)
+                    else:
+                        ex_files.append(file_dir)
+                if nor_datafiles:
+                    print_info = '以下文件不是选定的数据文件：'
+                    for file in nor_datafiles:
+                        print_info += ('<br>' + file)
+                    QMessageBox.information(self,
+                                            QCoreApplication.translate('MainWindow', '导入文件提示'),
+                                            QCoreApplication.translate('MainWindow', print_info))
+                if ex_files:
+                    print_info = '以下文件已存在：'
+                    for file in ex_files:
+                        print_info += ('<br>' + file)
+    #                ms_box = QMessageBox(QMessageBox.NoIcon,
+    #                                     QCoreApplication.translate('MainWindow', '导入文件提示'),
+    #                                     QCoreApplication.translate('MainWindow', print_info),
+    #                                     QMessageBox.Ok,
+    #                                     self)
+    #                ms_box.setTextInteractionFlags(Qt.TextSelectableByMouse)
+    #                ms_box.exec_()
+                    QMessageBox.information(self,
+                                            QCoreApplication.translate('MainWindow', '导入文件提示'),
+                                            QCoreApplication.translate('MainWindow', print_info))
+            if file_dir_l:
+                self.current_files += file_dir_l
+                self.slot_current_files_change()
+            if import_file_dirs:
+                self.signal_import_datafiles.emit(import_file_dirs)
             
 #            数据类型，普通试飞数据、GPS数据、QAR数据、自定义数据
-            datafile_type = dialog.datafile_type
-            if datafile_type == 'GPS datafile':
-                print(datafile_dir)
-                gps_file = GPS_DataFile(datafile_dir)
-            print(gps_file.paras_in_file)
-                
-            print(datafile_type)
-            
-#            只有当数据类型为自定义数据时，以下参数才有数据
-#            导入起始行 - 1
-            skiprows = dialog.skiprows
-            print(skiprows)
-#            时间列为0时表示无时间
-            timecol = dialog.timecol
-            print(timecol)
-#            分隔符
-            sep = dialog.sep
-            print(sep)
-#            时间格式
-            time_format = dialog.time_format
-            print(time_format)
+#            datafile_type = dialog.datafile_type
+#            if datafile_type == 'GPS datafile':
+#                print(datafile_dir)
+#                gps_file = GPS_DataFile(datafile_dir)
+#                df = gps_file.cols_input(datafile_dir, gps_file.paras_in_file)
+#            print(df)
+#                
+#            print(datafile_type)
+#            
+##            只有当数据类型为自定义数据时，以下参数才有数据
+##            导入起始行 - 1
+#            skiprows = dialog.skiprows
+#            print(skiprows)
+##            时间列为0时表示无时间
+#            timecol = dialog.timecol
+#            print(timecol)
+##            分隔符
+#            sep = dialog.sep
+#            print(sep)
+##            时间格式
+#            time_format = dialog.time_format
+#            print(time_format)
 
 #    与关于退出有关的显示
     def slot_exit(self):
@@ -604,6 +656,7 @@ class MainWindow(QMainWindow):
         if files:
             for file in files:
                 self.current_files.remove(file)
+                del self.dict_filetype[file]
             self.slot_current_files_change()
 
 #    响应参数窗口显示动作
@@ -684,8 +737,8 @@ class MainWindow(QMainWindow):
         
     def slot_current_files_change(self):
         
-        self.data_sift_page.slot_update_current_files(self.current_files)
-        self.mathematics_page.plain_text_edit_conmandline.slot_update_current_files(self.current_files)
+        self.data_sift_page.slot_update_current_files(self.current_files, self.dict_filetype)
+        self.mathematics_page.plain_text_edit_conmandline.slot_update_current_files(self.current_files, self.dict_filetype)
         self.plot_page._current_files = self.current_files
         
     def slot_data_dict_changed(self, data_dict : dict):

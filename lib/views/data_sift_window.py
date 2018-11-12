@@ -211,7 +211,7 @@ class DataSiftWindow(QWidget):
 #                                                            str_condition,
 #                                                            self.sift_search_paras)
             
-            result_dict = sift_object.condition_sift_wxl(list_files,
+            result_dict = sift_object.condition_sift_wxl(list_files, self._dict_filetype,
                                                           str_condition,
                                                           self.sift_search_paras)
 #            if result_tuple:
@@ -349,9 +349,10 @@ class DataSiftWindow(QWidget):
 #        self.tree_widget_aggragate_para.takeTopLevelItem(
 #                self.tree_widget_aggragate_para.indexOfTopLevelItem(item))
         
-    def slot_update_current_files(self, files : list):
+    def slot_update_current_files(self, files : list, dict_filetype : dict):
         
         self._current_files = files
+        self._dict_filetype = dict_filetype
     
     def slot_add_para(self):
         

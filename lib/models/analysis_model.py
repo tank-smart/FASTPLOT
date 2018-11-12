@@ -2,7 +2,7 @@
 #import time      #用于时间测试
 import re
 import pandas as pd
-from models.datafile_model import Normal_DataFile
+from models.datafile_model import Normal_DataFile, DataFile_Factory
 
 class DataAnalysis(object):
     def __init__(self):
@@ -71,7 +71,7 @@ class DataAnalysis(object):
             dict_result[filedir]=(df_result,skip_list)
         return dict_result
     
-    def condition_sift_wxl(self,file_list=[], condition="",search_para=[]):
+    def condition_sift_wxl(self, file_list=[], dict_filetype={}, condition="",search_para=[]):
         dict_result={}
         flag=0
         for para in search_para:
@@ -91,7 +91,8 @@ class DataAnalysis(object):
         for filedir in file_list:
             try:
                 para_list=search_para.copy()
-                file_search=Normal_DataFile(filedir)
+#                file_search=Normal_DataFile(filedir)
+                file_search = DataFile_Factory(filedir, filetype = dict_filetype[filedir])
                 input_list=[]
                 for para in para_list:
                     if para in file_search.paras_in_file:
