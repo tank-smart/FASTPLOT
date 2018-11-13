@@ -57,7 +57,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
 # =============================================================================
 # Package models imports
 # =============================================================================
-from models.datafile_model import DataFile, Normal_DataFile
+from models.datafile_model import DataFile, Normal_DataFile, DataFile_Factory
 import views.config_info as CONFIG
 import models.time_model as Time_Model
 from models.data_model import DataFactory
@@ -483,7 +483,7 @@ class SelParasDialog(QDialog):
 
     signal_add_paras = pyqtSignal()
     
-    def __init__(self, parent = None, files = [], sel_mode = 0):
+    def __init__(self, parent = None, files = [], sel_mode = 0, dict_filetype = None):
         
         super().__init__(parent)
         
@@ -495,7 +495,7 @@ class SelParasDialog(QDialog):
             self.sel_mode = QAbstractItemView.ExtendedSelection
         
         self.setup()
-        self.display_paras(files)
+        self.display_paras(files, dict_filetype)
 
     def setup(self):
 
@@ -565,13 +565,13 @@ class SelParasDialog(QDialog):
         return preview_widget
         
 #    不显示时间
-    def display_paras(self, files):
+    def display_paras(self, files, dict_filetype):
         if files is None:
             return
         
         for file_dir in files:
             time_hide = False
-            file = Normal_DataFile(file_dir)
+            file = DataFile_Factory(file_dir, filetype = dict_filetype[file_dir])
             paras = file.paras_in_file
             for para in paras:
                 if time_hide:

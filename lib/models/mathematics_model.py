@@ -78,6 +78,7 @@ class MathematicsEditor(QPlainTextEdit):
         super().__init__(parent)
 
         self._current_files = []
+        self._dict_filetype = {}
 #        存储上一条语句
 #---------        yanhua 加
         self.scope={}
@@ -385,7 +386,7 @@ class MathematicsEditor(QPlainTextEdit):
         for para in self.paras_on_expr:
             for file_dir in dict_files:
                 if para in dict_files[file_dir]:
-                    df = DataFactory(file_dir, [para])
+                    df = DataFactory(file_dir, [para], self._dict_filetype)
                     df = df.data.set_index(df.data.columns[0])
 #                    dataframe to series                   
                     para_df = df.iloc[:,0]
@@ -567,7 +568,7 @@ class MathematicsEditor(QPlainTextEdit):
     def slot_add_para(self):
         
 #        采用单选模式
-        dialog = SelParasDialog(self, self._current_files, 0)
+        dialog = SelParasDialog(self, self._current_files, 0, self._dict_filetype)
         return_signal = dialog.exec_()
         if (return_signal == QDialog.Accepted):
             paras = dialog.get_list_sel_paras()
@@ -588,6 +589,7 @@ class MathematicsEditor(QPlainTextEdit):
     def slot_update_current_files(self, files : list, dict_filetype : dict):
         
         self._current_files = files
+        self._dict_filetype = dict_filetype
         paras = []
         for file in files:
             file_fac = DataFile_Factory(file, filetype = dict_filetype[file])
@@ -737,10 +739,12 @@ class MathematicsEditor(QPlainTextEdit):
     def dict_current_files(self):
             
         dict_files = {}
-        if self._current_files:
+        if self._current_files and self._dict_filetype:
             for file_dir in self._current_files:
-                normal_file = Normal_DataFile(file_dir)
-                dict_files[file_dir]= normal_file.paras_in_file
+                fac_file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+                dict_files[file_dir] = fac_file.paras_in_file
+#                normal_file = Normal_DataFile(file_dir)
+#                dict_files[file_dir]= normal_file.paras_in_file
         return dict_files
     
 #    将参数读入内存中，并进行时间同步处理，返回一个dataframe
@@ -763,7 +767,7 @@ class MathematicsEditor(QPlainTextEdit):
         first_data = None
         for file_dir in dict_paras:
             if first_data:
-                df = DataFactory(file_dir, dict_paras[file_dir])
+                df = DataFactory(file_dir, dict_paras[file_dir], self._dict_filetype)
                 if df.is_concat(first_data):
                     
                     df_list.append(df.data[df.get_paralist()])
@@ -771,7 +775,7 @@ class MathematicsEditor(QPlainTextEdit):
 #                    这里进行同步处理，处理不了返回None
                     return None
             else:
-                first_data = DataFactory(file_dir, dict_paras[file_dir])
+                first_data = DataFactory(file_dir, dict_paras[file_dir], self._dict_filetype)
                 df_list.append(first_data.data)
             
         df_all = pd.concat(df_list,axis = 1,join = 'outer',

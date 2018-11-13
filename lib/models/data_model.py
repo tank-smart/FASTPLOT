@@ -18,21 +18,22 @@ import pandas as pd
 # =============================================================================
 # Package views imports
 # =============================================================================
-from models.datafile_model import Normal_DataFile
+from models.datafile_model import Normal_DataFile, DataFile_Factory
 import models.time_model as Time_Model
 
 class DataFactory(object):
     
 #    通过文件路径+参数列表或者DataFrame初始化
-    def __init__(self, data_source = None, sel_para = []):
+    def __init__(self, data_source = None, sel_para = [], filetype = None):
 
 # yanhua modified        
         self.filedir = None
-        if type(data_source) == str:
+        if type(data_source) == str and filetype is not None :
 #            确定数据类型
             self.data_type = 'DataFile'
             self.filedir = data_source
-            file = Normal_DataFile(data_source)
+#            file = Normal_DataFile(data_source)
+            file = DataFile_Factory(data_source, filetype = filetype)
             if sel_para:
 #                参数列表是包括时间参数的
                 self.data_paralist = [file.paras_in_file[0]] + sel_para
@@ -45,6 +46,7 @@ class DataFactory(object):
             self.time_range = file.time_range
 #            确定采样频率
             self.sample_frequency = file.sample_frequency
+            self.time_format = file.time_format
         elif type(data_source) == pd.DataFrame:
 #            确定数据类型
             self.data_type = 'DataFrame'
@@ -76,6 +78,7 @@ class DataFactory(object):
             if not get_fre:
                 fre = 0
             self.sample_frequency = fre
+            self.time_format = Time_Model.time_format(first_time)
 #            使用时间作为索引的series数据
         elif type(data_source) == pd.Series:
 #            确定数据类型
@@ -266,13 +269,14 @@ class DataFactory(object):
         
 if __name__ == '__main__':
     
-    file_dir = 'E:\Test.txt'
+    file_dir = r'D:\flightdata\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt'
     file = Normal_DataFile(file_dir)
     
-    d = DataFactory(file_dir, ['FCM1_Voted_Mach'])
+#    d = DataFactory(file_dir, ['FCM1_Voted_Mach'])
     
-    df = file.cols_input(file_dir, ['TIME','FCM1_Voted_Mach'])
+    df = file.cols_input(file_dir, [file.paras_in_file[0]])
     dd = DataFactory(df)
+    print(dd.time_format)
     
 #    print('Dt: %s' % d.data_type)
 #    print(d.get_time_index())
@@ -282,5 +286,5 @@ if __name__ == '__main__':
 #    print(d.get_time_paravalue('10:59'))
 #    c = d.get_trange_data(None,None,[],False)
 #    print(c.columns)
-    dd.extend_data(d)
-    print(dd.data_paralist)
+#    dd.extend_data(d)
+#    print(dd.data_paralist)

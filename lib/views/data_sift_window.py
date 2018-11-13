@@ -357,7 +357,7 @@ class DataSiftWindow(QWidget):
     def slot_add_para(self):
         
 #        采用单选模式
-        dialog = SelParasDialog(self, self._current_files, 0)
+        dialog = SelParasDialog(self, self._current_files, 0, self._dict_filetype)
         return_signal = dialog.exec_()
         if (return_signal == QDialog.Accepted):
             paras = dialog.get_list_sel_paras()

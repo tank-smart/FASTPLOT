@@ -769,7 +769,7 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
         self.cid_dppv_press = None
         
 #    datadict中的参数和sorted_paras中的参数个数是一致的，这在输入时就保证了
-    def process_data(self, datadict, sorted_paras):
+    def process_data(self, datadict, sorted_paras, dict_filetype):
         
         if datadict:
             dict_data_project = {}
@@ -777,7 +777,7 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                 data = datadict[datasource]
                 if type(data) == list:
 #                    此时datasource是文件路径，data是参数列表
-                    data_factory = DataFactory(datasource, data)
+                    data_factory = DataFactory(datasource, data, dict_filetype[datasource])
                 elif type(data) == pd.DataFrame:
                     data_factory = DataFactory(data)
                 elif type(data) == DataFactory:
@@ -798,7 +798,11 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
 #                        total_data里存的就是当前绘图的参数数据，没有多余参数
                         self.total_data[data_label] = data_factory
 #                        把时间列读出来，因为matplotlib只识别ndarray，所以进行类型转换
-                        self.time_series_list[data_label] = np.array(pd.to_datetime(data_factory.data.iloc[:, 0],format='%H:%M:%S:%f'))
+                        if data_factory.time_format is not None:
+                            self.time_series_list[data_label] = np.array(pd.to_datetime(data_factory.data.iloc[:, 0],format=data_factory.time_format))
+#                        实际应该推断dataframe的timeformat
+                        else:
+                            self.time_series_list[data_label] = np.array(pd.to_datetime(data_factory.data.iloc[:, 0],format='%H:%M:%S:%f'))
                         self.count_created_data += 1
 
             exit_paras = []
@@ -1305,10 +1309,10 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         x = matplotlib.dates.num2date(x)
         return Time_Model.datetime_to_timestr(x)
             
-    def plot_paras(self, datalist, sorted_paras, xpara = None):
+    def plot_paras(self, datalist, sorted_paras, xpara = None, dict_filetype = None):
 
         self.restore_axes_info()
-        is_plot = self.process_data(datalist, sorted_paras)
+        is_plot = self.process_data(datalist, sorted_paras, dict_filetype)
         
         if is_plot:
             self.count_axes = len(self.sorted_paralist)

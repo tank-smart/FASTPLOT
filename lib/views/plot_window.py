@@ -124,6 +124,7 @@ class PlotWindow(QWidget):
         self.current_fig_style = 'fast_plot_fig'
         
         self._current_files = None
+        self._dict_filetype = None
         self._data_dict = None
 
 # =============================================================================
@@ -497,7 +498,7 @@ class PlotWindow(QWidget):
             
             self.signal_send_status.emit('绘图中...', 0)
             self.add_PDialog()
-            self.current_canva.plot_paras(datadict, sorted_paras, xpara)
+            self.current_canva.plot_paras(datadict, sorted_paras, xpara, self._dict_filetype)
             self.pDialog_close()
             self.signal_send_status.emit('绘图完成！', 1500)
             

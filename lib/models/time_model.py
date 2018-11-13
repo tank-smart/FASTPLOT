@@ -90,6 +90,19 @@ def is_std_format(time : str):
             pass
     return False
 
+def time_format(time : str):
+    
+    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S']
+    for format_time in tran_format:
+        try:
+            Pytime.strptime(time, format_time)
+            return format_time
+        except:
+            pass
+        finally:
+            pass
+    return None
+
 def str_to_datetime(time : str):
     
     tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S']

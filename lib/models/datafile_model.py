@@ -27,6 +27,7 @@ import scipy.io as sio
 import re
 import models.time_model as Time
 import time as time
+from itertools import islice
 
 # =======类基本信息
 #class DataFile
@@ -228,6 +229,7 @@ class Normal_DataFile(DataFile):
         self.paras_in_file=self.get_paraslist(filedir)
         self.time_range=self.get_timerange(filedir)  #！可能造成IO过多，使得速度变慢
         self.sample_frequency = self.get_sample_frequency(filedir)
+        self.time_format = '%H:%M:%S:%f'
 
 #get_paralist:获取文件中所有的的参数列表        
     def get_paraslist(self,filedir=''):
@@ -447,8 +449,9 @@ class GPS_DataFile(DataFile):
         self.skiprows=skiprows
 #        self.info_list=self.get_info(filedir)
         self.paras_in_file=self.get_paraslist(filedir)
-#        self.time_range=self.get_timerange(filedir)  #！可能造成IO过多，使得速度变慢
-#        self.sample_frequency = self.get_sample_frequency(filedir)
+        self.time_range=self.get_timerange(filedir)  #！可能造成IO过多，使得速度变慢
+        self.sample_frequency = self.get_sample_frequency(filedir)
+        self.time_format = '%H:%M:%S.%f'
 
     def header_input(self,filedir='',sep='',skiprows=None): 
         if filedir=='':
@@ -482,9 +485,7 @@ class GPS_DataFile(DataFile):
             skiprows=self.skiprows
 #            注意若是excel文件读取需要rb模式
         if cols:
-            s = time.time()
             num_cols = [cols.index(idx) for idx in cols]
-            e = time.time()
             
         with open(filedir,'r') as f:
             if (start_time and stop_time):
@@ -530,6 +531,68 @@ class GPS_DataFile(DataFile):
         para_list = para_name.values.tolist()
         return para_list
     
+    def get_timerange(self,filedir=''):
+        if filedir=='':
+            filedir=self.filedir
+#        等同于try...finally，保证无论是否出错都能正确关闭文件
+#            rb+模式打开是按二进制方式读取数据的，Python3读取得到的数据类型为byte，
+#            需要转码成str型。之所以用rb+模式是因为seek函数只在此模式有效
+        with open(filedir, 'rb+') as file:
+#            获取起始时间
+            for line in islice(file, self.skiprows+2, self.skiprows+3):
+                
+                start_line = line
+#            转码
+            start_line = start_line.decode()
+#            print(start_line)
+            start_time = re.split('\s+', start_line.lstrip())[0]
+#            转换成标准格式==！，此处的索引访问是左闭右开
+            start_time = Time.timestr_to_stdtimestr(start_time)
+            
+#            获取终止时间
+            stop_line = ''
+            offset = -120
+            while True:
+                file.seek(offset, 2)
+                lines = file.readlines()
+                if (len(lines) >= 2):
+                    stop_line = lines[-1]
+                    stop_line = stop_line.decode()
+                    break
+                offset = offset * 2
+            stop_time = re.split('\s+', stop_line)[0]
+            stop_time = Time.timestr_to_stdtimestr(stop_time)
+        time_range=[start_time, stop_time]
+        return time_range
+
+    def get_sample_frequency(self,filedir=''):
+        if filedir=='':
+            filedir=self.filedir
+        
+        fre = 1
+        with open(filedir,'r') as f:
+            for line in islice(f, self.skiprows+2, self.skiprows+3):
+                
+                start_line = line
+            
+            start_time = re.split('\s+', start_line.lstrip())[0]
+            get_fre = False
+            line = f.readline()
+            line = line.lstrip()
+            while (not get_fre) and line:
+                t = re.split('\s+', line)[0]
+                
+                count = Time.count_between_time(start_time, t, 1)
+                if count == 1:
+                    get_fre = True
+                else:
+                    fre += 1
+                    line = f.readline()
+                    line = line.lstrip()
+            if not get_fre:
+                fre = 0
+        return fre       
+    
     def get_info(self,filedir=''):
         if filedir:
             lpos=filedir.rindex('\\')
@@ -558,4 +621,4 @@ if __name__ == '__main__':
 #    DF=DataFile_Factory(filedir)
 #    ss=Normal_DataFile(filedir)
     gpsdata = GPS_DataFile(filedir)
-    df=gpsdata.header_input(filedir)
+    print(gpsdata.get_sample_frequency())
