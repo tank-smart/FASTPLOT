@@ -609,6 +609,10 @@ class DataFile_Factory(object):
             instance = Normal_DataFile(filedir, sep)
         elif filetype == 'GPS datafile':
             instance = GPS_DataFile(filedir, sep)
+        elif filetype == 'QAR datafile':
+            instance = QAR_DataFile(filedir, sep)
+        elif filrtype == 'custom datafile':
+            instance = Custom_DataFile(filedir, sep ,time_format)
 #        if filedir.endswith(('.txt','.csv')):
 #            instance = Normal_DataFile(filedir, sep)
 #        elif filedir.endswith(('.xls','.xlsx')):

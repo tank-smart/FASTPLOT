@@ -217,6 +217,8 @@ class DataFactory(object):
                 etime_index = Time_Model.count_between_time(lim_stime,
                                                             et,
                                                             self.sample_frequency)
+                print(lim_stime)
+                print(et)
 #                更新起始时间，保证只取在选择时间范围的数据
                 getted_stime = self.data.iloc[stime_index, 0]
                 if Time_Model.compare(getted_stime, st) == -1:

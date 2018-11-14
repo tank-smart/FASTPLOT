@@ -741,6 +741,7 @@ class MainWindow(QMainWindow):
         self.mathematics_page.plain_text_edit_conmandline.slot_update_current_files(self.current_files, self.dict_filetype)
         self.plot_page._current_files = self.current_files
         self.plot_page._dict_filetype = self.dict_filetype
+        self.data_process_page._dict_filetype = self.dict_filetype
         
     def slot_data_dict_changed(self, data_dict : dict):
         

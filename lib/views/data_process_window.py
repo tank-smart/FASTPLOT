@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpacerItem,
 # =============================================================================
 from views.custom_dialog import (SelectParasTemplateDialog, SaveTemplateDialog,
                                  ParameterExportDialog)
-from models.datafile_model import Normal_DataFile
+from models.datafile_model import Normal_DataFile, DataFile_Factory
 import views.config_info as CONFIG
 
 # =============================================================================
@@ -89,6 +89,7 @@ class DataProcessWindow(QWidget):
 #        计算产生的数据
         self.dict_data = {}
         self.count_imported_data = 0
+        self._dict_filetype = None
         
         self.paraicon = QIcon(CONFIG.ICON_PARA)
         self.math_icon = QIcon(CONFIG.ICON_MATH_RESULT)
@@ -196,7 +197,8 @@ class DataProcessWindow(QWidget):
                 else:
 #                    避免重复创建文件对象
                     if not (file_dir in norfile_list):
-                        norfile_list[file_dir] = Normal_DataFile(file_dir)
+                        norfile_list[file_dir] = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+#                        norfile_list[file_dir] = Normal_DataFile(file_dir)
                     file = norfile_list[file_dir]
                     filename = file.filename
                     item_para = QTreeWidgetItem(self.tree_widget_paralist)
@@ -374,7 +376,7 @@ class DataProcessWindow(QWidget):
         para_tuple = self.get_paras_in_tuple()
         dict_paras, sorted_paras = para_tuple
         if dict_paras :
-            dialog = ParameterExportDialog(self, dict_paras)
+            dialog = ParameterExportDialog(self, dict_paras, self._dict_filetype)
             dialog.signal_send_status.connect(self.slot_send_status)
             return_signal = dialog.exec_()
             if return_signal == QDialog.Accepted:

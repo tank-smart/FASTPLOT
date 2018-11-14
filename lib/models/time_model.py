@@ -25,12 +25,12 @@ def count_between_time(start_time, stop_time, fre):
     
     start = to_datetime(start_time)
     stop = to_datetime(stop_time)
-    
+
     abs_delta = ((stop.hour - start.hour) * 3600 +
                  (stop.minute - start.minute) * 60 +
                  (stop.second - start.second) +
                  (stop.microsecond - start.microsecond) / 1000000) * fre
-    
+    print(stop.hour)
     if abs_delta >= 0:
         return int(abs_delta)
     else:

@@ -2400,7 +2400,7 @@ class StackAxisSettingDialog(AxisSettingDialog):
 class ParameterExportDialog(QDialog):
     
     signal_send_status = pyqtSignal(str, int)
-    def __init__(self, parent = None, dict_paras : dict = {}):
+    def __init__(self, parent = None, dict_paras : dict = {}, dict_filetype = None):
         
         super().__init__(parent)
         
@@ -2409,6 +2409,8 @@ class ParameterExportDialog(QDialog):
         self.file_info = {}
         self.current_file_dir = ''
         self._data_dict = None
+        if dict_filetype:
+            self._dict_filetype = dict_filetype
         if os.path.exists(CONFIG.OPTION['work dir']):
             self.dir = CONFIG.OPTION['work dir']
         else:
@@ -2632,7 +2634,8 @@ class ParameterExportDialog(QDialog):
             if file_dir[0] == '_':
                 data_stime = self.dict_data[file_dir].time_range[0]
             else:
-                file = Normal_DataFile(file_dir)
+#                file = Normal_DataFile(file_dir)
+                file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
                 data_stime = file.time_range[0]
             starttime = self.line_edit_starttime.text()
             index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
@@ -2670,7 +2673,8 @@ class ParameterExportDialog(QDialog):
             if file_dir[0] == '_':
                 data_etime = self.dict_data[file_dir].time_range[1]
             else:
-                file = Normal_DataFile(file_dir)
+#                file = Normal_DataFile(file_dir)
+                file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
                 data_etime = file.time_range[1]
             endtime = self.line_edit_endtime.text()
             index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
@@ -2732,7 +2736,7 @@ class ParameterExportDialog(QDialog):
             if file_dir[0] == '_':
                 real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
             else:
-                data = DataFactory(file_dir, paralist)
+                data = DataFactory(file_dir, paralist, self._dict_filetype[file_dir])
                 real_timerange, data = data.get_trange_data(stime, etime)
             filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
             file_outpout = DataFile(filepath)
@@ -2756,7 +2760,8 @@ class ParameterExportDialog(QDialog):
         f = ''
         for index, file_dir in enumerate(dict_paras):
             if type(dict_paras[file_dir]) == list:
-                file = Normal_DataFile(file_dir)
+#                file = Normal_DataFile(file_dir)
+                file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
                 filename = file.filename[:-4] + '(export' + str(index) + ')'
                 start = file.time_range[0]
                 end = file.time_range[1]
@@ -2851,7 +2856,7 @@ class FileProcessDialog(QDialog):
     
     signal_send_status = pyqtSignal(str, int)
     
-    def __init__(self, parent = None, files = [], time_intervals = {}):
+    def __init__(self, parent = None, files = [], time_intervals = {}, dict_filetype = None):
     
         super().__init__(parent)
         
@@ -2861,6 +2866,8 @@ class FileProcessDialog(QDialog):
         self.file_info = {}
         self.current_interval_item = None
         self.current_floder_item = None
+        if dict_filetype:
+            self._dict_filetype = dict_filetype
         if os.path.exists(CONFIG.OPTION['work dir']):
             self.dir = CONFIG.OPTION['work dir']
         else:
@@ -3077,7 +3084,8 @@ class FileProcessDialog(QDialog):
         
         if self.current_floder_item:
             file_dir = self.current_floder_item.data(0, Qt.UserRole)
-            file = Normal_DataFile(file_dir)
+#            file = Normal_DataFile(file_dir)
+            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
             start = file.time_range[0]
             end = file.time_range[1]
             fre = file.sample_frequency
@@ -3199,7 +3207,8 @@ class FileProcessDialog(QDialog):
             file_dir = parent.data(0, Qt.UserRole)
             label = self.current_interval_item.data(0, Qt.UserRole)
 #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
-            file = Normal_DataFile(file_dir)
+#            file = Normal_DataFile(file_dir)
+            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
             data_stime = file.time_range[0]
             starttime = self.line_edit_starttime.text()
             file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
@@ -3236,7 +3245,8 @@ class FileProcessDialog(QDialog):
             file_dir = parent.data(0, Qt.UserRole)
             label = self.current_interval_item.data(0, Qt.UserRole)
 #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
-            file = Normal_DataFile(file_dir)
+#            file = Normal_DataFile(file_dir)
+            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
             data_etime = file.time_range[1]
             endtime = self.line_edit_endtime.text()
             file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
@@ -3359,7 +3369,8 @@ class FileProcessDialog(QDialog):
     def display_file_info(self, files, time_intervals):
 
         for index, file_dir in enumerate(files):
-            file = Normal_DataFile(file_dir)
+#            file = Normal_DataFile(file_dir)
+            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
             filename = file.filename[:-4]
             start = file.time_range[0]
             end = file.time_range[1]
