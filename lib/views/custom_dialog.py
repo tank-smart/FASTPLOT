@@ -36,6 +36,7 @@ from matplotlib.text import Annotation
 from matplotlib.axes import Axes
 import matplotlib.colors as Color
 import matplotlib.dates as mdates
+import time
 # =============================================================================
 # Qt imports
 # =============================================================================
@@ -2737,7 +2738,11 @@ class ParameterExportDialog(QDialog):
                 real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
             else:
                 data = DataFactory(file_dir, paralist, self._dict_filetype[file_dir])
+                a=time.time()
                 real_timerange, data = data.get_trange_data(stime, etime)
+                b=time.time()
+                print(b-a)
+                print(real_timerange)
             filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
             file_outpout = DataFile(filepath)
 #            导出TXT文件

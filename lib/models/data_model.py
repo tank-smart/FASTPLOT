@@ -182,7 +182,7 @@ class DataFactory(object):
             return False
         
 #    返回的是实际时间段及其数据
-    def get_trange_data(self, stime = None, etime = None, paralist = [], is_with_time = True):
+    def get_trange_data_wxl(self, stime = None, etime = None, paralist = [], is_with_time = True):
         
         if stime and etime:
             bool_re = Time_Model.compare(stime, etime)
@@ -217,8 +217,7 @@ class DataFactory(object):
                 etime_index = Time_Model.count_between_time(lim_stime,
                                                             et,
                                                             self.sample_frequency)
-                print(lim_stime)
-                print(et)
+  
 #                更新起始时间，保证只取在选择时间范围的数据
                 getted_stime = self.data.iloc[stime_index, 0]
                 if Time_Model.compare(getted_stime, st) == -1:
@@ -242,6 +241,87 @@ class DataFactory(object):
                 return (None, None)
         else:
             return (None, None)
+        
+    def get_trange_data_yh(self, stime = None, etime = None, paralist = [], is_with_time = True):
+        if stime and etime:
+#            bool_re = Time_Model.compare(stime, etime)
+            sdatetime = Time_Model.str_to_datetime(stime)
+            edatetime = Time_Model.str_to_datetime(etime)
+            self.data.iloc[:,0] = pd.to_datetime(self.data.iloc[:,0], format=self.time_format)
+            timelabel = self.data.columns[0]
+            result = self.data[(self.data[timelabel]>=sdatetime) & (self.data[timelabel]<=edatetime)]
+            result.iloc[:,0] = result.iloc[:,0].dt.strftime(self.time_format)
+        return ((stime, etime), result)
+    
+    def get_trange_data(self, stime = None, etime = None, paralist = [], is_with_time = True):
+        if stime and etime:
+#            bool_re = Time_Model.compare(stime, etime)
+            sdatetime = Time_Model.str_to_datetime(stime)
+            edatetime = Time_Model.str_to_datetime(etime)
+            left = 0
+            right = len(self.data)-1
+            print(self.data)
+            if sdatetime<=edatetime:
+                sloc = self.binary_search(left, right, sdatetime, self.data.iloc[:,0], 'start') 
+                eloc = self.binary_search(left, right, edatetime, self.data.iloc[:,0], 'end')
+                print(sloc)
+                print(eloc)
+                if sloc is not None and eloc is not None:
+                    std_stime = Time_Model.timestr_to_stdtimestr(self.data.iloc[sloc, 0])
+                    std_etime = Time_Model.timestr_to_stdtimestr(self.data.iloc[eloc, 0])
+                    if paralist:
+                        if is_with_time:
+                            paralist.insert(0, self.get_time_index())
+        #                按下面的dataframe访问方式是左闭右开，所以右边要加1
+                        return ((std_stime, std_etime), 
+                                self.data[paralist][sloc : (eloc + 1)])
+                    else:
+                        if is_with_time:
+                            return ((std_stime, std_etime), 
+                                    self.data[sloc : (eloc + 1)])
+                        else:
+                            return ((std_stime, std_etime), 
+                                    self.data[self.get_paralist()][sloc : (eloc + 1)])
+                else:
+                    print(1)
+                    return(None, None)
+            else:
+                print(2)
+                return(None, None)
+        else:
+            print(3)
+            return(None, None)
+    
+    def binary_search(self, left, right, value, timeserie, position):
+        print(timeserie[left])
+        print(timeserie[right])
+        print(value)
+        if Time_Model.str_to_datetime(timeserie[left])<= value and Time_Model.str_to_datetime(timeserie[right])>= value:
+            if right-left>1:
+                mid = int((left+right)/2)
+                if Time_Model.str_to_datetime(timeserie[mid])>value:
+                    return self.binary_search(left, mid, value, timeserie, position)
+                elif Time_Model.str_to_datetime(timeserie[mid])<value:
+                    return self.binary_search(mid, right, value, timeserie, position)
+                else:
+                    return mid
+            else:
+                if position == 'start':
+                    if Time_Model.str_to_datetime(timeserie[left])==value:
+                        return left
+                    else:
+                        return right
+                if position =='end':
+                    if Time_Model.str_to_datetime(timeserie[right])==value:
+                        return right
+                    else:
+                        return left
+                else:
+                    print('k')
+                    return None
+        else:
+            print('g')
+            return None
         
     def delete_col(self, index : str):
         

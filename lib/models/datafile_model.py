@@ -499,28 +499,28 @@ class GPS_DataFile(DataFile):
                         df=pd.read_table(f,sep='\s+|\t|,|;',usecols=num_cols,
 #                                         range是左闭右开
                                          skiprows=skiprows+start_rows+3,
-                                         nrows=stop_rows-start_rows+1,
+                                         nrows=stop_rows-start_rows+1,header=None,
                                          index_col=False,
                                          engine='python')
                     else:
                         df=pd.read_table(f,sep=sep,usecols=num_cols,
                                          skiprows=skiprows+start_rows+3,
-                                         nrows=stop_rows-start_rows+1,
+                                         nrows=stop_rows-start_rows+1,header=None,
                                          index_col=False,
                                          engine='c')
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=num_cols,
                                      skiprows=skiprows+start_rows+3,
-                                     nrows=stop_rows-start_rows+1,
+                                     nrows=stop_rows-start_rows+1,header=None,
                                      index_col=False)
             else:
                 if filedir.endswith(('.txt','.csv')):
                     if sep=='all':
-                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=num_cols,skiprows=skiprows+2,index_col=False,engine='python')
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=num_cols,skiprows=skiprows+2,header=None,index_col=False,engine='python')
                     else:
-                        df=pd.read_table(f,sep=sep,usecols=num_cols,skiprows=skiprows+2,index_col=False,engine='c')
+                        df=pd.read_table(f,sep=sep,usecols=num_cols,skiprows=skiprows+2,header=None,index_col=False,engine='c')
                 if filedir.endswith(('.xls','.xlsx')):
-                    df=pd.read_excel(f,usecols=cols,skiprows=skiprows+2,index_col=False)
+                    df=pd.read_excel(f,usecols=cols,skiprows=skiprows+2,header=None,index_col=False)
             df.columns = cols
 #            定义参数顺序
             df = df[cols]
