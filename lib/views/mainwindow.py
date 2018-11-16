@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar,
 # =============================================================================
 from views.plot_window import PlotWindow
 from views.paralist_window import ParalistWindow
-from models.datafile_model import Normal_DataFile, GPS_DataFile
+from models.datafile_model import Normal_DataFile, GPS_DataFile, DataFile_Factory
 from views.data_sift_window import DataSiftWindow
 from views.data_process_window import DataProcessWindow
 from views.mathematics_window import MathematicsWindow
@@ -544,11 +544,17 @@ class MainWindow(QMainWindow):
                     if not(file_dir in self.current_files):
                         datafile_type = dialog.datafile_type
                         try:
-                            if datafile_type == 'GPS datafile':
-                                gps_file = GPS_DataFile(datafile_dir)
-                                import_file_dirs[file_dir] = gps_file.paras_in_file
-                                file_dir_l.append(file_dir)
-                                self.dict_filetype[file_dir] = 'GPS datafile'
+                            data_file = DataFile_Factory(datafile_dir, filetype=datafile_type)
+                            import_file_dirs[file_dir] = data_file.paras_in_file
+                            file_dir_l.append(file_dir)
+                            self.dict_filetype[file_dir] = datafile_type
+#                            if datafile_type == 'GPS datafile':
+#                                gps_file = GPS_DataFile(datafile_dir)
+#                                import_file_dirs[file_dir] = gps_file.paras_in_file
+#                                file_dir_l.append(file_dir)
+#                                self.dict_filetype[file_dir] = 'GPS datafile'
+#                            if datafile_type == 'QAR datafile':
+#                                qar_file = QAR_DataFile(datafile_dir)
                         except:
     #                        这样处理不太好，如果不是文件本身错误而仅是代码错误也会一并认为是文件本身错误
                             nor_datafiles.append(file_dir)
@@ -723,7 +729,7 @@ class MainWindow(QMainWindow):
     def slot_file_process(self):
         
         if self.current_files:
-            dialog = FileProcessDialog(self, self.current_files)
+            dialog = FileProcessDialog(self, self.current_files, dict_filetype = self.dict_filetype)
             dialog.signal_send_status.connect(self.slot_display_status_info)
             return_signal = dialog.exec_()
             if return_signal == QDialog.Accepted:

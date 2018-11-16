@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 #import time      #用于时间测试
+
+#=======================================
+#重要修改：DataAnalysis增加init(time_format)
+#===========================================
 import re
 import pandas as pd
 from models.datafile_model import Normal_DataFile, DataFile_Factory
 
 class DataAnalysis(object):
-    def __init__(self):
-        pass
+    def __init__(self, time_format = '%H:%M:%S:%f'):
+        self.time_format = time_format
     
 #================数据筛选================================
     def condition_sift_preserved(self,file_list=[], condition="",search_para=[]):
@@ -129,8 +133,8 @@ class DataAnalysis(object):
                 time_intervals = []
                 for t_inter in inter_list:
                     stime_index, etime_index = t_inter
-                    begin_datetime=pd.to_datetime(df_sift.iloc[stime_index, 0],format='%H:%M:%S:%f')
-                    end_datetime=pd.to_datetime(df_sift.iloc[etime_index, 0],format='%H:%M:%S:%f')
+                    begin_datetime=pd.to_datetime(df_sift.iloc[stime_index, 0],format=file_search.time_format)
+                    end_datetime=pd.to_datetime(df_sift.iloc[etime_index, 0],format=file_search.time_format)
                     period_time=end_datetime-begin_datetime
                     time_intervals.append((df_sift.iat[stime_index, 0],
                                            df_sift.iat[etime_index, 0],
@@ -366,7 +370,7 @@ class DataAnalysis(object):
         timestr=str(round(1000/f,3))+'ms'
         timecol=df.columns.tolist()[0]
 #        df[time]=pd.to_datetime(df[time],format='%H:%M:%S:%f')
-        df_new=df.set_index(pd.to_datetime(df[timecol],format='%H:%M:%S:%f'),drop=False)
+        df_new=df.set_index(pd.to_datetime(df[timecol],format=self.time_format),drop=False)
         new_index=pd.PeriodIndex(df_new.index,start=df_new.index[0],end=df_new.index[-1],freq='us')
 #        print(new_index)
         df_used=df_new.set_index(new_index)

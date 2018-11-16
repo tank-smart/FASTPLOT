@@ -242,7 +242,7 @@ class DataFactory(object):
         else:
             return (None, None)
         
-    def get_trange_data_yh(self, stime = None, etime = None, paralist = [], is_with_time = True):
+    def get_trange_data_old(self, stime = None, etime = None, paralist = [], is_with_time = True):
         if stime and etime:
 #            bool_re = Time_Model.compare(stime, etime)
             sdatetime = Time_Model.str_to_datetime(stime)
@@ -260,12 +260,9 @@ class DataFactory(object):
             edatetime = Time_Model.str_to_datetime(etime)
             left = 0
             right = len(self.data)-1
-            print(self.data)
             if sdatetime<=edatetime:
                 sloc = self.binary_search(left, right, sdatetime, self.data.iloc[:,0], 'start') 
                 eloc = self.binary_search(left, right, edatetime, self.data.iloc[:,0], 'end')
-                print(sloc)
-                print(eloc)
                 if sloc is not None and eloc is not None:
                     std_stime = Time_Model.timestr_to_stdtimestr(self.data.iloc[sloc, 0])
                     std_etime = Time_Model.timestr_to_stdtimestr(self.data.iloc[eloc, 0])
@@ -283,19 +280,13 @@ class DataFactory(object):
                             return ((std_stime, std_etime), 
                                     self.data[self.get_paralist()][sloc : (eloc + 1)])
                 else:
-                    print(1)
                     return(None, None)
             else:
-                print(2)
                 return(None, None)
         else:
-            print(3)
             return(None, None)
     
     def binary_search(self, left, right, value, timeserie, position):
-        print(timeserie[left])
-        print(timeserie[right])
-        print(value)
         if Time_Model.str_to_datetime(timeserie[left])<= value and Time_Model.str_to_datetime(timeserie[right])>= value:
             if right-left>1:
                 mid = int((left+right)/2)
@@ -317,10 +308,8 @@ class DataFactory(object):
                     else:
                         return left
                 else:
-                    print('k')
                     return None
         else:
-            print('g')
             return None
         
     def delete_col(self, index : str):

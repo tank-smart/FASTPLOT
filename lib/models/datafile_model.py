@@ -232,15 +232,21 @@ class Normal_DataFile(DataFile):
         self.time_format = '%H:%M:%S:%f'
 
 #get_paralist:获取文件中所有的的参数列表        
-    def get_paraslist(self,filedir=''):
-        para_name = self.header_input(filedir,sep='\s+')
+    def get_paraslist(self,filedir='',sep=''):
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        para_name = self.header_input(filedir,sep=sep)
         para_list = para_name.values.tolist()[0]
         return para_list
 
 #get_timerange:获取数据文件的起始时间和终止时间，以[begin,end]形式返回
-    def get_timerange(self,filedir=''):
+    def get_timerange(self,filedir='',sep=''):
         if filedir=='':
             filedir=self.filedir
+        if sep=='':
+            sep=self.sep
 #        等同于try...finally，保证无论是否出错都能正确关闭文件
 #            rb+模式打开是按二进制方式读取数据的，Python3读取得到的数据类型为byte，
 #            需要转码成str型。之所以用rb+模式是因为seek函数只在此模式有效
@@ -250,7 +256,7 @@ class Normal_DataFile(DataFile):
             start_line = file.readline()
 #            转码
             start_line = start_line.decode()
-            start_time = re.split('\s+', start_line)[0]
+            start_time = re.split(sep, start_line)[0]
 #            转换成标准格式==！，此处的索引访问是左闭右开
             start_time = Time.timestr_to_stdtimestr(start_time)
 #            获取终止时间
@@ -264,24 +270,26 @@ class Normal_DataFile(DataFile):
                     stop_line = stop_line.decode()
                     break
                 offset = offset * 2
-            stop_time = re.split('\s+', stop_line)[0]
+            stop_time = re.split(sep, stop_line)[0]
             stop_time = Time.timestr_to_stdtimestr(stop_time)
         time_range=[start_time, stop_time]
         return time_range
 
-    def get_sample_frequency(self,filedir=''):
+    def get_sample_frequency(self,filedir='',sep=''):
         if filedir=='':
             filedir=self.filedir
+        if sep=='':
+            sep=self.sep
         
         fre = 1
-        with open(filedir,'r') as f:
+        with open(filedir,'r',errors='ignore') as f:
             start_line = f.readline()
             start_line = f.readline()
-            start_time = re.split('\s+', start_line)[0]
+            start_time = re.split(sep, start_line)[0]
             get_fre = False
             line = f.readline()
             while (not get_fre) and line:
-                t = re.split('\s+', line)[0]
+                t = re.split(sep, line)[0]
                 count = Time.count_between_time(start_time, t, 1)
                 if count == 1:
                     get_fre = True
@@ -292,17 +300,18 @@ class Normal_DataFile(DataFile):
                 fre = 0
         return fre       
 
-    def get_sample_fre(self,filedir=""):
-        if filedir=="":
-            filedir=self.filedir
-        time_df=self.cols_input(filedir=filedir,cols=[self.paras_in_file[0]])
-        rows=time_df.shape[0]
-        time_interval=(time_df[-1,0]-time_df[0,0])/(rows-1)
-        return time_interval
+#    def get_sample_fre(self,filedir=""):
+#        if filedir=="":
+#            filedir=self.filedir
+#        time_df=self.cols_input(filedir=filedir,cols=[self.paras_in_file[0]])
+#        rows=time_df.shape[0]
+#        time_interval=(time_df[-1,0]-time_df[0,0])/(rows-1)
+#        return time_interval
         
 #get_info:根据一般试飞数据文件的文件名获取，试飞数据相关信息，返回信息列表        
     def get_info(self,filedir=''):
         if filedir:
+            filedir = filedir.replace('/','\\')
             lpos=filedir.rindex('\\')
             rpos=filedir.rindex('.')
             info_name=filedir[lpos+1:rpos]
@@ -316,7 +325,7 @@ class Normal_DataFile(DataFile):
         if sep=='':
             sep=self.sep
 #            注意excel文件读取必须为rb模式
-        with open(filedir,'r') as f:
+        with open(filedir,'r',errors='ignore') as f:
             if filedir.endswith(('.txt','.csv')):
                 if sep=='all':
                     #Use str or object to preserve and not interpret dtype
@@ -381,14 +390,14 @@ class Normal_DataFile(DataFile):
 #            else:
 #                return df 
 
-    def cols_input(self,filedir='',cols=[],sep='\s+',start_time='',stop_time=''):  #without chunkinput now!!
+    def cols_input(self,filedir='',cols=[],sep='',start_time='',stop_time=''):  #without chunkinput now!!
 
         if filedir=='':
             filedir=self.filedir
         if sep=='':
             sep=self.sep
 #            注意若是excel文件读取需要rb模式
-        with open(filedir,'r') as f:
+        with open(filedir,'r',errors='ignore') as f:
             if (start_time and stop_time):
 #                count_between_time函数返回的是两个时间的差值
                 start_rows = Time.count_between_time(self.time_range[0],
@@ -409,6 +418,7 @@ class Normal_DataFile(DataFile):
                                          nrows=stop_rows-start_rows+1,
                                          index_col=False,
                                          engine='c')
+
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=cols,
                                      skiprows=list(range(1,start_rows+1)),
@@ -419,7 +429,10 @@ class Normal_DataFile(DataFile):
                     if sep=='all':
                         df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,index_col=False,engine='python')
                     else:
+                        a=time.time()
                         df=pd.read_table(f,sep=sep,usecols=cols,index_col=False,engine='c')
+                        b=time.time()
+                        print(b-a)
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=cols,index_col=False)
                     
@@ -428,10 +441,10 @@ class Normal_DataFile(DataFile):
             return df
 
 #rowscols_input：在rows_input基础上增加按列读取文件功能
-    def rowscols_input(self,filedir="",sep="",cols=[],skiprows=None):
-        if filedir=="":
+    def rowscols_input(self,filedir='',sep='',cols=[],skiprows=None):
+        if filedir=='':
             filedir=self.filedir
-        if sep=="":
+        if sep=='':
             sep=self.sep
         with open(filedir,'r') as f:
             if filedir.endswith(('.txt','.csv')):
@@ -443,11 +456,12 @@ class Normal_DataFile(DataFile):
                 df=pd.read_excel(f,header=None,usecols=cols,skiprows=skiprows)
         return df
 
+#GPS数据文件类
 class GPS_DataFile(DataFile):
     def __init__(self,filedir='',sep='\s+',skiprows=15):
         super().__init__(filedir,sep)
         self.skiprows=skiprows
-#        self.info_list=self.get_info(filedir)
+        self.info_list=self.get_info(filedir)
         self.paras_in_file=self.get_paraslist(filedir)
         self.time_range=self.get_timerange(filedir)  #！可能造成IO过多，使得速度变慢
         self.sample_frequency = self.get_sample_frequency(filedir)
@@ -475,7 +489,7 @@ class GPS_DataFile(DataFile):
         df=df.iloc[0,:]+df.iloc[1,:]
         return df       
 
-    def cols_input(self,filedir='',cols=[],sep='\s+',start_time='',stop_time='',skiprows=None):  #without chunkinput now!!
+    def cols_input(self,filedir='',cols=[],sep='',start_time='',stop_time='',skiprows=None):  #without chunkinput now!!
 
         if filedir=='':
             filedir=self.filedir
@@ -485,7 +499,8 @@ class GPS_DataFile(DataFile):
             skiprows=self.skiprows
 #            注意若是excel文件读取需要rb模式
         if cols:
-            num_cols = [cols.index(idx) for idx in cols]
+            num_cols = [self.paras_in_file.index(idx) for idx in cols]
+            print(num_cols)
             
         with open(filedir,'r') as f:
             if (start_time and stop_time):
@@ -521,19 +536,26 @@ class GPS_DataFile(DataFile):
                         df=pd.read_table(f,sep=sep,usecols=num_cols,skiprows=skiprows+2,header=None,index_col=False,engine='c')
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=cols,skiprows=skiprows+2,header=None,index_col=False)
+            df = df[num_cols]
             df.columns = cols
 #            定义参数顺序
-            df = df[cols]
+#            df = df[cols]
             return df
 
-    def get_paraslist(self,filedir=''):
-        para_name = self.header_input(filedir,sep='\s+')
+    def get_paraslist(self,filedir='',sep=''):
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        para_name = self.header_input(filedir,sep=sep)
         para_list = para_name.values.tolist()
         return para_list
     
-    def get_timerange(self,filedir=''):
+    def get_timerange(self,filedir='',sep=''):
         if filedir=='':
             filedir=self.filedir
+        if sep=='':
+            sep=self.sep
 #        等同于try...finally，保证无论是否出错都能正确关闭文件
 #            rb+模式打开是按二进制方式读取数据的，Python3读取得到的数据类型为byte，
 #            需要转码成str型。之所以用rb+模式是因为seek函数只在此模式有效
@@ -545,7 +567,7 @@ class GPS_DataFile(DataFile):
 #            转码
             start_line = start_line.decode()
 #            print(start_line)
-            start_time = re.split('\s+', start_line.lstrip())[0]
+            start_time = re.split(sep, start_line.lstrip())[0]
 #            转换成标准格式==！，此处的索引访问是左闭右开
             start_time = Time.timestr_to_stdtimestr(start_time)
             
@@ -560,14 +582,16 @@ class GPS_DataFile(DataFile):
                     stop_line = stop_line.decode()
                     break
                 offset = offset * 2
-            stop_time = re.split('\s+', stop_line)[0]
+            stop_time = re.split(sep, stop_line)[0]
             stop_time = Time.timestr_to_stdtimestr(stop_time)
         time_range=[start_time, stop_time]
         return time_range
 
-    def get_sample_frequency(self,filedir=''):
+    def get_sample_frequency(self,filedir='',sep=''):
         if filedir=='':
             filedir=self.filedir
+        if sep=='':
+            sep=self.sep
         
         fre = 1
         with open(filedir,'r') as f:
@@ -575,12 +599,12 @@ class GPS_DataFile(DataFile):
                 
                 start_line = line
             
-            start_time = re.split('\s+', start_line.lstrip())[0]
+            start_time = re.split(sep, start_line.lstrip())[0]
             get_fre = False
             line = f.readline()
             line = line.lstrip()
             while (not get_fre) and line:
-                t = re.split('\s+', line)[0]
+                t = re.split(sep, line)[0]
                 
                 count = Time.count_between_time(start_time, t, 1)
                 if count == 1:
@@ -593,13 +617,24 @@ class GPS_DataFile(DataFile):
                 fre = 0
         return fre       
     
-    def get_info(self,filedir=''):
-        if filedir:
-            lpos=filedir.rindex('\\')
-            rpos=filedir.rindex('.')
-            info_name=filedir[lpos+1:rpos]
-            info_list=info_name.split('-')
+    def get_info(self,filedir='',sep='',skiprows=None):
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        if skiprows is None:
+            skiprows=self.skiprows
+        info_list=[]
+        with open(filedir,'r') as f:
+#            islice生成1到15行的迭代器
+            for line in islice(f, 0, self.skiprows):
+                info_list.append(line)      
         return info_list
+    
+class QAR_DataFile(Normal_DataFile):
+    def __init__(self,filedir='',sep=','):
+        super().__init__(filedir,sep)
+        self.time_format = '%H:%M:%S'
     
 #DataFile 的统一接口    
 class DataFile_Factory(object):
@@ -610,8 +645,8 @@ class DataFile_Factory(object):
         elif filetype == 'GPS datafile':
             instance = GPS_DataFile(filedir, sep)
         elif filetype == 'QAR datafile':
-            instance = QAR_DataFile(filedir, sep)
-        elif filrtype == 'custom datafile':
+            instance = QAR_DataFile(filedir, sep=',')
+        elif filetype == 'custom datafile':
             instance = Custom_DataFile(filedir, sep ,time_format)
 #        if filedir.endswith(('.txt','.csv')):
 #            instance = Normal_DataFile(filedir, sep)
@@ -621,8 +656,15 @@ class DataFile_Factory(object):
     
     
 if __name__ == '__main__':
-    filedir = r'D:\flightdata\gps data\970_-20130509-1-gps.txt'
-#    DF=DataFile_Factory(filedir)
-#    ss=Normal_DataFile(filedir)
-    gpsdata = GPS_DataFile(filedir)
-    print(gpsdata.get_sample_frequency())
+#    test1
+#    filedir = r'D:\flightdata\gps data\970_-20130509-1-gps.txt'
+##    DF=DataFile_Factory(filedir)
+##    ss=Normal_DataFile(filedir)
+#    gpsdata = GPS_DataFile(filedir)
+#    df = gpsdata.cols_input(cols=gpsdata.paras_in_file)
+#    print(df)
+#    test2
+    filedir = r'D:/flightdata/QAR data/B-001W_20180613084920.csv'
+    qardata = DataFile_Factory(filedir, filetype = 'QAR datafile')
+    df = qardata.cols_input(cols=qardata.paras_in_file)
+    print(df)

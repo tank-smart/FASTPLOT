@@ -386,7 +386,7 @@ class MathematicsEditor(QPlainTextEdit):
         for para in self.paras_on_expr:
             for file_dir in dict_files:
                 if para in dict_files[file_dir]:
-                    df = DataFactory(file_dir, [para], self._dict_filetype)
+                    df = DataFactory(file_dir, [para], self._dict_filetype[file_dir])
                     df = df.data.set_index(df.data.columns[0])
 #                    dataframe to series                   
                     para_df = df.iloc[:,0]

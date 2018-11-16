@@ -206,6 +206,7 @@ class DataSiftWindow(QWidget):
         list_files = self._current_files
         str_condition = self.plain_text_edit_expression.toPlainText()
         if list_files and str_condition:
+            
             sift_object = DataAnalysis()
 #            result_tuple = sift_object.condition_sift_class(list_files,
 #                                                            str_condition,

@@ -2738,11 +2738,10 @@ class ParameterExportDialog(QDialog):
                 real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
             else:
                 data = DataFactory(file_dir, paralist, self._dict_filetype[file_dir])
-                a=time.time()
+#                a=time.time()
                 real_timerange, data = data.get_trange_data(stime, etime)
-                b=time.time()
-                print(b-a)
-                print(real_timerange)
+#                b=time.time()
+#                print(b-a)
             filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
             file_outpout = DataFile(filepath)
 #            导出TXT文件
@@ -3346,12 +3345,13 @@ class FileProcessDialog(QDialog):
 #        这样实现效率偏低
         for label in self.file_info:
             file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
-            file = Normal_DataFile(file_dir)
+#            file = Normal_DataFile(file_dir)
+            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
             folder = self.line_edit_file_dir.text() + '\\' + file.filename[:-4]
             if not os.path.exists(folder):
                 os.mkdir(folder)
             data = file.cols_input(file_dir, file.paras_in_file, '\s+', stime, etime)
-            ana = DataAnalysis()
+            ana = DataAnalysis(file.time_format)
             if fre > file.sample_frequency:
                 data = ana.upsample(data, fre)
             if fre < file.sample_frequency:
