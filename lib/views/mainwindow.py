@@ -492,7 +492,7 @@ class MainWindow(QMainWindow):
                         normal_file = Normal_DataFile(file_dir)
                         import_file_dirs[file_dir] = normal_file.paras_in_file
                         file_dir_l.append(file_dir)
-                        self.dict_filetype[file_dir] = 'normal datafile'
+                        self.dict_filetype[file_dir] = {'filetype':'normal datafile'}
                     except:
 #                        这样处理不太好，如果不是文件本身错误而仅是代码错误也会一并认为是文件本身错误
                         nor_datafiles.append(file_dir)
@@ -543,11 +543,23 @@ class MainWindow(QMainWindow):
                 for file_dir in file_dir_list:
                     if not(file_dir in self.current_files):
                         datafile_type = dialog.datafile_type
+                        skiprows = dialog.skiprows
+            #            时间列为0时表示无时间
+                        timecol = dialog.timecol
+            #            分隔符
+                        sep = dialog.sep
+            #            时间格式
+                        time_format = dialog.time_format
+                
                         try:
-                            data_file = DataFile_Factory(datafile_dir, filetype=datafile_type)
+#                            sep='\s+', filetype = 'normal datafile', skiprows = 0, timecol = 1, time_format = '%H:%M:%S:%f'
+                            file_kwargs = {'sep':sep, 'filetype':datafile_type, 'skiprows':skiprows, 'timecol':timecol, 'time_format':time_format}
+#                            data_file = DataFile_Factory(file_dir, filetype=datafile_type)
+                            data_file = DataFile_Factory(file_dir, **file_kwargs)
                             import_file_dirs[file_dir] = data_file.paras_in_file
                             file_dir_l.append(file_dir)
-                            self.dict_filetype[file_dir] = datafile_type
+#                            self.dict_filetype[file_dir] = datafile_type
+                            self.dict_filetype[file_dir] = file_kwargs
 #                            if datafile_type == 'GPS datafile':
 #                                gps_file = GPS_DataFile(datafile_dir)
 #                                import_file_dirs[file_dir] = gps_file.paras_in_file

@@ -763,6 +763,8 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
         self.count_created_data = 0
 #        顺序排列的参数及其对应的数据索引
         self.sorted_paralist = []
+#        filedir:filetype用于识别不同文件类型
+        self.dict_filetype = None
 #        读参数值的辅助线
         self.aux_line = None
         self.cid_dppv_move = None
@@ -775,7 +777,7 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
             dict_data_project = {}
             for datasource in datadict:
                 data = datadict[datasource]
-                if type(data) == list:
+                if type(data) == list and dict_filetype:
 #                    此时datasource是文件路径，data是参数列表
                     data_factory = DataFactory(datasource, data, dict_filetype[datasource])
                 elif type(data) == pd.DataFrame:
@@ -1309,10 +1311,10 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         x = matplotlib.dates.num2date(x)
         return Time_Model.datetime_to_timestr(x)
             
-    def plot_paras(self, datalist, sorted_paras, xpara = None, dict_filetype = None):
+    def plot_paras(self, datalist, sorted_paras, xpara = None):
 
         self.restore_axes_info()
-        is_plot = self.process_data(datalist, sorted_paras, dict_filetype)
+        is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
         
         if is_plot:
             self.count_axes = len(self.sorted_paralist)
@@ -1980,7 +1982,7 @@ class SingleAxisPlotCanvasBase(FTDataPlotCanvasBase):
             
     def plot_paras(self, datalist, sorted_paras, xpara = None):
 
-        is_plot = self.process_data(datalist, sorted_paras)
+        is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
         xpara = "FCM1_Voted_Mach"
         for index in self.total_data:
             
@@ -2137,7 +2139,7 @@ class SingleAxisPlotCanvas(SingleAxisPlotCanvasBase):
         
     def plot_paras(self, datalist, sorted_paras, xpara = None):
 
-        is_plot = self.process_data(datalist, sorted_paras)
+        is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
 
         for index in self.total_data:
         
@@ -2415,7 +2417,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
     def plot_paras(self, datalist, sorted_paras, xpara = None):
 
         self.restore_axes_info()
-        is_plot = self.process_data(datalist, sorted_paras)
+        is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
         
         if is_plot:
             self.count_axes = 1
@@ -2804,7 +2806,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
     def plot_paras(self, datalist, sorted_paras, xpara = None):
 
         self.restore_axes_info()
-        is_plot = self.process_data(datalist, sorted_paras)
+        is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
         
         if is_plot:
             self.count_axes = len(self.sorted_paralist)

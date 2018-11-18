@@ -70,7 +70,7 @@ class DataFile(object):
         return filename
     
 #all_input:一次导入整个数据文件（文件过大时会卡死），如不指定filedir，sep会使用类属性        
-    def all_input(self,filedir='',sep=''):
+    def all_input(self,filedir='',sep='',header=None):
         if filedir=='':
             filedir=self.filedir
         if sep=='':
@@ -78,9 +78,9 @@ class DataFile(object):
         if filedir.endswith(('.txt','.csv')):
             with open(filedir,'r') as f:
                 if sep=='all':
-                    df=pd.read_table(f,sep='\s+|\t|,|;',engine='python')
+                    df=pd.read_table(f,sep='\s+|\t|,|;',header=header,engine='python')
                 else:
-                    df=pd.read_table(f,sep=sep,engine='c')
+                    df=pd.read_table(f,sep=sep,header=header,engine='c')
         if filedir.endswith(('.xls','.xlsx')):
             with open(filedir,'r') as f:
                 df=pd.read_excel(f)
@@ -429,10 +429,7 @@ class Normal_DataFile(DataFile):
                     if sep=='all':
                         df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,index_col=False,engine='python')
                     else:
-                        a=time.time()
                         df=pd.read_table(f,sep=sep,usecols=cols,index_col=False,engine='c')
-                        b=time.time()
-                        print(b-a)
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=cols,index_col=False)
                     
@@ -630,24 +627,252 @@ class GPS_DataFile(DataFile):
             for line in islice(f, 0, self.skiprows):
                 info_list.append(line)      
         return info_list
-    
+
+#QAR文件格式    
 class QAR_DataFile(Normal_DataFile):
     def __init__(self,filedir='',sep=','):
         super().__init__(filedir,sep)
         self.time_format = '%H:%M:%S'
+        
+    def get_info(self,filedir=''):
+        info_list = []
+        if filedir:
+            filedir = filedir.replace('/','\\')
+            lpos=filedir.rindex('\\')
+            rpos=filedir.rindex('.')
+            info_name=filedir[lpos+1:rpos]
+            info_list.append(info_name)
+        return info_list
+
+#Custom_DataFile用户自定义格式文件
+class Custom_DataFile(DataFile):
+    
+    def __init__(self,filedir='',sep='\s+',skiprows=0,timecol=1,time_format='%H:%M:%S:%f'):
+        super().__init__(filedir,sep)
+        
+        self.skiprows=skiprows
+        self.timecol=timecol-1
+        self.info_list=self.get_info(filedir)
+        self.paras_in_file=self.get_paraslist(filedir)
+        self.time_range=self.get_timerange(filedir)  #！可能造成IO过多，使得速度变慢
+        self.sample_frequency = self.get_sample_frequency(filedir)
+        if time_format =='推断':
+            time_format = self.infer_time()
+        self.time_format = time_format
+
+    def header_input(self,filedir='',sep='',skiprows=None,timecol=None): 
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        if skiprows is None:
+            skiprows=self.skiprows
+        if timecol is None:
+            timecol=self.timecol
+
+#            注意excel文件读取必须为rb模式
+        with open(filedir,'r',errors='ignore') as f:
+            if filedir.endswith(('.txt','.csv')):
+                if sep=='all':
+                    #Use str or object to preserve and not interpret dtype
+                    df=pd.read_table(f,sep='\s+|\t|,|;',header=None,nrows=1,skiprows=skiprows,engine='python',dtype=object,skipinitialspace=True)
+                    #or only input the columns index:nrows=0,remove header=None
+                else:
+                    df=pd.read_table(f,sep=sep,header=None,nrows=1,skiprows=skiprows,engine='c',dtype=object,skipinitialspace=True)
+            if filedir.endswith(('.xls','.xlsx')):
+                df=pd.read_excel(f,header=None,nrows=1)
+#                df=df.iloc[0,:]  #deprecated as pandas version updated 
+#        交换首列为时间列
+        df_time=df.iloc[:,timecol]
+        df=df.drop(timecol,axis=1)
+        df.insert(0,0,df_time,allow_duplicates=True)
+        return df       
+
+    def cols_input(self,filedir='',cols=[],sep='',start_time='',stop_time='',skiprows=None,timecol=None):  #without chunkinput now!!
+
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        if skiprows is None:
+            skiprows=self.skiprows
+        if timecol is None:
+            timecol=self.timecol
+#            注意若是excel文件读取需要rb模式
+            
+        with open(filedir,'r',errors='ignore') as f:
+            if (start_time and stop_time):
+#                count_between_time函数返回的是两个时间的差值
+                start_rows = Time.count_between_time(self.time_range[0],
+                                                             start_time, self.sample_frequency)
+                stop_rows = Time.count_between_time(self.time_range[0],
+                                                            stop_time, self.sample_frequency)
+                if filedir.endswith(('.txt','.csv')):
+                    if sep=='all':
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,
+#                                         range是左闭右开
+                                         skiprows=skiprows+start_rows+1,
+                                         nrows=stop_rows-start_rows+1,
+                                         index_col=False,
+                                         engine='python',skipinitialspace=True)
+                    else:
+                        df=pd.read_table(f,sep=sep,usecols=cols,
+                                         skiprows=skiprows+start_rows+1,
+                                         nrows=stop_rows-start_rows+1,
+                                         index_col=False,
+                                         engine='c',skipinitialspace=True)
+
+                if filedir.endswith(('.xls','.xlsx')):
+                    df=pd.read_excel(f,usecols=cols,
+                                     skiprows=skiprows+start_rows+1,
+                                     nrows=stop_rows-start_rows+1,
+                                     index_col=False)
+            else:
+                if filedir.endswith(('.txt','.csv')):
+                    if sep=='all':
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,skiprows=skiprows,index_col=False,engine='python',skipinitialspace=True)
+                    else:
+                        df=pd.read_table(f,sep=sep,usecols=cols,skiprows=skiprows,index_col=False,engine='c',skipinitialspace=True)
+                if filedir.endswith(('.xls','.xlsx')):
+                    df=pd.read_excel(f,usecols=cols,skiprows=skiprows,index_col=False)
+                    
+#            定义参数顺序
+            df = df[cols]
+            return df
+
+    def get_paraslist(self,filedir='',sep='',skiprows=None,timecol=None):
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        if skiprows is None:
+            skiprows=self.skiprows
+        if timecol is None:
+            timecol=self.timecol
+        para_name = self.header_input(filedir,sep=sep,skiprows=skiprows,timecol=timecol)
+        para_list = para_name.values.tolist()[0]
+        return para_list
+    
+    def get_timerange(self,filedir='',sep=''):
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+#        等同于try...finally，保证无论是否出错都能正确关闭文件
+#            rb+模式打开是按二进制方式读取数据的，Python3读取得到的数据类型为byte，
+#            需要转码成str型。之所以用rb+模式是因为seek函数只在此模式有效
+        with open(filedir, 'rb+') as file:
+#            获取起始时间
+            for line in islice(file, self.skiprows+1, self.skiprows+2):
+                
+                start_line = line
+#            转码
+            start_line = start_line.decode()
+#            print(start_line)
+            start_time = re.split(sep, start_line.lstrip())[self.timecol]
+#            防止文件中莫名空格的影响
+            start_time = start_time.lstrip()
+#            转换成标准格式==！，此处的索引访问是左闭右开
+            start_time = Time.timestr_to_stdtimestr(start_time)
+            
+#            获取终止时间
+            stop_line = ''
+            offset = -120
+            while True:
+                file.seek(offset, 2)
+                lines = file.readlines()
+                if (len(lines) >= 2):
+                    stop_line = lines[-1]
+                    stop_line = stop_line.decode()
+                    break
+                offset = offset * 2
+            stop_time = re.split(sep, stop_line)[self.timecol]
+            stop_time = stop_time.lstrip()
+            stop_time = Time.timestr_to_stdtimestr(stop_time)
+        time_range=[start_time, stop_time]
+        return time_range
+    
+    def infer_time(self,filedir='',sep=''):
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+#        等同于try...finally，保证无论是否出错都能正确关闭文件
+#            rb+模式打开是按二进制方式读取数据的，Python3读取得到的数据类型为byte，
+#            需要转码成str型。之所以用rb+模式是因为seek函数只在此模式有效
+        with open(filedir, 'rb+') as file:
+#            获取起始时间
+            for line in islice(file, self.skiprows+1, self.skiprows+2):
+                
+                start_line = line
+#            转码
+            start_line = start_line.decode()
+#            print(start_line)
+            start_time = re.split(sep, start_line.lstrip())[self.timecol]
+#            转换成标准格式==！，此处的索引访问是左闭右开
+            start_time = start_time.lstrip()
+            time_format = Time.time_format(start_time)
+            return time_format
+
+    def get_sample_frequency(self,filedir='',sep=''):
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        
+        fre = 1
+        with open(filedir,'r',errors='ignore') as f:
+            for line in islice(f, self.skiprows+1, self.skiprows+2):
+                
+                start_line = line
+            
+            start_time = re.split(sep, start_line.lstrip())[self.timecol]
+            start_time = start_time.lstrip()
+            get_fre = False
+            line = f.readline()
+            line = line.lstrip()
+            while (not get_fre) and line:
+                t = re.split(sep, line)[self.timecol]
+                t = t.lstrip()
+                
+                count = Time.count_between_time(start_time, t, 1)
+                if count == 1:
+                    get_fre = True
+                else:
+                    fre += 1
+                    line = f.readline()
+                    line = line.lstrip()
+            if not get_fre:
+                fre = 0
+        return fre       
+    
+    def get_info(self,filedir='',sep='',skiprows=None):
+        if filedir=='':
+            filedir=self.filedir
+        if sep=='':
+            sep=self.sep
+        if skiprows is None:
+            skiprows=self.skiprows
+        info_list=[]
+        with open(filedir,'r',errors='ignore') as f:
+#            islice生成1到15行的迭代器
+            for line in islice(f, 0, self.skiprows):
+                info_list.append(line)      
+        return info_list
+
     
 #DataFile 的统一接口    
 class DataFile_Factory(object):
     
-    def __new__(cls, filedir='', sep='\s+', filetype = 'normal datafile'):
+    def __new__(cls, filedir='', sep='\s+', filetype = 'normal datafile', skiprows = 0, timecol = 1, time_format = '%H:%M:%S:%f'):
         if filetype == 'normal datafile':
-            instance = Normal_DataFile(filedir, sep)
+            instance = Normal_DataFile(filedir, sep='\s+')
         elif filetype == 'GPS datafile':
-            instance = GPS_DataFile(filedir, sep)
+            instance = GPS_DataFile(filedir, sep='\s+')
         elif filetype == 'QAR datafile':
             instance = QAR_DataFile(filedir, sep=',')
         elif filetype == 'custom datafile':
-            instance = Custom_DataFile(filedir, sep ,time_format)
+            instance = Custom_DataFile(filedir, sep , skiprows, timecol, time_format)
 #        if filedir.endswith(('.txt','.csv')):
 #            instance = Normal_DataFile(filedir, sep)
 #        elif filedir.endswith(('.xls','.xlsx')):
@@ -664,7 +889,15 @@ if __name__ == '__main__':
 #    df = gpsdata.cols_input(cols=gpsdata.paras_in_file)
 #    print(df)
 #    test2
-    filedir = r'D:/flightdata/QAR data/B-001W_20180613084920.csv'
-    qardata = DataFile_Factory(filedir, filetype = 'QAR datafile')
-    df = qardata.cols_input(cols=qardata.paras_in_file)
+    filedir = r'D:/flightdata/QAR data/test.csv'
+    sep=','
+    filetype = 'custom datafile'
+    skiprows = 2
+    timecol = 5
+    time_format = '推断'
+    file_kwargs = {'sep':sep, 'filetype':filetype, 'skiprows':skiprows, 'timecol':timecol, 'time_format':time_format}
+#    cusdata = DataFile_Factory(filedir, sep=',', filetype = 'custom datafile', skiprows = 2, timecol = 5, time_format = '%H:%M:%S')
+    cusdata = DataFile_Factory(filedir, **file_kwargs)
+#    df = cusdata.header_input(filedir, 'all')
+    df = cusdata.cols_input(cols=cusdata.paras_in_file)
     print(df)

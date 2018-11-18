@@ -197,7 +197,7 @@ class DataProcessWindow(QWidget):
                 else:
 #                    避免重复创建文件对象
                     if not (file_dir in norfile_list):
-                        norfile_list[file_dir] = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+                        norfile_list[file_dir] = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
 #                        norfile_list[file_dir] = Normal_DataFile(file_dir)
                     file = norfile_list[file_dir]
                     filename = file.filename

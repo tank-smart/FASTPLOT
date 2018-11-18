@@ -498,7 +498,8 @@ class PlotWindow(QWidget):
             
             self.signal_send_status.emit('绘图中...', 0)
             self.add_PDialog()
-            self.current_canva.plot_paras(datadict, sorted_paras, xpara, self._dict_filetype)
+            self.current_canva.dict_filetype = self._dict_filetype
+            self.current_canva.plot_paras(datadict, sorted_paras, xpara)
             self.pDialog_close()
             self.signal_send_status.emit('绘图完成！', 1500)
             

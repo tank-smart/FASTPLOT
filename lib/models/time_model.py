@@ -11,6 +11,7 @@
 # 
 # =============================================================================
 from datetime import datetime as Pytime
+import pandas as pd
 
 #将datatime格式或符合标准的时间字符串转换成列表，如果不满足则抛出异常
 def to_intlist(time):
@@ -79,7 +80,7 @@ def is_in_range(start, stop, time):
     
 def is_std_format(time : str):
     
-    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S']
+    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S', '%H-%M-%S.%f', '%H-%M-%S-%f', '%H-%M-%S']
     for format_time in tran_format:
         try:
             Pytime.strptime(time, format_time)
@@ -92,10 +93,11 @@ def is_std_format(time : str):
 
 def time_format(time : str):
     
-    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S']
+    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S', '%H-%M-%S.%f', '%H-%M-%S-%f', '%H-%M-%S']
     for format_time in tran_format:
         try:
-            Pytime.strptime(time, format_time)
+#            Pytime.strptime(time, format_time)
+            pd.to_datetime(time, format = format_time)
             return format_time
         except:
             pass
@@ -105,7 +107,7 @@ def time_format(time : str):
 
 def str_to_datetime(time : str):
     
-    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S']
+    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S', '%H-%M-%S.%f', '%H-%M-%S-%f', '%H-%M-%S']
     for format_time in tran_format:
         try:
             return Pytime.strptime(time, format_time)
@@ -179,7 +181,8 @@ if __name__ == '__main__':
 #    print(is_in_range(t,'12 13:47.291','6:14:47.291'))
 #    print(count_between_time(t, '12:13:47.291', 16))
 #    print(datetime_to_timestr(t))
-    print(and_time_intervals(('6:13','12:13:47.291'),('14:13','16:13')))
+#    print(and_time_intervals(('6:13','12:13:47.291'),('14:13','16:13')))
+    print(time_format('5:57:15'))
     
     
     

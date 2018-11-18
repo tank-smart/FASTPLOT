@@ -24,16 +24,16 @@ import models.time_model as Time_Model
 class DataFactory(object):
     
 #    通过文件路径+参数列表或者DataFrame初始化
-    def __init__(self, data_source = None, sel_para = [], filetype = None):
+    def __init__(self, data_source = None, sel_para = [], file_kwargs = None):
 
 # yanhua modified        
         self.filedir = None
-        if type(data_source) == str and filetype is not None :
+        if type(data_source) == str and file_kwargs is not None :
 #            确定数据类型
             self.data_type = 'DataFile'
             self.filedir = data_source
 #            file = Normal_DataFile(data_source)
-            file = DataFile_Factory(data_source, filetype = filetype)
+            file = DataFile_Factory(data_source, **file_kwargs)
             if sel_para:
 #                参数列表是包括时间参数的
                 self.data_paralist = [file.paras_in_file[0]] + sel_para

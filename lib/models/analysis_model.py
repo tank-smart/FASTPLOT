@@ -96,7 +96,7 @@ class DataAnalysis(object):
             try:
                 para_list=search_para.copy()
 #                file_search=Normal_DataFile(filedir)
-                file_search = DataFile_Factory(filedir, filetype = dict_filetype[filedir])
+                file_search = DataFile_Factory(filedir, **dict_filetype[filedir])
                 input_list=[]
                 for para in para_list:
                     if para in file_search.paras_in_file:
@@ -399,7 +399,7 @@ class DataAnalysis(object):
     def upsample(self,df,f):
         timestr=str(round(1000/f,3))+'ms'
         timecol=df.columns.tolist()[0]
-        df[timecol]=pd.to_datetime(df[timecol],format='%H:%M:%S:%f')
+        df[timecol]=pd.to_datetime(df[timecol],format=self.time_format)
         df_new=df.set_index(df[timecol],drop=False)
         new_index=pd.PeriodIndex(df_new.index,start=df_new.index[0],end=df_new.index[-1],freq='us')
 #        print(new_index)
@@ -410,7 +410,7 @@ class DataAnalysis(object):
 #        sample=sample.interpolate()
         result=sample.round(8)
 #        pandas has bug in converting periodindex to string when date_format is '%H:%M:%S:%f'
-        result[timecol]=result.index.to_timestamp().strftime('%H:%M:%S:%f')
+        result[timecol]=result.index.to_timestamp().strftime(self.time_format)
 #        result=sample.reset_index(drop=True)
         return result
 #=======================================================================

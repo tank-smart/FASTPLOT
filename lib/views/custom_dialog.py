@@ -36,7 +36,7 @@ from matplotlib.text import Annotation
 from matplotlib.axes import Axes
 import matplotlib.colors as Color
 import matplotlib.dates as mdates
-import time
+
 # =============================================================================
 # Qt imports
 # =============================================================================
@@ -572,7 +572,7 @@ class SelParasDialog(QDialog):
         
         for file_dir in files:
             time_hide = False
-            file = DataFile_Factory(file_dir, filetype = dict_filetype[file_dir])
+            file = DataFile_Factory(file_dir, **dict_filetype[file_dir])
             paras = file.paras_in_file
             for para in paras:
                 if time_hide:
@@ -622,6 +622,141 @@ class SelParasDialog(QDialog):
         if self.sel_mode == QAbstractItemView.ExtendedSelection and 0==1:
             self.btn_add.setText(_translate('SelParasDialog', '添加'))
         self.btn_cancel.setText(_translate('SelParasDialog', '取消'))
+        
+class SelfuncDialog(QDialog):
+
+    signal_add_paras = pyqtSignal()
+    
+    def __init__(self, parent = None, df_func = None, sel_mode = 0):
+        
+        super().__init__(parent)
+        
+#        self._data_dict = None
+#        self.paraicon = QIcon(CONFIG.ICON_PARA)
+        if sel_mode == 0:
+            self.sel_mode = QAbstractItemView.SingleSelection
+        if sel_mode == 1:
+            self.sel_mode = QAbstractItemView.ExtendedSelection
+        
+        self.setup()
+        self.preview_widget.setColumnCount(2)
+        self.preview_widget.setRowCount(len(df_func))
+        
+        self.display_paras(df_func)
+
+    def setup(self):
+
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
+        self.resize(550, 550)
+        self.verticalLayout = QVBoxLayout(self)
+        self.line_edit_search = QLineEdit(self)
+        self.line_edit_search.setMinimumSize(QSize(0, 24))
+        self.line_edit_search.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout.addWidget(self.line_edit_search)
+        self.preview_widget = QTableWidget(self)
+        self.preview_widget.setSelectionMode(self.sel_mode)
+        self.preview_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.preview_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.preview_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.preview_widget.horizontalHeader().setVisible(False)
+        self.verticalLayout.addWidget(self.preview_widget)
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setSpacing(10)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+        self.btn_confirm = QPushButton(self)
+        self.btn_confirm.setMinimumSize(QSize(0, 24))
+        self.btn_confirm.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.btn_confirm)
+#        暂时屏蔽添加按钮，预留！！！！！！！！！
+        if self.sel_mode == QAbstractItemView.ExtendedSelection & 0==1:
+            self.btn_add = QPushButton(self)
+            self.btn_add.setMinimumSize(QSize(0, 24))
+            self.btn_add.setMaximumSize(QSize(16777215, 24))
+            self.horizontalLayout.addWidget(self.btn_add)
+        self.btn_cancel = QPushButton(self)
+        self.btn_cancel.setMinimumSize(QSize(0, 24))
+        self.btn_cancel.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.btn_cancel)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+
+        self.btn_confirm.clicked.connect(self.accept)
+        self.btn_cancel.clicked.connect(self.reject)
+#        暂时屏蔽添加按钮，预留！！！！！！！！！同上
+        if self.sel_mode == QAbstractItemView.ExtendedSelection & 0==1:
+            self.btn_add.clicked.connect(self.signal_add_paras)
+        if self.sel_mode == QAbstractItemView.SingleSelection:
+            self.preview_widget.itemDoubleClicked.connect(self.accept)
+        self.line_edit_search.textChanged.connect(self.slot_search_func)
+        
+#        self.load_desc()
+        self.retranslateUi()
+    
+    def slot_search_func(self, func_name):
+        
+        if self.preview_widget:
+            pattern = re.compile('.*' + func_name + '.*')
+            count = self.preview_widget.rowCount()
+            for i in range(count):
+                item = self.preview_widget.item(i,0)
+                funcname = item.data(Qt.UserRole)
+                func_alias = item.text()
+                if re.match(pattern, funcname) or re.match(pattern, func_alias):
+                    self.preview_widget.setRowHidden(i, False)
+                else:
+                    self.preview_widget.setRowHidden(i, True)
+
+    def get_list_sel_paras(self):
+        
+        preview_widget = []
+        for item in self.preview_widget.selectedItems():
+            
+            preview_widget.append(item.data(Qt.UserRole))
+        return preview_widget
+        
+#    不显示时间
+    def display_paras(self, df_func):
+        if df_func is not None:
+            for i in range(len(df_func)):
+                item0 = QTableWidgetItem(df_func.iat[i,0])
+                item1 = QTableWidgetItem(df_func.iat[i,1])
+                item0.setData(Qt.UserRole, df_func.iat[i,0])
+                self.preview_widget.setItem(i,0,item0)
+                self.preview_widget.setItem(i,1,item1)
+                
+    
+    def get_preview_widget(self):
+        
+        preview_widget = []
+        count = self.preview_widget.count()
+        for i in range(count):
+            item = self.preview_widget.item(i)
+            preview_widget.append(item.data(Qt.UserRole))
+        return preview_widget
+    
+    def load_desc(self):
+        
+        try:
+            filedir = CONFIG.SETUP_DIR + r'\data\func_desc.txt'
+            funcfile = DataFile(filedir, sep='\t')
+            df_func = funcfile.all_input()
+            self.df_func = df_func
+        except:
+            pass
+
+    def retranslateUi(self):
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('SelfuncsDialog', '选择函数'))
+        self.line_edit_search.setPlaceholderText(_translate('SelParasDialog', '过滤器'))
+        self.btn_confirm.setText(_translate('SelfuncsDialog', '确定'))
+#        暂时屏蔽添加按钮，预留！！！！！！！！！,同上
+        if self.sel_mode == QAbstractItemView.ExtendedSelection and 0==1:
+            self.btn_add.setText(_translate('SelfuncsDialog', '添加'))
+        self.btn_cancel.setText(_translate('SelfuncsDialog', '取消'))
+
+
 
 class SelParasDialog_xparasetting(SelParasDialog):
     def __init__(self, parent = None, files = [], sel_mode = 0):
@@ -2636,7 +2771,7 @@ class ParameterExportDialog(QDialog):
                 data_stime = self.dict_data[file_dir].time_range[0]
             else:
 #                file = Normal_DataFile(file_dir)
-                file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+                file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
                 data_stime = file.time_range[0]
             starttime = self.line_edit_starttime.text()
             index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
@@ -2675,7 +2810,7 @@ class ParameterExportDialog(QDialog):
                 data_etime = self.dict_data[file_dir].time_range[1]
             else:
 #                file = Normal_DataFile(file_dir)
-                file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+                file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
                 data_etime = file.time_range[1]
             endtime = self.line_edit_endtime.text()
             index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
@@ -2765,7 +2900,7 @@ class ParameterExportDialog(QDialog):
         for index, file_dir in enumerate(dict_paras):
             if type(dict_paras[file_dir]) == list:
 #                file = Normal_DataFile(file_dir)
-                file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+                file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
                 filename = file.filename[:-4] + '(export' + str(index) + ')'
                 start = file.time_range[0]
                 end = file.time_range[1]
@@ -3089,7 +3224,7 @@ class FileProcessDialog(QDialog):
         if self.current_floder_item:
             file_dir = self.current_floder_item.data(0, Qt.UserRole)
 #            file = Normal_DataFile(file_dir)
-            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+            file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
             start = file.time_range[0]
             end = file.time_range[1]
             fre = file.sample_frequency
@@ -3212,7 +3347,7 @@ class FileProcessDialog(QDialog):
             label = self.current_interval_item.data(0, Qt.UserRole)
 #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
 #            file = Normal_DataFile(file_dir)
-            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+            file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
             data_stime = file.time_range[0]
             starttime = self.line_edit_starttime.text()
             file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
@@ -3250,7 +3385,7 @@ class FileProcessDialog(QDialog):
             label = self.current_interval_item.data(0, Qt.UserRole)
 #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
 #            file = Normal_DataFile(file_dir)
-            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+            file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
             data_etime = file.time_range[1]
             endtime = self.line_edit_endtime.text()
             file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
@@ -3346,11 +3481,11 @@ class FileProcessDialog(QDialog):
         for label in self.file_info:
             file_item, file_dir, filename, filetype, stime, etime, fre = self.file_info[label]
 #            file = Normal_DataFile(file_dir)
-            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+            file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
             folder = self.line_edit_file_dir.text() + '\\' + file.filename[:-4]
             if not os.path.exists(folder):
                 os.mkdir(folder)
-            data = file.cols_input(file_dir, file.paras_in_file, '\s+', stime, etime)
+            data = file.cols_input(file_dir, file.paras_in_file, file.sep, stime, etime)
             ana = DataAnalysis(file.time_format)
             if fre > file.sample_frequency:
                 data = ana.upsample(data, fre)
@@ -3375,7 +3510,7 @@ class FileProcessDialog(QDialog):
 
         for index, file_dir in enumerate(files):
 #            file = Normal_DataFile(file_dir)
-            file = DataFile_Factory(file_dir, filetype = self._dict_filetype[file_dir])
+            file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
             filename = file.filename[:-4]
             start = file.time_range[0]
             end = file.time_range[1]
@@ -4211,7 +4346,7 @@ class ImportDataFileDialog(QDialog):
 #        分号分隔
         self.cb_sep.addItem('', ';')
 #        逗号分隔
-        self.cb_sep.addItem('' ',')
+        self.cb_sep.addItem('', ',')
 #        空格分隔
         self.cb_sep.addItem('', r'\s+')
         self.horizontalLayout_8.addWidget(self.cb_sep)
@@ -4226,6 +4361,9 @@ class ImportDataFileDialog(QDialog):
         self.cb_time_format = QComboBox(self.frame_left_2)
         self.cb_time_format.setMinimumSize(QSize(120, 24))
         self.cb_time_format.setMaximumSize(QSize(120, 24))
+        self.cb_time_format.addItem('')
+        self.cb_time_format.addItem('')
+        self.cb_time_format.addItem('')
         self.cb_time_format.addItem('')
         self.cb_time_format.addItem('')
         self.cb_time_format.addItem('')
@@ -4311,10 +4449,13 @@ class ImportDataFileDialog(QDialog):
         self.cb_sep.setItemText(2, _translate('ImportDataFileDialog', '逗号'))
         self.cb_sep.setItemText(3, _translate('ImportDataFileDialog', '空格'))
         self.label_time_format.setText(_translate('ImportDataFileDialog', '时间格式'))
-        self.cb_time_format.setItemText(0, _translate('ImportDataFileDialog', 'HH:MM:SS:FFF'))
-        self.cb_time_format.setItemText(1, _translate('ImportDataFileDialog', 'HH:MM:SS:FFFFFF'))
-        self.cb_time_format.setItemText(2, _translate('ImportDataFileDialog', 'HH:MM:SS.FFF'))
-        self.cb_time_format.setItemText(3, _translate('ImportDataFileDialog', 'HH:MM:SS:FFFFFF'))
+        self.cb_time_format.setItemText(0, _translate('ImportDataFileDialog', '%H:%M:%S:%f'))
+        self.cb_time_format.setItemText(1, _translate('ImportDataFileDialog', '%H:%M:%S.%f'))
+        self.cb_time_format.setItemText(2, _translate('ImportDataFileDialog', '%H:%M:%S'))
+        self.cb_time_format.setItemText(3, _translate('ImportDataFileDialog', '%H-%M-%S.%f'))
+        self.cb_time_format.setItemText(4, _translate('ImportDataFileDialog', '%H-%M-%S-%f'))
+        self.cb_time_format.setItemText(5, _translate('ImportDataFileDialog', '%H-%M-%S'))
+        self.cb_time_format.setItemText(6, _translate('ImportDataFileDialog', '推断'))
         self.btn_confirm.setText(_translate('ImportDataFileDialog', '导入'))
         self.btn_cancel.setText(_translate('ImportDataFileDialog', '取消'))
         
