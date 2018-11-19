@@ -329,10 +329,10 @@ class Normal_DataFile(DataFile):
             if filedir.endswith(('.txt','.csv')):
                 if sep=='all':
                     #Use str or object to preserve and not interpret dtype
-                    df=pd.read_table(f,sep='\s+|\t|,|;',header=None,nrows=1,engine='python',dtype=object)
+                    df=pd.read_table(f,sep='\s+|\t|,|;',header=None,nrows=1,engine='python',dtype=object,skipinitialspace=True)
                     #or only input the columns index:nrows=0,remove header=None
                 else:
-                    df=pd.read_table(f,sep=sep,header=None,nrows=1,engine='c',dtype=object)
+                    df=pd.read_table(f,sep=sep,header=None,nrows=1,engine='c',dtype=object,skipinitialspace=True)
             if filedir.endswith(('.xls','.xlsx')):
                 df=pd.read_excel(f,header=None,nrows=1)
 #                df=df.iloc[0,:]  #deprecated as pandas version updated 
@@ -411,13 +411,13 @@ class Normal_DataFile(DataFile):
                                          skiprows=list(range(1,start_rows+1)),
                                          nrows=stop_rows-start_rows+1,
                                          index_col=False,
-                                         engine='python')
+                                         engine='python',skipinitialspace=True)
                     else:
                         df=pd.read_table(f,sep=sep,usecols=cols,
                                          skiprows=list(range(1,start_rows+1)),
                                          nrows=stop_rows-start_rows+1,
                                          index_col=False,
-                                         engine='c')
+                                         engine='c',skipinitialspace=True)
 
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=cols,
@@ -427,9 +427,9 @@ class Normal_DataFile(DataFile):
             else:
                 if filedir.endswith(('.txt','.csv')):
                     if sep=='all':
-                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,index_col=False,engine='python')
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,index_col=False,engine='python',skipinitialspace=True)
                     else:
-                        df=pd.read_table(f,sep=sep,usecols=cols,index_col=False,engine='c')
+                        df=pd.read_table(f,sep=sep,usecols=cols,index_col=False,engine='c',skipinitialspace=True)
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=cols,index_col=False)
                     
@@ -446,9 +446,9 @@ class Normal_DataFile(DataFile):
         with open(filedir,'r') as f:
             if filedir.endswith(('.txt','.csv')):
                 if sep=='all':
-                    df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,skiprows=skiprows,engine='python')
+                    df=pd.read_table(f,sep='\s+|\t|,|;',usecols=cols,skiprows=skiprows,engine='python',skipinitialspace=True)
                 else:
-                    df=pd.read_table(f,sep='\s+',usecols=cols,skiprows=skiprows,engine='c')
+                    df=pd.read_table(f,sep='\s+',usecols=cols,skiprows=skiprows,engine='c',skipinitialspace=True)
             if filedir.endswith(('.xls','.xlsx')):
                 df=pd.read_excel(f,header=None,usecols=cols,skiprows=skiprows)
         return df
@@ -476,10 +476,10 @@ class GPS_DataFile(DataFile):
             if filedir.endswith(('.txt','.csv')):
                 if sep=='all':
                     #Use str or object to preserve and not interpret dtype
-                    df=pd.read_table(f,sep='\s+|\t|,|;',header=None,nrows=2,skiprows=skiprows,engine='python',dtype=object)
+                    df=pd.read_table(f,sep='\s+|\t|,|;',header=None,nrows=2,skiprows=skiprows,engine='python',dtype=object,skipinitialspace=True)
                     #or only input the columns index:nrows=0,remove header=None
                 else:
-                    df=pd.read_table(f,sep=sep,header=None,nrows=2,skiprows=skiprows,engine='c',dtype=object)
+                    df=pd.read_table(f,sep=sep,header=None,nrows=2,skiprows=skiprows,engine='c',dtype=object,skipinitialspace=True)
             if filedir.endswith(('.xls','.xlsx')):
                 df=pd.read_excel(f,header=None,nrows=1)
 #                df=df.iloc[0,:]  #deprecated as pandas version updated 
@@ -497,7 +497,6 @@ class GPS_DataFile(DataFile):
 #            注意若是excel文件读取需要rb模式
         if cols:
             num_cols = [self.paras_in_file.index(idx) for idx in cols]
-            print(num_cols)
             
         with open(filedir,'r') as f:
             if (start_time and stop_time):
@@ -513,13 +512,13 @@ class GPS_DataFile(DataFile):
                                          skiprows=skiprows+start_rows+3,
                                          nrows=stop_rows-start_rows+1,header=None,
                                          index_col=False,
-                                         engine='python')
+                                         engine='python',skipinitialspace=True)
                     else:
                         df=pd.read_table(f,sep=sep,usecols=num_cols,
                                          skiprows=skiprows+start_rows+3,
                                          nrows=stop_rows-start_rows+1,header=None,
                                          index_col=False,
-                                         engine='c')
+                                         engine='c',skipinitialspace=True)
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=num_cols,
                                      skiprows=skiprows+start_rows+3,
@@ -528,9 +527,9 @@ class GPS_DataFile(DataFile):
             else:
                 if filedir.endswith(('.txt','.csv')):
                     if sep=='all':
-                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=num_cols,skiprows=skiprows+2,header=None,index_col=False,engine='python')
+                        df=pd.read_table(f,sep='\s+|\t|,|;',usecols=num_cols,skiprows=skiprows+2,header=None,index_col=False,engine='python',skipinitialspace=True)
                     else:
-                        df=pd.read_table(f,sep=sep,usecols=num_cols,skiprows=skiprows+2,header=None,index_col=False,engine='c')
+                        df=pd.read_table(f,sep=sep,usecols=num_cols,skiprows=skiprows+2,header=None,index_col=False,engine='c',skipinitialspace=True)
                 if filedir.endswith(('.xls','.xlsx')):
                     df=pd.read_excel(f,usecols=cols,skiprows=skiprows+2,header=None,index_col=False)
             df = df[num_cols]
@@ -899,5 +898,5 @@ if __name__ == '__main__':
 #    cusdata = DataFile_Factory(filedir, sep=',', filetype = 'custom datafile', skiprows = 2, timecol = 5, time_format = '%H:%M:%S')
     cusdata = DataFile_Factory(filedir, **file_kwargs)
 #    df = cusdata.header_input(filedir, 'all')
-    df = cusdata.cols_input(cols=cusdata.paras_in_file)
+    df = cusdata.cols_input(cols=[cusdata.paras_in_file[-1]])
     print(df)

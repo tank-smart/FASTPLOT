@@ -94,27 +94,28 @@ class MathematicsEditor(QPlainTextEdit):
         self.INT = 'INT'
         self.FLOAT = 'FLOAT'
 #        目前，只允许进行四则运算
-        self.token_exprs = [
-#                前两个表达式匹配空格和注释
-                ('\s+', None),
-                ('\=', self.RESERVED),
-                ('\(', self.RESERVED),
-                ('\)', self.RESERVED),
-                ('\+', self.RESERVED),
-                ('\-', self.RESERVED),
-                ('\*', self.RESERVED),
-                ('\/', self.RESERVED),
-                ('\.', self.RESERVED),
-                ('\,', self.RESERVED),
-                ('\^', self.RESERVED),
-                ('\'', self.RESERVED),
-                ('\:', self.RESERVED),
-                ('\[', self.RESERVED),
-                ('\]', self.RESERVED),
-                ('[0-9]+\.[0-9]+', self.FLOAT),
-                ('[0-9]+', self.INT),
-                (r'[A-Za-z][A-Za-z0-9_]*', self.VAR)]
+#        self.token_exprs = [
+##                前两个表达式匹配空格和注释
+#                ('\s+', None),
+#                ('\=', self.RESERVED),
+#                ('\(', self.RESERVED),
+#                ('\)', self.RESERVED),
+#                ('\+', self.RESERVED),
+#                ('\-', self.RESERVED),
+#                ('\*', self.RESERVED),
+#                ('\/', self.RESERVED),
+#                ('\.', self.RESERVED),
+#                ('\,', self.RESERVED),
+#                ('\^', self.RESERVED),
+#                ('\'', self.RESERVED),
+#                ('\:', self.RESERVED),
+#                ('\[', self.RESERVED),
+#                ('\]', self.RESERVED),
+#                ('[0-9]+\.[0-9]+', self.FLOAT),
+#                ('[0-9]+', self.INT),
+#                (r'[A-Za-z][A-Za-z0-9_]*', self.VAR)]
 #        为以后开发解释器时使用
+        self.token_exprs = []
 #        self.expression_consist_of_tokens = []
         self.paras_on_expr = []
         self.load_desc()
@@ -325,7 +326,7 @@ class MathematicsEditor(QPlainTextEdit):
             self.pre_exper = exec_text
 #            解析exec_text，如果满足要求，则执行运算
 #            if self.lex(exec_text) and self.paras_on_expr:
-            flag=self.lex(exec_text)
+            flag, exec_text=self.lex(exec_text)
             if flag!=-1:
                 if flag==1:
                     self.read_paras()
@@ -393,13 +394,16 @@ class MathematicsEditor(QPlainTextEdit):
                 if para in dict_files[file_dir]:
                     df = DataFactory(file_dir, [para], self._dict_filetype[file_dir])
                     df = df.data.set_index(df.data.columns[0])
+                    print(df)
 #                    dataframe to series                   
                     para_df = df.iloc[:,0]
 #                    para_df = df.data.iloc[:,1]
 #                    df_time = df.data.iloc[:,0]
 #                    exec('para=para_df',self.scope)
 #                    print(para_df.index)
-                    self.scope[para] = para_df
+                    self.scope['a'+str(abs(hash(para)))] = para_df
+
+                    
 #                    print(para_df)
 #                    self.scope[para+'time'] = df_time
                     
@@ -618,6 +622,7 @@ class MathematicsEditor(QPlainTextEdit):
         for file in files:
             file_fac = DataFile_Factory(file, **dict_filetype[file])
             paras += file_fac.paras_in_file
+
 #            normal_file = Normal_DataFile(file)
 #            paras += normal_file.paras_in_file
         
@@ -628,30 +633,32 @@ class MathematicsEditor(QPlainTextEdit):
 #        if self.funcs:
 #            
 #            self.func_highlighter = Highlighter(self.document(), self.funcs, Qt.magenta)
-            token_exprs = [
-    #                前两个表达式匹配空格和注释
-                    ('\s+', None),
-                    ('\=', self.RESERVED),
-                    ('\(', self.RESERVED),
-                    ('\)', self.RESERVED),
-                    ('\+', self.RESERVED),
-                    ('\-', self.RESERVED),
-                    ('\*', self.RESERVED),
-                    ('\/', self.RESERVED),
-                    ('\.', self.RESERVED),
-                    ('\,', self.RESERVED),
-                    ('\^', self.RESERVED),
-                    ('\'', self.RESERVED),
-                    ('\:', self.RESERVED),
-                    ('\[', self.RESERVED),
-                    ('\]', self.RESERVED),
-                    ('[0-9]+\.[0-9]+', self.FLOAT),
-                    ('[0-9]+', self.INT)]
-            
+#            token_exprs = [
+#    #                前两个表达式匹配空格和注释
+#                    ('\s+', None),
+#                    ('\=', self.RESERVED),
+#                    ('\(', self.RESERVED),
+#                    ('\)', self.RESERVED),
+#                    ('\+', self.RESERVED),
+#                    ('\-', self.RESERVED),
+#                    ('\*', self.RESERVED),
+#                    ('\/', self.RESERVED),
+#                    ('\.', self.RESERVED),
+#                    ('\,', self.RESERVED),
+#                    ('\^', self.RESERVED),
+#                    ('\'', self.RESERVED),
+#                    ('\:', self.RESERVED),
+#                    ('\[', self.RESERVED),
+#                    ('\]', self.RESERVED),
+#                    ('\-', self.RESERVED),
+#                    ('[0-9]+\.[0-9]+', self.FLOAT),
+#                    ('[0-9]+', self.INT)]
+            token_exprs = []
             for para in paras:
+               
                 token_exprs.append((para, self.PARA))
     #        先匹配参数名，如果不是参数再认为是变量
-            token_exprs.append((r'[A-Za-z][A-Za-z0-9_]*', self.VAR))
+#            token_exprs.append((r'[A-Za-z][A-Za-z0-9_]*', self.VAR))
             self.token_exprs = token_exprs
     
     def slot_math_script(self):
@@ -729,35 +736,40 @@ class MathematicsEditor(QPlainTextEdit):
 #    修改返回值为int，表示三种状态：1有合法可载入的参数;0无需要载入的参数;-1非法字符    
     def lex(self, charaters):
         
-        pos = 0
+#        pos = 0
         paranames = []
-        while pos < len(charaters):
-            match = None
-            for token_expr in self.token_exprs:
-                pattern, tag = token_expr
-                regex = re.compile(pattern)
-                match = regex.match(charaters, pos)
-                if match:
-                    text = match.group(0)
+#        while pos < len(charaters):
+        match = None
+        for token_expr in self.token_exprs:
+            pattern, tag = token_expr
+            match = charaters.find(pattern)
+#                regex = re.compile(pattern)
+#                match = regex.match(charaters, pos)
+            if match!=-1:
+#                    text = match.group(0)
+                text = pattern
 #                    if tag:
-                    if (tag == 'PARA') and not(text in paranames) and text not in self.scope:
-                        paranames.append(text)
-                    break
-            if not match:
-                QMessageBox.information(self,
-                        QCoreApplication.translate("MathematicsEditor", "提示"),
-                        QCoreApplication.translate("MathematicsEditor", '非法字符: %s' % charaters[pos]))
-#                self.expression_consist_of_tokens = []
-                self.paras_on_expr = []
-                return -1
-            else:
-                pos = match.end(0)
+                if (tag == 'PARA') and not(text in paranames) and str(hash(text)) not in self.scope:
+                    paranames.append(text)
+                    hash_para = abs(hash(text))
+                    new_charaters = charaters.replace(text, 'a'+str(hash_para))
+#                        self.dict_hashpara[str(hash_para)] = text
+               
+#        if match==-1:
+#            QMessageBox.information(self,
+#                    QCoreApplication.translate("MathematicsEditor", "提示"),
+#                    QCoreApplication.translate("MathematicsEditor", '非法字符: %s' % charaters[pos]))
+##                self.expression_consist_of_tokens = []
+#            self.paras_on_expr = []
+#            return (-1,None)
+#        else:
+#            pos = match.end(0)
 #        self.expression_consist_of_tokens = tokens
         self.paras_on_expr = paranames
         if self.paras_on_expr == []:
-            return 0
+            return (0,charaters)
         else:
-            return 1
+            return (1,new_charaters)
 #----------yanhua改
     
     def dict_current_files(self):
