@@ -9,7 +9,6 @@
 # PlotCanvasBase
 # FTDataPlotCanvasBase
 # FastPlotCanvas
-# SingleAxisPlotCanvasBase
 # SingleAxisPlotCanvas
 # SingleAxisXTimePlotCanvas
 # StackAxisPlotCanvas
@@ -47,10 +46,10 @@ from PyQt5.QtWidgets import (QMenu, QAction, QMessageBox, QDialog)
 # 自定义的包
 import views.config_info as CONFIG
 from views.custom_dialog import (Base_LineSettingDialog, LineSettingDialog, 
-                                 AnnotationSettingDialog, Base_AxisSettingDialog, 
-                                 AxisSettingDialog, StackAxisSettingDialog, 
-                                 DisplayParaAggregateInfoDialog, 
-                                 SaveTemplateDialog)
+                                 AnnotationSettingDialog, AxisSettingDialog,
+                                 StackAxisSettingDialog, DisplayParaAggregateInfoDialog, 
+                                 SaveTemplateDialog, ParameterExportDialog,
+                                 SingleUtAxisSettingDialog)
 import models.time_model as Time_Model
 from models.data_model import DataFactory
 # =============================================================================
@@ -759,6 +758,8 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
         self.total_data = {}
 #        时间
         self.time_series_list = {}
+#        所有数据的长度是否一致,用于判读能否绘制非时间图
+        self.is_same_length = True
 #        已创建的DataFactory个数
         self.count_created_data = 0
 #        顺序排列的参数及其对应的数据索引
@@ -795,6 +796,8 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                             self.total_data[index_df].extend_data(data_factory)
                             break
                     if not get_same_time_df:
+                        if self.total_data:
+                            self.is_same_length = False
                         data_label = '_figure_data_' + str(self.count_created_data)
                         dict_data_project[datasource] = data_label
 #                        total_data里存的就是当前绘图的参数数据，没有多余参数
@@ -938,16 +941,34 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                 list_paravalue_info.append(('', paraname, 'NaN'))
         return list_paravalue_info
     
+#    将从图中选择的时间段数据导出
+    def slot_export_tinterval_data_fig(self, stime, etime):
+        
+        data_container = {}
+        for i, data_factory in enumerate(self.total_data):
+#            get到的数据是拷贝，注意内存空间和速度
+            timerange, data = self.total_data[data_factory].get_trange_data(stime, etime)
+            if not data.empty:
+                data_container['_PLOTDATA'] = self.total_data[data_factory]
+        if data_container:
+            dialog = ParameterExportDialog(self, data_container)
+            return_signal = dialog.exec_()
+            if return_signal == QDialog.Accepted:
+                QMessageBox.information(self,
+                                        QCoreApplication.translate('FTDataPlotCanvasBase', '保存提示'),
+                                        QCoreApplication.translate('FTDataPlotCanvasBase', '保存成功！'))
+    
     def slot_clear_canvas(self):
         
         PlotCanvasBase.slot_clear_canvas(self)
         self.total_data = {}
         self.sorted_paralist = []
         self.time_series_list = {}
+        self.is_same_length = True
         self.count_created_data = 0
 
 #    当新建一种画布类时必须重载绘图函数
-    def plot_paras(self, datalist, sorted_paras, xpara = None):
+    def plot_paras(self, datalist, sorted_paras):
         
         raise KeyError('must overload function \'plot_paras\'(FastPlot).')
         
@@ -980,6 +1001,10 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         
         self.aux_lines = []
         self._count_value_mark = 0
+#        数据选段
+        self.data_span = None
+        self.cid_drag_data_inter = None
+        self.cid_release_data_inter = None
         
         self.action_display_data_info = QAction(self)
         self.action_display_data_info.setText(QCoreApplication.
@@ -1001,6 +1026,10 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         self.action_del_axis.setText(QCoreApplication.
                                      translate('FastPlotCanvas', '删除曲线'))
         self.action_del_axis.triggered.connect(self.slot_del_axis)
+        self.action_sel_data_inter = QAction(self)
+        self.action_sel_data_inter.setText(QCoreApplication.
+                                           translate('FastPlotCanvas', '选择数据'))
+        self.action_del_axis.triggered.connect(self.slot_sel_data_inter)
         
         
     def custom_context_menu(self, event):
@@ -1231,6 +1260,56 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                         self.plot_total_data()
                     break
 
+    def slot_sel_data_inter(self):
+        
+#        if self.fig.axes:
+        self.setCursor(Qt.SizeHorCursor)
+        self.current_cursor_inaxes = Qt.SizeHorCursor
+        self.cid_drag_data_inter = self.mpl_connect('motion_notify_event',
+                                                    self.slot_onmove_data_inter)
+        self.cid_release_data_inter = self.mpl_connect('button_release_event',
+                                                       self.slot_release_data_inter)
+        
+    def slot_onmove_data_inter(self, event):
+        
+        if event.inaxes and event.button == 1:
+            if self.data_span:
+#                返回四个点的位置N×2的numpy
+                xy = self.data_span.get_xy()
+                xy[2][0] = event.xdata
+                xy[3][0] = event.xdata
+                self.data_span.set_xy(xy)
+                self.draw()
+            else:
+                self.data_span = self.current_axes.axvspan(event.xdata, event.xdata,
+                                                           facecolor = 'g', alpha = 0.5)
+#                self.data_span = self.current_axes.axvspan(event.xdata, event.xdata,
+#                                                           facecolor = 'g', alpha = 0.5, hatch = '/')
+    
+    def slot_release_data_inter(self, event):
+        
+        if event.button == 1:
+            self.setCursor(Qt.ArrowCursor)
+            self.current_cursor_inaxes = Qt.ArrowCursor
+            if self.cid_drag_data_inter and self.cid_release_data_inter:
+                self.mpl_disconnect(self.cid_drag_data_inter)
+                self.mpl_disconnect(self.cid_release_data_inter)
+                self.cid_release_data_inter = None
+                self.cid_drag_data_inter = None
+#                返回四个点的位置N×2的numpy
+                xy = self.data_span.get_xy()
+                st = xy[0][0]
+                et = xy[3][0]
+                if st > et:
+                    st = xy[3][0]
+                    et = xy[0][0]
+                self.slot_export_tinterval_data_fig(mdates.num2date(st).replace(tzinfo=None),
+                                                    mdates.num2date(et).replace(tzinfo=None))
+                self.data_span.remove()
+                self.data_span = None
+                self.signal_added_artist.emit('vspan')
+                self.draw()
+
     def slot_connect_display_paravalue(self):
         
         if self.fig.axes and self.aux_lines == []:
@@ -1311,7 +1390,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         x = matplotlib.dates.num2date(x)
         return Time_Model.datetime_to_timestr(x)
             
-    def plot_paras(self, datalist, sorted_paras, xpara = None):
+    def plot_paras(self, datalist, sorted_paras):
 
         self.restore_axes_info()
         is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
@@ -1966,42 +2045,224 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                                     QCoreApplication.translate('FastPlotCanvas', '模板应用提示'),
                                     QCoreApplication.translate('FastPlotCanvas', '模板应用时出现错误！'))
         
-class SingleAxisPlotCanvasBase(FTDataPlotCanvasBase):
+#class SingleAxisPlotCanvasBase(FTDataPlotCanvasBase):
+#    
+#    def __init__(self, parent = None):
+#    
+#        super().__init__(parent)
+#        self.count_axes = 1
+#        
+#    def slot_axis_setting(self):
+#        
+#        dialog = Base_AxisSettingDialog(self, self.axis_menu_on)
+#        return_signal = dialog.exec_()
+#        if (return_signal == QDialog.Accepted):
+#            self.draw()
+#            
+#    def plot_paras(self, datalist, sorted_paras, xpara = None):
+#
+#        is_plot = self.process_data(datalist, sorted_paras)
+#        xpara = "FCM1_Voted_Mach"
+#        for index in self.total_data:
+#            
+#            if xpara not in self.total_data[index].data_paralist:
+#                
+#                print_message = self.total_data[index].filedir
+#                QMessageBox.information(self,
+#                        QCoreApplication.translate('PlotCanvas', '绘图提示'),
+#                        QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
+#                return
+#                
+#        
+#        if xpara == None:
+#            xdata = "self.time_series_list[index]"
+#        else:
+#            xdata = "self.total_data[index].data[xpara]"
+#            
+#        
+#        if is_plot:
+#            self.fig.clf()
+#            matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+#            matplotlib.rcParams['ytick.direction'] = 'in'
+##            支持中文显示
+##            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+#            matplotlib.rcParams['axes.unicode_minus'] = False
+#            
+#            count = len(self.sorted_paralist)
+#            self.count_curves = count
+#    
+#            axeslist = []
+##            self.color_index = 0
+#            for i, para_tuple in enumerate(self.sorted_paralist):
+#                self.signal_progress.emit(int(i/count*100))
+#                paraname, index = para_tuple
+#                ax = None
+#                if i == 0:
+#                    ax = self.fig.add_subplot(count, 1, 1)
+#                else:
+#                    ax = self.fig.add_subplot(count, 1, i+1, sharex = axeslist[0])
+#                axeslist.append(ax)
+#                
+#                if (self._data_dict and 
+#                    CONFIG.OPTION['data dict scope plot'] and
+#                    paraname in self._data_dict):
+#                    pn = self._data_dict[paraname][0]
+#                    unit = self._data_dict[paraname][1]
+#                    if pn != 'NaN':
+#                        if unit != 'NaN' and unit != '1':
+#                            pn = pn + '(' + unit + ')'
+#                        ax.plot(eval(xdata), 
+#                                self.total_data[index].data[paraname],
+#                                label = pn,
+#                                color = self.curve_colors[self.color_index],
+#                                lw = 1)
+#                    else:
+#                        ax.plot(eval(xdata), 
+#                                self.total_data[index].data[paraname],
+#                                color = self.curve_colors[self.color_index],
+#                                lw = 1)
+#                else:
+#                    ax.plot(eval(xdata), 
+#                            self.total_data[index].data[paraname],
+#                            color = self.curve_colors[self.color_index],
+#                            lw = 1)
+#                
+#                if i != (count - 1):
+#                    plt.setp(ax.get_xticklabels(), visible = False)
+#                else:
+#                    xlabel = xpara
+#                    if (self._data_dict and 
+#                    CONFIG.OPTION['data dict scope plot'] and
+#                    paraname in self._data_dict):
+#                        xlabel = self._data_dict[xpara][0]
+#                        xunit = self._data_dict[xpara][1]
+#                    if xlabel != 'NaN':
+#                        if xunit != 'NaN' and xunit != '1':
+#                            xlabel = xlabel + '(' + xunit + ')'
+#                    
+#                    ax.set_xlabel(xlabel, fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
+##                    若已指定fontproperties属性，则fontsize不起作用
+#                    plt.setp(ax.get_xticklabels(),
+#                             horizontalalignment = 'center',
+#                             rotation = 'horizontal',
+#                             fontproperties = CONFIG.FONT_MSYH)
+##                    ax.set_xlabel('Time', fontproperties = self.font_times)
+#                plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+##                ax.legend(fontsize = self.default_fontsize,
+##                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
+##                          prop = CONFIG.FONT_MSYH)
+#                ax.legend(loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
+#                          prop = CONFIG.FONT_MSYH)
+##                ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+#                ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+#                ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+#                ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+#                ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+#                ax.grid(which='major',linestyle='--',color = '0.45')
+#                ax.grid(which='minor',linestyle='--',color = '0.75')
+#    #                一共有十种颜色可用
+#                if self.color_index == 9:
+#                    self.color_index = 0
+#                else:
+#                    self.color_index += 1
+#            
+#            self.init_axes_lim = {}
+#            self.init_axes_lim = self.get_current_axes_lim()
+#            self.adjust_figure()
+#            self.xaxes_flag = xpara #标志x轴是否为时间
+#            
+#    def adjust_figure(self):
+#        
+#        h = self.height()
+#        w = self.width()
+##        设置图四边的空白宽度 
+#        bottom_gap = round(50 / h, 2)
+#        right_gap = round((w - 40) / w, 2)       
+#        left_gap = round(70 / w, 2)
+#        m = int(self.count_curves / 4)
+#        if self.count_curves % 4 != 0:
+#            m += 1
+#        top_gap = round((h - 20 * m) / h, 2)
+#
+#        self.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
+#                                 right=right_gap,top=top_gap,hspace=0.16)
+#        self.draw()
+#        
+#    def adjust_savefig(self):
+#        
+##        图注高度
+#        legend_h = 18
+##        坐标高度
+#        axis_h = 300
+##        画布尺寸
+#        h = (axis_h + legend_h) + legend_h
+#        w = 650
+#        bottom_gap = round(legend_h * 2 / h, 2)
+#        right_gap = round((w - 10) / w, 2)
+#        left_gap = round(50 / w, 2)
+#        m = int(self.count_curves / 4)
+#        if self.count_curves % 4 != 0:
+#            m += 1
+#        top_gap = round((h - legend_h * m) / h, 2)
+#        hs = round(legend_h / (axis_h + legend_h), 2)
+#        self.resize(w, h)
+#        self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
+#                                 right = right_gap, top = top_gap, hspace = hs)
+
+class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
+    
+    signal_adjust_win = pyqtSignal()
     
     def __init__(self, parent = None):
     
         super().__init__(parent)
         self.count_axes = 1
+        self.data_timerange = {'enable' : True,
+                               'whole_stime' : '',
+                               'whole_etime' : '',
+                               'view_stime' : '',
+                               'view_etime' : ''}
         
     def slot_axis_setting(self):
         
-        dialog = Base_AxisSettingDialog(self, self.axis_menu_on)
+        dialog = SingleUtAxisSettingDialog(self, self.axis_menu_on, self.data_timerange)
         return_signal = dialog.exec_()
         if (return_signal == QDialog.Accepted):
+            self.data_timerange = dialog.data_timerange
+            self.plot_total_data()
             self.draw()
-            
-    def plot_paras(self, datalist, sorted_paras, xpara = None):
-
-        is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
-        xpara = "FCM1_Voted_Mach"
-        for index in self.total_data:
-            
-            if xpara not in self.total_data[index].data_paralist:
-                
-                print_message = self.total_data[index].filedir
-                QMessageBox.information(self,
-                        QCoreApplication.translate('PlotCanvas', '绘图提示'),
-                        QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
-                return
-                
         
-        if xpara == None:
-            xdata = "self.time_series_list[index]"
-        else:
-            xdata = "self.total_data[index].data[xpara]"
-            
+    def slot_clear_canvas(self):
+        
+        self.count_axes = 1
+        self.data_timerange = {'enable' : True,
+                               'whole_stime' : '',
+                               'whole_etime' : '',
+                               'view_stime' : '',
+                               'view_etime' : ''}
+        FTDataPlotCanvasBase.slot_clear_canvas(self)
+        
+    def plot_paras(self, datalist, sorted_paras):
+
+#        self.restore_axes_info()
+        is_plot = self.process_data(datalist, sorted_paras)
         
         if is_plot:
+            self.count_axes = 1
+            self.signal_adjust_win.emit()
+            
+            x_paraname, x_index = self.sorted_paralist[0]
+            tr = self.total_data[x_index].time_range
+            self.data_timerange['whole_stime'] = self.data_timerange['view_stime'] = tr[0]
+            self.data_timerange['whole_etime'] = self.data_timerange['view_etime'] = tr[1]
+            
+            self.plot_total_data()
+        
+#    默认以第一个参数为x轴坐标
+    def plot_total_data(self):
+
+#        数据长度是通过判断时间是否一致来确定的，因此较特殊，后续需要改进
+        if self.is_same_length:
             self.fig.clf()
             matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
             matplotlib.rcParams['ytick.direction'] = 'in'
@@ -2009,20 +2270,28 @@ class SingleAxisPlotCanvasBase(FTDataPlotCanvasBase):
 #            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
             matplotlib.rcParams['axes.unicode_minus'] = False
             
+            ax = self.fig.add_subplot(1, 1, 1)
             count = len(self.sorted_paralist)
+            s_paralist = self.sorted_paralist
+            if count != 1:
+                s_paralist = s_paralist[1:]
+                count = count - 1
             self.count_curves = count
-    
-            axeslist = []
-#            self.color_index = 0
-            for i, para_tuple in enumerate(self.sorted_paralist):
+            self.color_index = 0
+            
+            x_paraname, x_index = self.sorted_paralist[0]
+            x_data = self.total_data[x_index].data[x_paraname]
+            if self.data_timerange['view_stime'] and self.data_timerange['view_etime']:
+                tr, x_data = self.total_data[x_index].get_trange_data(self.data_timerange['view_stime'], self.data_timerange['view_etime'], [x_paraname], False)
+                
+            for i, para_tuple in enumerate(s_paralist):
                 self.signal_progress.emit(int(i/count*100))
                 paraname, index = para_tuple
-                ax = None
-                if i == 0:
-                    ax = self.fig.add_subplot(count, 1, 1)
-                else:
-                    ax = self.fig.add_subplot(count, 1, i+1, sharex = axeslist[0])
-                axeslist.append(ax)
+                y_data = self.total_data[index].data[paraname]
+                if self.data_timerange['view_stime'] and self.data_timerange['view_etime']:
+                    tr, y_data = self.total_data[index].get_trange_data(self.data_timerange['view_stime'], self.data_timerange['view_etime'], [paraname], False)
+                    self.data_timerange['view_stime'] = tr[0]
+                    self.data_timerange['view_etime'] = tr[1]
                 
                 if (self._data_dict and 
                     CONFIG.OPTION['data dict scope plot'] and
@@ -2032,163 +2301,29 @@ class SingleAxisPlotCanvasBase(FTDataPlotCanvasBase):
                     if pn != 'NaN':
                         if unit != 'NaN' and unit != '1':
                             pn = pn + '(' + unit + ')'
-                        ax.plot(eval(xdata), 
-                                self.total_data[index].data[paraname],
+                        ax.plot(x_data, 
+                                y_data,
                                 label = pn,
                                 color = self.curve_colors[self.color_index],
-                                lw = 1)
+                                ls = 'None',
+                                marker = '.',
+                                gid = 'dataline_' + paraname)
                     else:
-                        ax.plot(eval(xdata), 
-                                self.total_data[index].data[paraname],
+                        ax.plot(x_data, 
+                                y_data,
+                                label = paraname,
                                 color = self.curve_colors[self.color_index],
-                                lw = 1)
+                                ls = 'None',
+                                marker = '.',
+                                gid = 'dataline_' + paraname)
                 else:
-                    ax.plot(eval(xdata), 
-                            self.total_data[index].data[paraname],
+                    ax.plot(x_data, 
+                            y_data,
+                            label = paraname,
                             color = self.curve_colors[self.color_index],
-                            lw = 1)
-                
-                if i != (count - 1):
-                    plt.setp(ax.get_xticklabels(), visible = False)
-                else:
-                    xlabel = xpara
-                    if (self._data_dict and 
-                    CONFIG.OPTION['data dict scope plot'] and
-                    paraname in self._data_dict):
-                        xlabel = self._data_dict[xpara][0]
-                        xunit = self._data_dict[xpara][1]
-                    if xlabel != 'NaN':
-                        if xunit != 'NaN' and xunit != '1':
-                            xlabel = xlabel + '(' + xunit + ')'
-                    
-                    ax.set_xlabel(xlabel, fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
-#                    若已指定fontproperties属性，则fontsize不起作用
-                    plt.setp(ax.get_xticklabels(),
-                             horizontalalignment = 'center',
-                             rotation = 'horizontal',
-                             fontproperties = CONFIG.FONT_MSYH)
-#                    ax.set_xlabel('Time', fontproperties = self.font_times)
-                plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
-#                ax.legend(fontsize = self.default_fontsize,
-#                          loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
-#                          prop = CONFIG.FONT_MSYH)
-                ax.legend(loc=(0,1), ncol=1, frameon=False, borderpad = 0.15,
-                          prop = CONFIG.FONT_MSYH)
-#                ax.xaxis.set_major_formatter(FuncFormatter(self.my_format))
-                ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
-                ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
-                ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
-                ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
-                ax.grid(which='major',linestyle='--',color = '0.45')
-                ax.grid(which='minor',linestyle='--',color = '0.75')
-    #                一共有十种颜色可用
-                if self.color_index == 9:
-                    self.color_index = 0
-                else:
-                    self.color_index += 1
-            
-            self.init_axes_lim = {}
-            self.init_axes_lim = self.get_current_axes_lim()
-            self.adjust_figure()
-            self.xaxes_flag = xpara #标志x轴是否为时间
-            
-    def adjust_figure(self):
-        
-        h = self.height()
-        w = self.width()
-#        设置图四边的空白宽度 
-        bottom_gap = round(50 / h, 2)
-        right_gap = round((w - 40) / w, 2)       
-        left_gap = round(70 / w, 2)
-        m = int(self.count_curves / 4)
-        if self.count_curves % 4 != 0:
-            m += 1
-        top_gap = round((h - 20 * m) / h, 2)
-
-        self.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
-                                 right=right_gap,top=top_gap,hspace=0.16)
-        self.draw()
-        
-    def adjust_savefig(self):
-        
-#        图注高度
-        legend_h = 18
-#        坐标高度
-        axis_h = 300
-#        画布尺寸
-        h = (axis_h + legend_h) + legend_h
-        w = 650
-        bottom_gap = round(legend_h * 2 / h, 2)
-        right_gap = round((w - 10) / w, 2)
-        left_gap = round(50 / w, 2)
-        m = int(self.count_curves / 4)
-        if self.count_curves % 4 != 0:
-            m += 1
-        top_gap = round((h - legend_h * m) / h, 2)
-        hs = round(legend_h / (axis_h + legend_h), 2)
-        self.resize(w, h)
-        self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
-                                 right = right_gap, top = top_gap, hspace = hs)
-
-class SingleAxisPlotCanvas(SingleAxisPlotCanvasBase):
-    
-    def __init__(self, parent = None):
-    
-        super().__init__(parent)
-        self.count_axes = 1
-        
-    def plot_paras(self, datalist, sorted_paras, xpara = None):
-
-        is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
-
-        for index in self.total_data:
-        
-            if xpara not in self.total_data[index].data_paralist:
-                
-                print_message = self.total_data[index].filedir
-                QMessageBox.information(self,
-                        QCoreApplication.translate('PlotCanvas', '绘图提示'),
-                        QCoreApplication.translate('PlotCanvas', print_message+'绘图失败'))
-                return
-        xdata = "self.total_data[index].data[xpara]"
-        
-        if is_plot:
-            self.fig.clf()
-            self.count_axes = 1
-            matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
-            matplotlib.rcParams['ytick.direction'] = 'in'
-#            支持中文显示
-#            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
-            matplotlib.rcParams['axes.unicode_minus'] = False
-            
-            ax = self.fig.add_subplot(1, 1, 1)
-            count = len(self.sorted_paralist)
-            self.count_curves = count
-#            self.color_index = 0
-            for i, para_tuple in enumerate(self.sorted_paralist):
-                self.signal_progress.emit(int(i/count*100))
-                paraname, index = para_tuple
-                if paraname in self._data_dict:
-                    pn = self._data_dict[paraname][0]
-                    unit = self._data_dict[paraname][1]
-                    if pn != 'NaN':
-                        if unit != 'NaN' and unit != '1':
-                            pn = pn + '(' + unit + ')'
-                        ax.plot(eval(xdata), 
-                                self.total_data[index].data[paraname],
-                                label = pn,
-                                color = self.curve_colors[self.color_index],
-                                lw = 1)
-                    else:
-                        ax.plot(eval(xdata), 
-                                self.total_data[index].data[paraname],
-                                color = self.curve_colors[self.color_index],
-                                lw = 1)
-                else:
-                    ax.plot(eval(xdata), 
-                            self.total_data[index].data[paraname],
-                            color = self.curve_colors[self.color_index],
-                            lw = 1)
+                            ls = 'None',
+                            marker = '.',
+                            gid = 'dataline_' + paraname)
 #                一共有十种颜色可用
                 if self.color_index == 9:
                     self.color_index = 0
@@ -2196,12 +2331,12 @@ class SingleAxisPlotCanvas(SingleAxisPlotCanvasBase):
                     self.color_index += 1
             
                 
-            xlabel = xpara
+            xlabel = x_paraname
             if (self._data_dict and 
-            CONFIG.OPTION['data dict scope plot'] and
-            paraname in self._data_dict):
-                xlabel = self._data_dict[xpara][0]
-                xunit = self._data_dict[xpara][1]
+                CONFIG.OPTION['data dict scope plot'] and
+                x_paraname in self._data_dict):
+                xlabel = self._data_dict[x_paraname][0]
+                xunit = self._data_dict[x_paraname][1]
                 if xlabel != 'NaN':
                     if xunit != 'NaN' and xunit != '1':
                         xlabel = xlabel + '(' + xunit + ')'
@@ -2227,6 +2362,10 @@ class SingleAxisPlotCanvas(SingleAxisPlotCanvasBase):
             self.init_axes_lim = {}
             self.init_axes_lim = self.get_current_axes_lim()
             self.adjust_figure()
+        else:
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('SingleAxisPlotCanvas', '绘图提示'),
+                                    QCoreApplication.translate('SingleAxisPlotCanvas', '数据长度不一致'))
             
     def adjust_figure(self):
         
@@ -2414,7 +2553,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         self.del_curve_acitons = []
         self.count_curves = 0
         
-    def plot_paras(self, datalist, sorted_paras, xpara = None):
+    def plot_paras(self, datalist, sorted_paras):
 
         self.restore_axes_info()
         is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
@@ -2803,7 +2942,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         self.selected_sta_axis = None
         self.selected_sta_axis_index = 0
         
-    def plot_paras(self, datalist, sorted_paras, xpara = None):
+    def plot_paras(self, datalist, sorted_paras):
 
         self.restore_axes_info()
         is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)

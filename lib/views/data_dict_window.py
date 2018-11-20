@@ -271,6 +271,7 @@ class DataDictWindow(QWidget):
                 self.data_dict[symbol][1] = 'NaN'
                 item.setText(2, '')
             self.signal_data_dict_changed.emit(self.data_dict)
+            CONFIG.OPTION['data dict version'] = 'custom.json'
             self.save_data_dict()
             QMessageBox.information(self,
                                     QCoreApplication.translate('DataDictWindow', '保存提示'),
@@ -317,8 +318,9 @@ class DataDictWindow(QWidget):
                     del self.data_dict[item.text(0)]
                 self.tree_paras.setCurrentItem(self.tree_paras.currentItem())
                 self.slot_display_para(self.tree_paras.currentItem())
-                self.save_data_dict()
                 self.signal_data_dict_changed.emit(self.data_dict)
+                CONFIG.OPTION['data dict version'] = 'custom.json'
+                self.save_data_dict()
                 if self.data_dict:
                     pass
                 else:
@@ -355,8 +357,11 @@ class DataDictWindow(QWidget):
                         else:
                             ex_paras.append(para_info_list[0])
                         line = file.readline()
-                if data_dict or ex_paras:
+
+                if data_dict:
                     self.display_data_dict(data_dict)
+                    self.signal_data_dict_changed.emit(self.data_dict)
+                    CONFIG.OPTION['data dict version'] = 'custom.json'
                     if ex_paras:
                         print_para = '以下软件标识符已存在：'
                         for pa in ex_paras:
@@ -368,6 +373,10 @@ class DataDictWindow(QWidget):
                                              self)
                         ms_box.setTextInteractionFlags(Qt.TextSelectableByMouse)
                         ms_box.exec_()
+                    else:
+                        QMessageBox.information(self,
+                                                QCoreApplication.translate('DataDictWindow', '导入提示'),
+                                                QCoreApplication.translate('DataDictWindow', '字典导入成功！'))
                 else:
                     QMessageBox.information(self,
                                             QCoreApplication.translate('DataDictWindow', '导入提示'),
@@ -403,7 +412,7 @@ class DataDictWindow(QWidget):
     def load_data_dict(self):
         
         try:
-            with open(CONFIG.SETUP_DIR + r'\data\data_dict.json') as f_obj:
+            with open(CONFIG.SETUP_DIR + r'\data\data_dicts\\' + CONFIG.OPTION['data dict version']) as f_obj:
                 self.data_dict = json.load(f_obj)
 #            with open(CONFIG.SETUP_DIR + r'\data\data_dict.txt', 'r') as file:
 #                line = file.readline()
@@ -416,6 +425,7 @@ class DataDictWindow(QWidget):
 #                        if not(para_info_list[0] in self.data_dict):
 #                            self.data_dict[para_info_list[0]] = para_info_list[1:]
 #                        line = file.readline()
+            self.tree_paras.clear()
             self.display_data_dict(self.data_dict)
             self.signal_data_dict_changed.emit(self.data_dict)
         except:
@@ -426,7 +436,7 @@ class DataDictWindow(QWidget):
     def save_data_dict(self):
         
         try:
-            with open(CONFIG.SETUP_DIR + r'\data\data_dict.json', 'w') as f_obj:
+            with open(CONFIG.SETUP_DIR + r'\data\data_dicts\\' + CONFIG.OPTION['data dict version'], 'w') as f_obj:
                 json.dump(self.data_dict, f_obj)
         except:
             QMessageBox.information(self,

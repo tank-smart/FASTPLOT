@@ -136,7 +136,11 @@ def to_datetime(time):
 def datetime_to_timestr(dt : Pytime):
     
     if dt:
-        return dt.time().isoformat(timespec='milliseconds')
+        re = dt.microsecond % 1000
+        if re == 0:
+            return dt.time().isoformat(timespec = 'milliseconds')
+        else:
+            return dt.time().isoformat(timespec = 'microseconds')
     else:
         return None
     
@@ -183,6 +187,7 @@ if __name__ == '__main__':
 #    print(datetime_to_timestr(t))
 #    print(and_time_intervals(('6:13','12:13:47.291'),('14:13','16:13')))
     print(time_format('5:57:15'))
+
     
     
     

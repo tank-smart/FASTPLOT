@@ -20,6 +20,8 @@ DIR_HELP_VIDEO = SETUP_DIR + r'\help\videos'
 #默认设置
 OPTION = {'dir of quick import' : '',
           'dir of custom import' : '',
+          'dir of export data' : '',
+          'data dict version' : 'custom.json',
           'data dict scope paralist' : True,
           'data dict scope plot' : True,
           'data dict scope style' : 1,#0-参数名，1-软件标识符(参数名)，2-参数名(软件标识符)
@@ -46,6 +48,7 @@ ICON_WINDOW = SETUP_DIR + r'\lib\icon\fastplot.png'
 
 ICON_ABOUT = SETUP_DIR + r'\lib\icon\information.ico'
 ICON_DATA_ABSTRACT = SETUP_DIR + r'\lib\icon\data_abstract.ico'
+ICON_DATA_CUT = SETUP_DIR + r'\lib\icon\data_cut.png'
 ICON_ADD_LINE_MARK = SETUP_DIR + r'\lib\icon\line_marker.ico'
 
 ICON_BACK = SETUP_DIR + r'\lib\icon\back.ico'
@@ -70,7 +73,7 @@ ICON_HOME = SETUP_DIR + r'\lib\icon\home.ico'
 ICON_LINE = SETUP_DIR + r'\lib\icon\line.ico'
 ICON_MATHEMATICS = SETUP_DIR + r'\lib\icon\caculator.ico'
 ICON_MATH_RESULT = SETUP_DIR + r'\lib\icon\math_result.ico'
-ICON_MULT_AXIS = SETUP_DIR + r'\lib\icon\mult_axis.ico'
+ICON_MULT_AXIS = SETUP_DIR + r'\lib\icon\mult_axis.png'
 
 ICON_OPEN_NORDATA = SETUP_DIR + r'\lib\icon\nor_data.ico'
 
@@ -89,6 +92,7 @@ ICON_SAVE_TEMP = SETUP_DIR + r'\lib\icon\save_template.ico'
 ICON_SEL_TEMP = SETUP_DIR + r'\lib\icon\use_template.ico'
 ICON_SETTING = SETUP_DIR + r'\lib\icon\setting.ico'
 ICON_SINGLE_AXIS = SETUP_DIR + r'\lib\icon\sin_axis.ico'
+ICON_SINGLE_UT_AXIS = SETUP_DIR + r'\lib\icon\sin_ut_axis.png'
 ICON_STACK_AXIS = SETUP_DIR + r'\lib\icon\stack_axis.ico'
 
 ICON_TEMPLATE = SETUP_DIR + r'\lib\icon\template.ico'

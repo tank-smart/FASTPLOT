@@ -282,6 +282,8 @@ class MainWindow(QMainWindow):
         self.action_add_ma_fig.setIcon(QIcon(CONFIG.ICON_MULT_AXIS))
         self.action_add_sta_fig = QAction(self)
         self.action_add_sta_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
+        self.action_add_sut_fig = QAction(self)
+        self.action_add_sut_fig.setIcon(QIcon(CONFIG.ICON_SINGLE_UT_AXIS))
 #        self.action_add_ux_fig = QAction(self)
 #        self.action_add_ux_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
         
@@ -335,7 +337,8 @@ class MainWindow(QMainWindow):
         
         self.toolbar_plot.addActions([self.action_add_sa_fig,
                                       self.action_add_ma_fig,
-                                      self.action_add_sta_fig])
+                                      self.action_add_sta_fig,
+                                      self.action_add_sut_fig])
         
 #        将绘图页面显示为初始页面
 #        self.stacked_window.setCurrentIndex(2)
@@ -380,6 +383,7 @@ class MainWindow(QMainWindow):
         self.action_add_sa_fig.triggered.connect(self.plot_page.slot_add_sa_fig)
         self.action_add_ma_fig.triggered.connect(self.plot_page.slot_add_ma_fig)
         self.action_add_sta_fig.triggered.connect(self.plot_page.slot_add_stack_fig)
+        self.action_add_sut_fig.triggered.connect(self.plot_page.slot_add_sut_fig)
 #        self.action_add_ux_fig.triggered.connect(self.plot_page.slot_add_ux_fig)
         
         self.signal_import_datafiles.connect(
@@ -800,6 +804,8 @@ class MainWindow(QMainWindow):
         dialog = OptionDialog(self)
         return_signal = dialog.exec_()
         if (return_signal == QDialog.Accepted):
+            if dialog.dd_version_changed:
+                self.data_dict_page.load_data_dict()
             for index in range(self.plot_page.tab_widget_figure.count()):
                 self.plot_page.tab_widget_figure.widget(index).canva.update_config_info()
 
@@ -868,6 +874,7 @@ class MainWindow(QMainWindow):
         self.action_add_ma_fig.setText(_translate('MainWindow', '添加多坐标图'))
         self.action_add_sa_fig.setText(_translate('MainWindow', '添加单坐标图'))
         self.action_add_sta_fig.setText(_translate('MainWindow', '添加重叠图'))
+        self.action_add_sut_fig.setText(_translate('MainWindow', '添加散点图'))
         
 def main():
     app = QApplication(sys.argv)

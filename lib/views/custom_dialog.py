@@ -2408,11 +2408,11 @@ class Base_AxisSettingDialog(QDialog):
         
         count = len(self.enum_linestyle_name)
         for i in range(count):
-            self.combo_box_linestyle.setItemText(i, _translate('LineSettingDialog',
+            self.combo_box_linestyle.setItemText(i, _translate('AxisSettingDialog',
                                                                self.enum_linestyle_name[i]))
         count = len(self.enum_marker_name)
         for i in range(count):
-            self.combo_box_marker.setItemText(i, _translate('LineSettingDialog',
+            self.combo_box_marker.setItemText(i, _translate('AxisSettingDialog',
                                                                self.enum_marker_name[i]))
 
 class AxisSettingDialog(Base_AxisSettingDialog):
@@ -2480,7 +2480,112 @@ class AxisSettingDialog(Base_AxisSettingDialog):
     
     def text_to_value(self, text):
         value = mdates.date2num(Time_Model.str_to_datetime(text))
-        return value            
+        return value 
+
+class SingleUtAxisSettingDialog(Base_AxisSettingDialog):
+
+    def __init__(self, parent = None, axes : Axes = None, data_timerange : dict = {}):
+
+        super().__init__(parent, axes)
+        self.data_timerange = data_timerange
+        if self.data_timerange['enable']:
+            self.add_timerange()
+
+    def add_timerange(self):
+        
+        self.group_timerange = QGroupBox(self)
+        self.group_timerange.setTitle(QCoreApplication.translate('SingleUtAxisSettingDialog', '显示范围'))
+        self.vlayout_tr = QVBoxLayout(self.group_timerange)
+        self.vlayout_tr.setContentsMargins(2, 2, 2, 2)
+        self.vlayout_tr.setSpacing(2)
+        self.label_whole_time = QLabel(self.group_timerange)
+        self.label_whole_time.setMinimumSize(QSize(16777215, 24))
+        self.label_whole_time.setMaximumSize(QSize(16777215, 24))
+        self.label_whole_time.setText(QCoreApplication.translate('SingleUtAxisSettingDialog',
+                                                                 '完整时间段：' + self.data_timerange['whole_stime'] + ' - ' + self.data_timerange['whole_etime']))
+        self.vlayout_tr.addWidget(self.label_whole_time)
+        
+        self.hlayout_stime = QHBoxLayout()
+        self.label_stime = QLabel(self.group_timerange)
+        self.label_stime.setText(QCoreApplication.translate('SingleUtAxisSettingDialog', '开始时间'))
+        self.label_stime.setMinimumSize(QSize(75, 24))
+        self.label_stime.setMaximumSize(QSize(75, 24))
+        self.hlayout_stime.addWidget(self.label_stime)
+        self.line_edit_stime = QLineEdit(self.group_timerange)
+        self.line_edit_stime.setMinimumSize(QSize(120, 24))
+        self.line_edit_stime.setMaximumSize(QSize(16777215, 24))
+        self.line_edit_stime.setText(self.data_timerange['view_stime'])
+        self.hlayout_stime.addWidget(self.line_edit_stime)
+        self.vlayout_tr.addLayout(self.hlayout_stime)
+        
+        self.hlayout_etime = QHBoxLayout()
+        self.label_etime = QLabel(self.group_timerange)
+        self.label_etime.setText(QCoreApplication.translate('SingleUtAxisSettingDialog', '结束时间'))
+        self.label_etime.setMinimumSize(QSize(75, 24))
+        self.label_etime.setMaximumSize(QSize(75, 24))
+        self.hlayout_etime.addWidget(self.label_etime)
+        self.line_edit_etime = QLineEdit(self.group_timerange)
+        self.line_edit_etime.setMinimumSize(QSize(120, 24))
+        self.line_edit_etime.setMaximumSize(QSize(16777215, 24))
+        self.line_edit_etime.setText(self.data_timerange['view_etime'])
+        self.hlayout_etime.addWidget(self.line_edit_etime)
+        self.vlayout_tr.addLayout(self.hlayout_etime)
+        
+        self.verticalLayout_3.insertWidget(1, self.group_timerange)
+        
+        self.line_edit_stime.editingFinished.connect(self.slot_change_stime)
+        self.line_edit_etime.editingFinished.connect(self.slot_change_etime)
+        
+    def slot_change_stime(self):
+        
+        etime = self.line_edit_etime.text()
+        stime = self.line_edit_stime.text()
+        if Time_Model.is_std_format(stime):
+            if Time_Model.compare(stime, etime) != 1:
+#                    输入正确的起始时间后，还需要转换成标准格式后再显示
+                self.data_timerange['view_stime'] = Time_Model.timestr_to_stdtimestr(stime)
+                self.line_edit_stime.setText(self.data_timerange['view_stime'])
+            else:
+                self.line_edit_stime.setText(self.data_timerange['view_stime'])
+                QMessageBox.information(self,
+                                        QCoreApplication.translate('SingleUtAxisSettingDialog', '输入提示'),
+                                        QCoreApplication.translate('SingleUtAxisSettingDialog', '起始时间大于终止时间'))
+        else:
+            self.line_edit_stime.setText(self.data_timerange['view_stime'])
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('SingleUtAxisSettingDialog', '输入提示'),
+                                    QCoreApplication.translate('SingleUtAxisSettingDialog', '''<b>请输入正确时间格式</b>
+                                                               <br>HH
+                                                               <br>HH:MM
+                                                               <br>HH:MM:SS
+                                                               <br>HH:MM:SS.FFF
+                                                               <br>HH:MM:SS:FFF'''))
+            
+    def slot_change_etime(self):
+        
+        etime = self.line_edit_etime.text()
+        stime = self.line_edit_stime.text()
+        if Time_Model.is_std_format(etime):
+            if Time_Model.compare(stime, etime) != 1:
+#                    输入正确的起始时间后，还需要转换成标准格式后再显示
+                self.data_timerange['view_etime'] = Time_Model.timestr_to_stdtimestr(etime)
+                self.line_edit_etime.setText(self.data_timerange['view_etime'])
+            else:
+                self.line_edit_etime.setText(self.data_timerange['view_etime'])
+                QMessageBox.information(self,
+                                        QCoreApplication.translate('SingleUtAxisSettingDialog', '输入提示'),
+                                        QCoreApplication.translate('SingleUtAxisSettingDialog', '终止时间小于起始时间'))
+        else:
+            self.line_edit_etime.setText(self.data_timerange['view_etime'])
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('SingleUtAxisSettingDialog', '输入提示'),
+                                    QCoreApplication.translate('SingleUtAxisSettingDialog', '''<b>请输入正确时间格式</b>
+                                                               <br>HH
+                                                               <br>HH:MM
+                                                               <br>HH:MM:SS
+                                                               <br>HH:MM:SS.FFF
+                                                               <br>HH:MM:SS:FFF'''))
+            
 
 class StackAxisSettingDialog(AxisSettingDialog):
 
@@ -2547,7 +2652,9 @@ class ParameterExportDialog(QDialog):
         self._data_dict = None
         if dict_filetype:
             self._dict_filetype = dict_filetype
-        if os.path.exists(CONFIG.OPTION['work dir']):
+        if os.path.exists(CONFIG.OPTION['dir of export data']):
+            self.dir = CONFIG.OPTION['dir of export data']
+        elif os.path.exists(CONFIG.OPTION['work dir']):
             self.dir = CONFIG.OPTION['work dir']
         else:
             self.dir = CONFIG.SETUP_DIR
@@ -2866,31 +2973,41 @@ class ParameterExportDialog(QDialog):
     def accept(self):
         
         self.signal_send_status.emit('导出数据中...', 0)
+        existint_file = ''
         for file_dir in self.file_info:
             index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
-#            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
-            if file_dir[0] == '_':
-                real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
-            else:
-                data = DataFactory(file_dir, paralist, self._dict_filetype[file_dir])
-#                a=time.time()
-                real_timerange, data = data.get_trange_data(stime, etime)
-#                b=time.time()
-#                print(b-a)
             filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
-            file_outpout = DataFile(filepath)
-#            导出TXT文件
-            if filetype == '.txt':
-                file_outpout.save_file(filepath , data , sep = '\t')
-#            导出CSV文件
-            if filetype == '.csv':
-                file_outpout.save_file(filepath , data , sep = ',')
-#            导出MAT文件
-            if filetype == '.mat':
-                file_outpout.save_matfile(filepath, data)
-        self.signal_send_status.emit('导出数据成功！', 1500)
-        
-        QDialog.accept(self)
+            if os.path.exists(filepath):
+                existint_file += filename + filetype + '\n'
+        if existint_file:
+            existint_file = '以下文件已存在导出路径中：\n' + existint_file
+            QMessageBox.information(self,
+                                    QCoreApplication.translate('ParameterExportDialog', '导出提示'),
+                                    QCoreApplication.translate('ParameterExportDialog', existint_file))
+        else:
+            for file_dir in self.file_info:
+                index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+    #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
+                if file_dir[0] == '_':
+                    real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
+                else:
+                    data = DataFactory(file_dir, paralist, self._dict_filetype[file_dir])
+                    real_timerange, data = data.get_trange_data(stime, etime)
+                filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
+                file_outpout = DataFile(filepath)
+    #            导出TXT文件
+                if filetype == '.txt':
+                    file_outpout.save_file(filepath , data , sep = '\t')
+    #            导出CSV文件
+                if filetype == '.csv':
+                    file_outpout.save_file(filepath , data , sep = ',')
+    #            导出MAT文件
+                if filetype == '.mat':
+                    file_outpout.save_matfile(filepath, data)
+                CONFIG.OPTION['dir of export data'] = self.line_edit_file_dir.text()
+            self.signal_send_status.emit('导出数据成功！', 1500)
+            
+            QDialog.accept(self)
             
     def display_file_info(self, dict_paras):
         
@@ -3690,6 +3807,8 @@ class OptionDialog(QDialog):
 #        按#RRGGBB格式赋值
         self.font_color = Color.to_hex(CONFIG.OPTION['plot fontcolor'])
         self.line_color = Color.to_hex(CONFIG.OPTION['plot markline color'])
+#        字典版本是否被改变
+        self.dd_version_changed = False
         super().__init__(parent)
         
         self.setup()
@@ -3910,6 +4029,28 @@ class OptionDialog(QDialog):
         self.cb_plot_win.setMaximumSize(QSize(16777215, 24))
         self.verticalLayout_4.addWidget(self.cb_plot_win)
         self.verticalLayout_5.addWidget(self.groupBox)
+        
+        self.gb_data_dict_version = QGroupBox(self.page_data_dict)
+        self.verticalLayout_8 = QVBoxLayout(self.gb_data_dict_version)
+        self.verticalLayout_8.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_8.setSpacing(2)
+        self.horizontalLayout_11 = QHBoxLayout()
+        self.cb_dd_version = QComboBox(self.gb_data_dict_version)
+        self.cb_dd_version.setMinimumSize(QSize(150, 24))
+        self.cb_dd_version.setMaximumSize(QSize(150, 24))
+        enum_dd_version = ['custom.json', '102test.json']
+        for i, name in enumerate(enum_dd_version):
+            self.cb_dd_version.addItem("")
+            self.cb_dd_version.setItemData(i, name, Qt.UserRole)
+        index = enum_dd_version.index(CONFIG.OPTION['data dict version'])
+        self.cb_dd_version.setCurrentIndex(index)
+        
+        self.horizontalLayout_11.addWidget(self.cb_dd_version)
+        spacerItem3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout_11.addItem(spacerItem3)
+        self.verticalLayout_8.addLayout(self.horizontalLayout_11)
+        self.verticalLayout_5.addWidget(self.gb_data_dict_version)
+        
         spacerItem = QSpacerItem(20, 269, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout_5.addItem(spacerItem)
         self.stack_option_win.addWidget(self.page_data_dict)
@@ -3983,6 +4124,10 @@ class OptionDialog(QDialog):
         CONFIG.OPTION['plot markline style'] = self.cb_ls.currentData()
         CONFIG.OPTION['plot markline color'] = self.line_color
         CONFIG.OPTION['plot markline marker'] = self.cb_lm.currentData()
+        if CONFIG.OPTION['data dict version'] != self.cb_dd_version.currentData():
+            CONFIG.OPTION['data dict version'] = self.cb_dd_version.currentData()
+            self.dd_version_changed = True
+        
         
         try:
     #        打开保存模板的文件（将从头写入，覆盖之前的内容）
@@ -4013,7 +4158,8 @@ class OptionDialog(QDialog):
         if index == 2:
             self.cb_paralist_win.setChecked(True)
             self.cb_plot_win.setChecked(True)
-            self.com_box_style.setCurrentIndex(1)  
+            self.com_box_style.setCurrentIndex(1) 
+#            self.cb_dd_version.setCurrentIndex(1)
     
     def slot_option_win_change(self, cur_row):
         
@@ -4086,6 +4232,11 @@ class OptionDialog(QDialog):
         self.label_lc_view.setText(_translate('OptionDialog', ''))
         self.btn_sel_lc.setText(_translate('OptionDialog', 'C'))
         self.label_lm.setText(_translate('OptionDialog', '标记'))
+        self.gb_data_dict_version.setTitle(_translate("Dialog", "字典版本"))
+        
+        enum_dd_version_name = ['自定义', '102实时预处理任务书']
+        for i, name in enumerate(enum_dd_version_name):
+            self.cb_dd_version.setItemText(i, _translate('OptionDialog', name))
         
         enum_linestyle_name = ['Nothing', 'Solid', 'Dashed', 
                                     'Dashdot', 'Dotted']

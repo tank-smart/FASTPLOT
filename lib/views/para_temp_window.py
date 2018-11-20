@@ -466,32 +466,32 @@ class ParaTempWindow(QWidget):
                     if flag != '========\n':
                         raise IOError('Unsupported file!(FastPlot.)')
                     while flag == '========\n':
-#                            readline函数会把'\n'也读进来
+#                         readline函数会把'\n'也读进来
                          name = file.readline()
-    #                         去除'\n'
+#                         去除'\n'
                          name = name.strip('\n')
-                         name = name.split()
+#                         name = name.split()
                          str_paralist = file.readline()
                          str_paralist = str_paralist.strip('\n')
-    #                         split函数不加参数则默认使用空格
+#                         split函数不加参数则默认使用空格
                          paralist = str_paralist.split()
                          para_temps[name] = paralist
                          flag = file.readline()
             except:
                 QMessageBox.information(self,
-                                QCoreApplication.translate('ParaTempWindow', '模板提示'),
-                                QCoreApplication.translate('ParaTempWindow', 
-                                                           '''<p><b>文件内容格式不正确！</b></p>
-                                                           <p>请按下列格式输入：</p>
-                                                           <br>========
-                                                           <br>模板名
-                                                           <br>参数名+空格+参数名+空格+......
-                                                           <br>========
-                                                           <br>......
-                                                           <p>示例：</p>
-                                                           <br>========
-                                                           <br>角度
-                                                           <br>theta AOA FPA'''))
+                                        QCoreApplication.translate('ParaTempWindow', '模板提示'),
+                                        QCoreApplication.translate('ParaTempWindow', 
+                                                                   '''<p><b>文件内容格式不正确！</b></p>
+                                                                   <p>请按下列格式输入：</p>
+                                                                   <br>========
+                                                                   <br>模板名
+                                                                   <br>参数名+空格+参数名+空格+......
+                                                                   <br>========
+                                                                   <br>......
+                                                                   <p>示例：</p>
+                                                                   <br>========
+                                                                   <br>角度
+                                                                   <br>theta AOA FPA'''))
                  
             self.slot_add_para_template(para_temps)
             
@@ -535,7 +535,7 @@ class ParaTempWindow(QWidget):
 
 #        读入数据字典，由于_data_dict这个变量需要比较的初始化，
 #        所以采用直接读文件的形式，而不是等data_dict_window类把数据传过来再初始化
-            with open(CONFIG.SETUP_DIR + r'\data\data_dict.json') as f_obj:
+            with open(CONFIG.SETUP_DIR + r'\data\data_dicts\\' + CONFIG.OPTION['data dict version']) as f_obj:
                 self._data_dict = json.load(f_obj)
         except:
             QMessageBox.information(self,

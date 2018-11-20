@@ -26,9 +26,8 @@ from PyQt5.QtGui import QIcon, QKeyEvent, QFont
 # =============================================================================
 # Package views imports
 # =============================================================================
-from models.figure_model import (FastPlotCanvas, SingleAxisPlotCanvasBase,
-                                 SingleAxisXTimePlotCanvas, StackAxisPlotCanvas,
-                                 SingleAxisPlotCanvas)
+from models.figure_model import (FastPlotCanvas, SingleAxisXTimePlotCanvas,
+                                 StackAxisPlotCanvas, SingleAxisPlotCanvas)
 from views.custom_dialog import DisplayParaValuesDialog, SelectPlotTemplateDialog
 import views.config_info as CONFIG
 # =============================================================================
@@ -45,8 +44,6 @@ class FigureWindow(QScrollArea):
         
         if fig_style == 'fast_plot_fig':
             self.canva = FastPlotCanvas(self)
-        if fig_style == 'custom_axis_fig':
-            self.canva = SingleAxisPlotCanvasBase(self)
         if fig_style == 'single_axis_fig':
             self.canva = SingleAxisPlotCanvas(self)
         if fig_style == 'single_axis_xtime_fig':
@@ -315,6 +312,13 @@ class PlotWindow(QWidget):
         self.button_sel_temp.setIconSize(QSize(22, 22))
         self.button_sel_temp.setIcon(QIcon(CONFIG.ICON_SEL_TEMP))
         self.verticalLayout.addWidget(self.button_sel_temp)
+        self.button_sel_data_inter = QToolButton(self.widget_plot_tools)
+        self.button_sel_data_inter.setCheckable(True)
+        self.button_sel_data_inter.setMinimumSize(QSize(30, 30))
+        self.button_sel_data_inter.setMaximumSize(QSize(30, 30))
+        self.button_sel_data_inter.setIconSize(QSize(22, 22))
+        self.button_sel_data_inter.setIcon(QIcon(CONFIG.ICON_DATA_CUT))
+        self.verticalLayout.addWidget(self.button_sel_data_inter)
         spacerItem = QSpacerItem(20, 219, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         
@@ -397,6 +401,7 @@ class PlotWindow(QWidget):
         self.button_add_vl.clicked.connect(self.slot_add_vline)
         self.button_add_line.clicked.connect(self.slot_add_line)
         self.button_sel_temp.clicked.connect(self.slot_sel_plot_temp)
+        self.button_sel_data_inter.clicked.connect(self.slot_sel_data_inter)
 
 #        self.combo_box_time.activated.connect(self.slot_display_paravalue_ontime)
 #        self.tool_btn_time.clicked.connect(self.slot_import_paravalue)
@@ -450,6 +455,7 @@ class PlotWindow(QWidget):
         
         self.current_canva.signal_added_artist.connect(self.slot_uncheck_add_artist_btn)
         self.current_canva.signal_adjust_win.disconnect(self.adjust_fig_win)
+        
 #        self.current_canva.signal_cursor_xdata.disconnect(self.slot_display_paravalue)
 #        self.current_canva.signal_send_time.disconnect(self.slot_save_time)
 #        self.current_canva.signal_send_tinterval.disconnect(self.slot_save_tinterval)
@@ -499,7 +505,7 @@ class PlotWindow(QWidget):
             self.signal_send_status.emit('绘图中...', 0)
             self.add_PDialog()
             self.current_canva.dict_filetype = self._dict_filetype
-            self.current_canva.plot_paras(datadict, sorted_paras, xpara)
+            self.current_canva.plot_paras(datadict, sorted_paras)
             self.pDialog_close()
             self.signal_send_status.emit('绘图完成！', 1500)
             
@@ -852,11 +858,12 @@ class PlotWindow(QWidget):
                 self.button_zoom.setEnabled(True)
                 self.button_back.setEnabled(True)
                 self.button_forward.setEnabled(True)
-            if (type(self.current_canva) == SingleAxisPlotCanvasBase or
-                type(self.current_canva) == SingleAxisPlotCanvas):
+            if type(self.current_canva) == SingleAxisPlotCanvas:
                 self.button_get_paravalue.setEnabled(False)
+                self.button_sel_data_inter.setEnabled(False)
             else:
                 self.button_get_paravalue.setEnabled(True)
+                self.button_sel_data_inter.setEnabled(True)
     
 #    def slot_add_sa_fig(self):
 #        
@@ -929,6 +936,16 @@ class PlotWindow(QWidget):
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(stack_fig_win))
         stack_fig_win.canva.signal_progress.connect(self.set_value)
         
+    def slot_add_sut_fig(self):
+        
+        sut_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_fig')
+        self.tab_widget_figure.addTab(sut_fig_win,
+                                      QIcon(CONFIG.ICON_SINGLE_UT_AXIS),
+                                      QCoreApplication.translate('PlotWindow',
+                                                                 '散点图'))
+        self.slot_fig_win_change(self.tab_widget_figure.indexOf(sut_fig_win))
+        sut_fig_win.canva.signal_progress.connect(self.set_value)
+        
 #    绘制非时间轴的图
 #    def slot_add_ux_fig(self):
 #        
@@ -971,6 +988,8 @@ class PlotWindow(QWidget):
             self.button_add_vl.setChecked(False)
         if flag == 'line' and self.button_add_line.isChecked():
             self.button_add_line.setChecked(False)
+        if flag == 'vspan' and self.button_sel_data_inter.isChecked():
+            self.button_sel_data_inter.setChecked(False)
     
     def slot_add_hline(self):
         
@@ -1013,6 +1032,20 @@ class PlotWindow(QWidget):
             self.current_canva.slot_add_arb_markline()
         else:
             self.current_canva.slot_disconnect()
+    
+    def slot_sel_data_inter(self):
+        
+        if self.button_sel_data_inter.isChecked():
+#            保证功能冲突的按钮不能同时处于按下状态
+            if (self.current_clicked_btn and 
+                self.current_clicked_btn != self.button_sel_data_inter and 
+                self.current_clicked_btn.isChecked()):
+                    self.current_clicked_btn.click()
+            self.current_clicked_btn = self.button_sel_data_inter
+            
+            self.current_canva.slot_sel_data_inter()
+        else:
+            self.current_canva.slot_release_data_inter()
             
     def slot_sel_plot_temp(self):
         
@@ -1067,6 +1100,9 @@ class PlotWindow(QWidget):
         self.button_add_hl.setToolTip(_translate('PlotWindow', '添加水平标记线'))
         self.button_add_vl.setToolTip(_translate('PlotWindow', '添加垂直标记线'))
         self.button_add_line.setToolTip(_translate('PlotWindow', '添加任意标记线'))
+        self.button_save_temp.setToolTip(_translate('PlotWindow', '保存绘图模板'))
+        self.button_sel_temp.setToolTip(_translate('PlotWindow', '选择绘图模板'))
+        self.button_sel_data_inter.setToolTip(_translate('PlotWindow', '选择数据段'))
         
 #        self.group_box_time_interval.setTitle(_translate('PlotWindow', '时间查看器'))
 #        self.tool_btn_time_interval.setText(_translate('PlotWindow', '...'))
