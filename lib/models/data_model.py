@@ -11,6 +11,7 @@
 # 
 # =============================================================================
 import sys
+import copy
 #测试用
 sys.path.append('E:\FASTPLOT\lib')
 
@@ -256,12 +257,19 @@ class DataFactory(object):
     def get_trange_data(self, stime = None, etime = None, paralist = [], is_with_time = True):
         if stime and etime:
 #            bool_re = Time_Model.compare(stime, etime)
-            sdatetime = Time_Model.str_to_datetime(stime)
-            edatetime = Time_Model.str_to_datetime(etime)
+            if isinstance(stime, str):
+                sdatetime = Time_Model.str_to_datetime(stime)
+            else:
+                sdatetime = stime
+            if isinstance(stime, str):
+                edatetime = Time_Model.str_to_datetime(etime)
+            else:
+                edatetime = etime
+            
             left = 0
             right = len(self.data)-1
             if sdatetime<=edatetime:
-                sloc = self.binary_search(left, right, sdatetime, self.data.iloc[:,0], 'start') 
+                sloc = self.binary_search(left, right, sdatetime, self.data.iloc[:,0], 'start')
                 eloc = self.binary_search(left, right, edatetime, self.data.iloc[:,0], 'end')
                 if sloc is not None and eloc is not None:
                     std_stime = Time_Model.timestr_to_stdtimestr(self.data.iloc[sloc, 0])
@@ -276,6 +284,7 @@ class DataFactory(object):
                         if is_with_time:
                             return ((std_stime, std_etime), 
                                     self.data[sloc : (eloc + 1)])
+#                                    self.data[sloc : (eloc + 1)])
                         else:
                             return ((std_stime, std_etime), 
                                     self.data[self.get_paralist()][sloc : (eloc + 1)])
@@ -287,6 +296,8 @@ class DataFactory(object):
             return(None, None)
     
     def binary_search(self, left, right, value, timeserie, position):
+#        print(timeserie)
+#        print(str(left)+'--'+str(right))
         if Time_Model.str_to_datetime(timeserie[left])<= value and Time_Model.str_to_datetime(timeserie[right])>= value:
             if right-left>1:
                 mid = int((left+right)/2)
