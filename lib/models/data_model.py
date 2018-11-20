@@ -41,9 +41,7 @@ class DataFactory(object):
                 self.data_paralist = file.paras_in_file
             self.data = file.cols_input(data_source, self.data_paralist)
 #            按指定顺序排列
-            print(self.data.iloc[:,-1])
             self.data = self.data[self.data_paralist]
-            print(self.data.iloc[:,-1])
 #            确定起止时间
             self.time_range = file.time_range
 #            确定采样频率

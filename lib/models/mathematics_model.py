@@ -394,14 +394,17 @@ class MathematicsEditor(QPlainTextEdit):
                 if para in dict_files[file_dir]:
                     df = DataFactory(file_dir, [para], self._dict_filetype[file_dir])
                     df = df.data.set_index(df.data.columns[0])
-                    print(df)
 #                    dataframe to series                   
                     para_df = df.iloc[:,0]
 #                    para_df = df.data.iloc[:,1]
 #                    df_time = df.data.iloc[:,0]
 #                    exec('para=para_df',self.scope)
 #                    print(para_df.index)
-                    self.scope['a'+str(abs(hash(para)))] = para_df
+                    if hash(para)>=0:
+                        hash_para = 'a'+str(hash(para))
+                    else:
+                        hash_para = 'b'+str(abs(hash(para)))
+                    self.scope[hash_para] = para_df
 
                     
 #                    print(para_df)
@@ -748,13 +751,18 @@ class MathematicsEditor(QPlainTextEdit):
             if match!=-1:
 #                    text = match.group(0)
                 text = pattern
-#                    if tag:
-                if (tag == 'PARA') and not(text in paranames) and str(hash(text)) not in self.scope:
-                    paranames.append(text)
-                    hash_para = abs(hash(text))
-                    new_charaters = charaters.replace(text, 'a'+str(hash_para))
+                if hash(text)>=0:
+                    hash_para = 'a'+str(hash(text))
+                else:
+                    hash_para = 'b'+str(abs(hash(text)))
+                if (tag == 'PARA'):
+                    charaters = charaters.replace(text, hash_para)
+                    if not(text in paranames) and hash_para not in self.scope:
+                        paranames.append(text)
+#                    hash_para = abs(hash(text))
+#                    new_charaters = charaters.replace(text, hash_para)
 #                        self.dict_hashpara[str(hash_para)] = text
-               
+                
 #        if match==-1:
 #            QMessageBox.information(self,
 #                    QCoreApplication.translate("MathematicsEditor", "提示"),
@@ -769,7 +777,7 @@ class MathematicsEditor(QPlainTextEdit):
         if self.paras_on_expr == []:
             return (0,charaters)
         else:
-            return (1,new_charaters)
+            return (1,charaters)
 #----------yanhua改
     
     def dict_current_files(self):
