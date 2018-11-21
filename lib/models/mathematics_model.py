@@ -90,6 +90,7 @@ class MathematicsEditor(QPlainTextEdit):
         self.pre_exper = ''
         self.RESERVED = 'RESERVED'
         self.PARA = 'PARA'
+        self.FUNC = 'FUNC'
         self.VAR = 'VAR'
         self.INT = 'INT'
         self.FLOAT = 'FLOAT'
@@ -430,6 +431,11 @@ class MathematicsEditor(QPlainTextEdit):
         
 #        self.funcs = ['abs','add','sub','mul','div','resample','sqrt','pow',
 #                      'init_time','output','.interpolate','.isna','.append']
+#    def update_tokenfuncs(self):
+#        token_exprs = []
+#        for func in self.funcs:
+#            token_exprs.appned((func, self.FUNC))
+#        self.token_exprs = token_exprs
 
     def clc(self):
         self.scope={}
@@ -662,7 +668,7 @@ class MathematicsEditor(QPlainTextEdit):
                 token_exprs.append((para, self.PARA))
     #        先匹配参数名，如果不是参数再认为是变量
 #            token_exprs.append((r'[A-Za-z][A-Za-z0-9_]*', self.VAR))
-            self.token_exprs = token_exprs
+            self.token_exprs += token_exprs
     
     def slot_math_script(self):
         
@@ -741,6 +747,7 @@ class MathematicsEditor(QPlainTextEdit):
         
 #        pos = 0
         paranames = []
+        lenth = len(charaters)
 #        while pos < len(charaters):
         match = None
         for token_expr in self.token_exprs:
@@ -749,13 +756,31 @@ class MathematicsEditor(QPlainTextEdit):
 #                regex = re.compile(pattern)
 #                match = regex.match(charaters, pos)
             if match!=-1:
-#                    text = match.group(0)
+                
                 text = pattern
-                if hash(text)>=0:
-                    hash_para = 'a'+str(hash(text))
+                start = match
+                end = match+lenth
+                regex = re.compile(r'^[A-Za-z0-9_]*$')
+                s_is_para = False
+                e_is_para = False
+                if start-1<0:
+                    s_is_para = True
                 else:
-                    hash_para = 'b'+str(abs(hash(text)))
-                if (tag == 'PARA'):
+                    sre = regex.match(charaters[start-1])
+                    if sre is None:
+                        s_is_para = True
+                if end>lenth-1:
+                    e_is_para = True
+                else:
+                    ere = regex.match(charaters[end])
+                    if ere is None:
+                        e_is_para = True
+                if (tag == 'PARA') and (s_is_para == True and e_is_para == True):   
+                    if hash(text)>=0:
+                        hash_para = 'a'+str(hash(text))
+                    else:
+                        hash_para = 'b'+str(abs(hash(text)))
+#                if (tag == 'PARA'):
                     charaters = charaters.replace(text, hash_para)
                     if not(text in paranames) and hash_para not in self.scope:
                         paranames.append(text)
@@ -774,6 +799,7 @@ class MathematicsEditor(QPlainTextEdit):
 #            pos = match.end(0)
 #        self.expression_consist_of_tokens = tokens
         self.paras_on_expr = paranames
+        print(self.paras_on_expr)
         if self.paras_on_expr == []:
             return (0,charaters)
         else:

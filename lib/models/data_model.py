@@ -11,7 +11,6 @@
 # 
 # =============================================================================
 import sys
-import copy
 #测试用
 sys.path.append('E:\FASTPLOT\lib')
 
@@ -298,23 +297,23 @@ class DataFactory(object):
     def binary_search(self, left, right, value, timeserie, position):
 #        print(timeserie)
 #        print(str(left)+'--'+str(right))
-        if Time_Model.str_to_datetime(timeserie[left])<= value and Time_Model.str_to_datetime(timeserie[right])>= value:
+        if Time_Model.str_to_datetime(timeserie.iloc[left])<= value and Time_Model.str_to_datetime(timeserie.iloc[right])>= value:
             if right-left>1:
                 mid = int((left+right)/2)
-                if Time_Model.str_to_datetime(timeserie[mid])>value:
+                if Time_Model.str_to_datetime(timeserie.iloc[mid])>value:
                     return self.binary_search(left, mid, value, timeserie, position)
-                elif Time_Model.str_to_datetime(timeserie[mid])<value:
+                elif Time_Model.str_to_datetime(timeserie.iloc[mid])<value:
                     return self.binary_search(mid, right, value, timeserie, position)
                 else:
                     return mid
             else:
                 if position == 'start':
-                    if Time_Model.str_to_datetime(timeserie[left])==value:
+                    if Time_Model.str_to_datetime(timeserie.iloc[left])==value:
                         return left
                     else:
                         return right
                 if position =='end':
-                    if Time_Model.str_to_datetime(timeserie[right])==value:
+                    if Time_Model.str_to_datetime(timeserie.iloc[right])==value:
                         return right
                     else:
                         return left

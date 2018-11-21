@@ -427,7 +427,7 @@ class PlotCanvasBase(FigureCanvas):
                 size = 8)
         if event.inaxes and event.button == 1:
 #            此处的字体大小size会覆盖fontproperties中size的属性
-            self.current_axes.annotate(text = r'Text',
+            self.current_axes.annotate(r'Text',
                                        gid = 'marktext',
                                        xy = (event.xdata, event.ydata),
                                        color = self.current_text_color,
@@ -949,7 +949,7 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
 #            get到的数据是拷贝，注意内存空间和速度
             timerange, data = self.total_data[data_factory].get_trange_data(stime, etime)
             if not data.empty:
-                data_container['_PLOTDATA'] = self.total_data[data_factory]
+                data_container['_PLOTDATA'] = data
         if data_container:
             dialog = ParameterExportDialog(self, data_container)
             return_signal = dialog.exec_()
@@ -1120,7 +1120,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                                           marker = self.current_markline_marker,
                                           picker = 5,
                                           gid = '_valuemark' + str(self._count_value_mark))
-                self.current_axes.annotate(text = '时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]),
+                self.current_axes.annotate('时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]),
                                            xy = (rt, list_paravalue_info[index][2]),
                                            color = self.current_text_color,
                                            size = self.current_text_size,
@@ -1570,7 +1570,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             
         marktexts = dict_axis_info['marktexts']
         for mt in marktexts:
-            ax.annotate(text = mt['content'],
+            ax.annotate(mt['content'],
                         gid = 'marktext',
                         xy =  mt['xy'],
                         xytext = mt['xytext'],
@@ -1605,7 +1605,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                               picker = 5)
             line.set_ydata(valuemark_ls[vm_gid]['ydata'])
             
-            ax.annotate(text = valuemark_ts[vm_gid]['content'],
+            ax.annotate(valuemark_ts[vm_gid]['content'],
                         gid = vm_gid,
                         xy =  valuemark_ts[vm_gid]['xy'],
                         xytext = valuemark_ts[vm_gid]['xytext'],
@@ -1910,7 +1910,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             
         marktexts = dict_axis_info['marktexts']
         for mt in marktexts:
-            ax.annotate(text = mt['content'],
+            ax.annotate(mt['content'],
                         gid = 'marktext',
                         xy =  (rel_2_abs(mt['xy'][0], ax_xlim), rel_2_abs(mt['xy'][1], ax_ylim)),
                         xytext = (rel_2_abs(mt['xytext'][0], ax_xlim), rel_2_abs(mt['xytext'][1], ax_ylim)),
@@ -1963,7 +1963,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                                   picker = 5)
                 line.set_ydata(valuemark_ls[vm_gid]['ydata'])
                 
-                ax.annotate(text = '时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]),
+                ax.annotate('时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]),
                             gid = '_valuemark' + str(self._count_value_mark),
                             xy =  (rel_2_abs(valuemark_ts[vm_gid]['xy'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xy'][1], ax_ylim)),
                             xytext = (rel_2_abs(valuemark_ts[vm_gid]['xytext'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xytext'][1], ax_ylim)),
@@ -2245,7 +2245,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
     def plot_paras(self, datalist, sorted_paras):
 
 #        self.restore_axes_info()
-        is_plot = self.process_data(datalist, sorted_paras)
+        is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
         
         if is_plot:
             self.count_axes = 1
@@ -2477,7 +2477,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
                 dis_str = '时间 = ' + real_time
                 for para_info in list_paravalue_info:
                     dis_str += '\n' + para_info[1] + ' = ' + str(para_info[2])
-                self.current_axes.annotate(text = dis_str,
+                self.current_axes.annotate(dis_str,
                                            xy = (rt, event.inaxes.get_ylim()[0]),
                                            color = self.current_text_color,
                                            size = self.current_text_size,
@@ -2685,7 +2685,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
                               picker = 5)
             line.set_ydata(valuemark_ls[vm_gid]['ydata'])
             
-            ax.annotate(text = dis_str,
+            ax.annotate(dis_str,
                         gid = vm_gid,
                         xy =  valuemark_ts[vm_gid]['xy'],
                         xytext = valuemark_ts[vm_gid]['xytext'],
