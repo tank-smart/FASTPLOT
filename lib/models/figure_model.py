@@ -1303,8 +1303,10 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 if st > et:
                     st = xy[3][0]
                     et = xy[0][0]
-                self.slot_export_tinterval_data_fig(mdates.num2date(st).replace(tzinfo=None),
-                                                    mdates.num2date(et).replace(tzinfo=None))
+#                self.slot_export_tinterval_data_fig(mdates.num2date(st).replace(tzinfo=None),
+#                                                    mdates.num2date(et).replace(tzinfo=None))
+                self.slot_export_tinterval_data_fig(mdates.num2date(st),
+                                                    mdates.num2date(et))
                 self.data_span.remove()
                 self.data_span = None
                 self.signal_added_artist.emit('vspan')

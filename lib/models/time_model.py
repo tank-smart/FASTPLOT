@@ -122,7 +122,8 @@ def to_datetime(time):
     
     result_time = None
     if type(time) == Pytime:
-        result_time = time
+#        转换为无时区datetime
+        result_time = time.replace(tzinfo=None)
     elif type(time) == str:
         result_time = str_to_datetime(time)
     else:

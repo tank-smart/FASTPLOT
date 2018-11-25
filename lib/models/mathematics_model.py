@@ -851,7 +851,8 @@ class MathematicsEditor(QPlainTextEdit):
         df_all = pd.concat(df_list,axis = 1,join = 'outer',
                            ignore_index = False)
         return df_all
-    
+
+#载入函数说明文本文件    
     def load_desc(self):
         
         try:

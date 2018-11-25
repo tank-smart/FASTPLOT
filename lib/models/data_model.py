@@ -255,18 +255,24 @@ class DataFactory(object):
     
     def get_trange_data(self, stime = None, etime = None, paralist = [], is_with_time = True):
         if stime and etime:
-#            bool_re = Time_Model.compare(stime, etime)
-            if isinstance(stime, str):
-                sdatetime = Time_Model.str_to_datetime(stime)
-            else:
-                sdatetime = stime
-            if isinstance(stime, str):
-                edatetime = Time_Model.str_to_datetime(etime)
-            else:
-                edatetime = etime
-            
+#            if isinstance(stime, str):
+#                sdatetime = Time_Model.str_to_datetime(stime)
+#            else:
+#                sdatetime = stime
+#            if isinstance(stime, str):
+#                edatetime = Time_Model.str_to_datetime(etime)
+#            else:
+#                edatetime = etime
+            sdatetime = Time_Model.to_datetime(stime)
+            edatetime = Time_Model.to_datetime(etime)
             left = 0
             right = len(self.data)-1
+            left_time = Time_Model.str_to_datetime(self.data.iat[left,0])
+            right_time = Time_Model.str_to_datetime(self.data.iat[right,0])
+            if sdatetime<left_time:
+                sdatetime = left_time
+            if edatetime>right_time:
+                edatetime = right_time
             if sdatetime<=edatetime:
                 sloc = self.binary_search(left, right, sdatetime, self.data.iloc[:,0], 'start')
                 eloc = self.binary_search(left, right, edatetime, self.data.iloc[:,0], 'end')

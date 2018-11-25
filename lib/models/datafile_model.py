@@ -26,7 +26,6 @@ import pandas as pd
 import scipy.io as sio
 import re
 import models.time_model as Time
-import time as time
 from itertools import islice
 
 # =======类基本信息
