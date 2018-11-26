@@ -2608,6 +2608,10 @@ class ParameterExportDialog(QDialog):
         self.file_info = {}
         self.current_file_dir = ''
         self._data_dict = None
+        self.is_merge = False
+        self.merge_use_file_info = {}
+        self.merge_start_time_limit = ''
+        self.merge_end_time_limit = ''
         if dict_filetype:
             self._dict_filetype = dict_filetype
         if os.path.exists(CONFIG.OPTION['dir of export data']):
@@ -2652,7 +2656,10 @@ class ParameterExportDialog(QDialog):
 #        self.combo_box_filename.setMaximumSize(QSize(16777215, 24))
 #        self.verticalLayout_3.addWidget(self.combo_box_filename)
         self.groupBox = QGroupBox(self.group_box_setting)
-        self.horizontalLayout = QHBoxLayout(self.groupBox)
+        self.vlayout_gb_time_setting = QVBoxLayout(self.groupBox)
+        self.vlayout_gb_time_setting.setContentsMargins(2, 2, 2, 2)
+        self.vlayout_gb_time_setting.setSpacing(2)
+        self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setContentsMargins(4, 2, 2, 2)
         self.horizontalLayout.setSpacing(2)
         self.label_starttime = QLabel(self.groupBox)
@@ -2671,6 +2678,20 @@ class ParameterExportDialog(QDialog):
         self.line_edit_endtime.setMinimumSize(QSize(0, 24))
         self.line_edit_endtime.setMaximumSize(QSize(16777215, 24))
         self.horizontalLayout.addWidget(self.line_edit_endtime)
+        self.vlayout_gb_time_setting.addLayout(self.horizontalLayout)
+        self.hlayout_fre = QHBoxLayout()
+        self.hlayout_fre.setContentsMargins(4, 2, 2, 2)
+        self.hlayout_fre.setSpacing(2)
+        self.label_fre = QLabel(self.groupBox)
+        self.label_fre.setMinimumSize(QSize(60, 24))
+        self.label_fre.setMaximumSize(QSize(60, 24))
+        self.hlayout_fre.addWidget(self.label_fre)
+        self.line_edit_fre = QLineEdit(self.groupBox)
+        self.line_edit_fre.setMinimumSize(QSize(0, 24))
+        self.line_edit_fre.setMaximumSize(QSize(16777215, 24))
+        self.hlayout_fre.addWidget(self.line_edit_fre)
+        self.vlayout_gb_time_setting.addLayout(self.hlayout_fre)
+        
 #        self.push_btn_apply_all_files = QPushButton(self.groupBox)
 ##        避免按钮默认选中并按Enter键会执行的情况
 #        self.push_btn_apply_all_files.setFocusPolicy(Qt.NoFocus)        
@@ -2733,11 +2754,18 @@ class ParameterExportDialog(QDialog):
         self.push_btn_easter_egg = QPushButton(self)
         self.push_btn_easter_egg.setHidden(True)
         self.horizontalLayout_5.addWidget(self.push_btn_easter_egg)
-        self.push_btn_apply_all_files = QPushButton(self.groupBox)
+        self.push_btn_apply_all_files = QPushButton(self)
         self.push_btn_apply_all_files.setFocusPolicy(Qt.NoFocus)
         self.push_btn_apply_all_files.setMinimumSize(QSize(100, 24))
         self.push_btn_apply_all_files.setMaximumSize(QSize(100, 24))
         self.horizontalLayout_5.addWidget(self.push_btn_apply_all_files)
+
+        self.push_btn_merge = QPushButton(self)
+        self.push_btn_merge.setFocusPolicy(Qt.NoFocus)
+        self.push_btn_merge.setMinimumSize(QSize(100, 24))
+        self.push_btn_merge.setMaximumSize(QSize(100, 24))
+        self.horizontalLayout_5.addWidget(self.push_btn_merge)
+        
         self.push_btn_confirm = QPushButton(self)
         self.push_btn_confirm.setMinimumSize(QSize(0, 24))
         self.push_btn_confirm.setMaximumSize(QSize(16777215, 24))
@@ -2762,7 +2790,9 @@ class ParameterExportDialog(QDialog):
         self.line_edit_file_name.editingFinished.connect(self.slot_change_filename)
         self.line_edit_starttime.editingFinished.connect(self.slot_change_file_stime)
         self.line_edit_endtime.editingFinished.connect(self.slot_change_file_etime)
+        self.line_edit_fre.editingFinished.connect(self.slot_change_fre)
         self.push_btn_apply_all_files.clicked.connect(self.slot_change_all_file_time)
+        self.push_btn_merge.clicked.connect(self.slot_merge)
         self.tree_widget_export_paras.itemClicked.connect(self.slot_change_current_file)
         
         self.push_btn_confirm.clicked.connect(self.accept)
@@ -2784,23 +2814,24 @@ class ParameterExportDialog(QDialog):
         if index != -1:
             self.current_file_dir = item.data(0, Qt.UserRole)
         if self.current_file_dir:
-            index, filename, filetype, stime, etime, paralist = self.file_info[self.current_file_dir]
+            index, filename, filetype, stime, etime, paralist, fre = self.file_info[self.current_file_dir]
             self.line_edit_starttime.setText(stime)
             self.line_edit_endtime.setText(etime)
             self.combo_box_filetype.setCurrentIndex(
                     self.combo_box_filetype.findData(filetype, Qt.UserRole))
             self.line_edit_file_name.setText(filename)
+            self.line_edit_fre.setText(str(fre))
         
     def slot_change_filetype(self, index):
         
 #        file_dir = self.combo_box_filename.currentData()
         file_dir = self.current_file_dir
         if file_dir:
-            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+            index, filename, filetype, stime, etime, paralist, fre = self.file_info[file_dir]
             filetype = self.combo_box_filetype.currentData()
             item = self.tree_widget_export_paras.topLevelItem(index)
             item.setText(0, filename + filetype)
-            self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist)
+            self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist, fre)
             
     def slot_change_filename(self):
         
@@ -2808,7 +2839,7 @@ class ParameterExportDialog(QDialog):
         file_dir = self.current_file_dir
         if file_dir:
             f = self.line_edit_file_name.text()
-            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+            index, filename, filetype, stime, etime, paralist, fre = self.file_info[file_dir]
             count = self.tree_widget_export_paras.topLevelItemCount()
             target_item = None
             is_exit = False
@@ -2822,7 +2853,7 @@ class ParameterExportDialog(QDialog):
 #                self.combo_box_filename.setItemText(self.combo_box_filename.currentIndex(), f)
                 target_item.setText(0, f + filetype)
                 filename = f
-                self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist)
+                self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist, fre)
             else:
                 self.line_edit_file_name.setText(filename)
                 
@@ -2833,20 +2864,23 @@ class ParameterExportDialog(QDialog):
         if file_dir:
 #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
             if file_dir[0] == '_':
-                data_stime = self.dict_data[file_dir].time_range[0]
+                if file_dir == '_mergefile':
+                    data_stime = self.merge_start_time_limit
+                else:
+                    data_stime = self.dict_data[file_dir].time_range[0]
             else:
 #                file = Normal_DataFile(file_dir)
                 file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
                 data_stime = file.time_range[0]
             starttime = self.line_edit_starttime.text()
-            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+            index, filename, filetype, stime, etime, paralist, fre = self.file_info[file_dir]
             if Time_Model.is_std_format(starttime):
                 if Time_Model.is_in_range(data_stime, etime, starttime):
 #                    输入正确的起始时间后，还需要转换成标准格式后再显示
                     self.line_edit_starttime.setText(
                             Time_Model.timestr_to_stdtimestr(starttime))
                     stime = Time_Model.timestr_to_stdtimestr(starttime)
-                    self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist)
+                    self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist, fre)
                     item = self.tree_widget_export_paras.topLevelItem(index)
                     item.setText(1, stime)
                 else:
@@ -2872,20 +2906,23 @@ class ParameterExportDialog(QDialog):
         if file_dir:
 #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
             if file_dir[0] == '_':
-                data_etime = self.dict_data[file_dir].time_range[1]
+                if file_dir == '_mergefile':
+                    data_etime = self.merge_end_time_limit
+                else:
+                    data_etime = self.dict_data[file_dir].time_range[1]
             else:
 #                file = Normal_DataFile(file_dir)
                 file = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
                 data_etime = file.time_range[1]
             endtime = self.line_edit_endtime.text()
-            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+            index, filename, filetype, stime, etime, paralist, fre = self.file_info[file_dir]
             if Time_Model.is_std_format(endtime):
                 if Time_Model.is_in_range(stime, data_etime, endtime):
 #                    输入正确的起始时间后，还需要转换成标准格式后再显示
                     self.line_edit_endtime.setText(
                             Time_Model.timestr_to_stdtimestr(endtime))
                     etime = Time_Model.timestr_to_stdtimestr(endtime)
-                    self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist)
+                    self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist, fre)
                     item = self.tree_widget_export_paras.topLevelItem(index)
                     item.setText(2, etime)
                 else:
@@ -2903,6 +2940,32 @@ class ParameterExportDialog(QDialog):
                                                            <br>HH:MM:SS
                                                            <br>HH:MM:SS.FFF
                                                            <br>HH:MM:SS:FFF'''))
+
+    def slot_change_fre(self):
+        
+        file_dir = self.current_file_dir
+        if file_dir:
+            index, filename, filetype, stime, etime, paralist, fre = self.file_info[file_dir]
+            str_fre = self.line_edit_fre.text()
+            if str_fre:
+                try:
+                    f = int(str_fre)
+                    if f <= 0:
+                        QMessageBox.information(self,
+                                        QCoreApplication.translate('ParameterExportDialog', '输入提示'),
+                                        QCoreApplication.translate('ParameterExportDialog', '频率不能小于等于0'))
+                    else:
+                        fre = f
+                except:
+                    QMessageBox.information(self,
+                                    QCoreApplication.translate('ParameterExportDialog', '输入提示'),
+                                    QCoreApplication.translate('ParameterExportDialog', '频率非整数'))
+                finally:
+                    pass
+                self.line_edit_fre.setText(str(fre))
+                item = self.tree_widget_export_paras.topLevelItem(index)
+                item.setText(3, str(fre))
+                self.file_info[file_dir] = (index, filename, filetype, stime, etime, paralist, fre)
                 
     def slot_change_all_file_time(self):
         
@@ -2912,10 +2975,10 @@ class ParameterExportDialog(QDialog):
 #            确保时间是正确的
             self.slot_change_file_stime()
             self.slot_change_file_etime()
-            index, fn, ft, tstime, tetime, pl = self.file_info[file_dir]
+            index, fn, ft, tstime, tetime, pl, fr = self.file_info[file_dir]
             for file in self.file_info:
                 if file != file_dir:
-                    index, filename, filetype, stime, etime, paralist = self.file_info[file]
+                    index, filename, filetype, stime, etime, paralist, fre = self.file_info[file]
 #                    先判断开始时间
                     if Time_Model.is_in_range(stime, etime, tstime):
                         stime = tstime
@@ -2926,14 +2989,89 @@ class ParameterExportDialog(QDialog):
                     item.setText(0, filename + ft)
                     item.setText(1, stime)
                     item.setText(2, etime)
-                    self.file_info[file] = (index, filename, ft, stime, etime, paralist)
-                        
+                    item.setText(3, str(fr))
+                    self.file_info[file] = (index, filename, ft, stime, etime, paralist, fr)
+                    
+#    合并
+    def slot_merge(self):
+        
+        if self.file_info and not self.is_merge:
+            self.is_merge = True
+            self.merge_use_file_info = self.file_info
+            self.current_file_dir = '_mergefile'
+    
+            st = None
+            et = None
+            pl = None
+            fr = None
+            for file_dir in self.file_info:
+                index, filename, filetype, stime, etime, paralist, fre = self.file_info[file_dir]
+                if not st:
+                    st = stime
+                else:
+                    if Time_Model.compare(st, stime) == -1:
+                        st = stime
+                if not et:
+                    et = etime
+                else:
+                    if Time_Model.compare(et, etime) == 1:
+                        et = etime
+                if not pl:
+                    pl = paralist
+                else:
+                    pl.extend(paralist)
+                if not fr:
+                    fr = fre
+                else:
+                    if fr > fre:
+                        fr = fre
+            i = 0
+            fn = 'merge_result'
+            ft = '.txt'
+            self.tree_widget_export_paras.clear()
+#            在树组件中显示
+            item = QTreeWidgetItem(self.tree_widget_export_paras)
+            item.setIcon(0, self.outfile_icon)
+            item.setText(0, fn + ft)
+            item.setData(0, Qt.UserRole, '_mergefile')
+            item.setText(1, st)
+            item.setText(2, et)
+            item.setText(3, str(fr))
+            for paraname in pl:
+                child_item = QTreeWidgetItem(item)
+                child_item.setIcon(0, self.para_icon)
+                child_item.setData(0, Qt.UserRole, paraname)
+                if (self._data_dict and 
+                    CONFIG.OPTION['data dict scope paralist'] and
+                    paraname in self._data_dict):
+                    if CONFIG.OPTION['data dict scope style'] == 0:
+                        temp_str = self._data_dict[paraname][0]
+                    if CONFIG.OPTION['data dict scope style'] == 1:
+                        temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                    if CONFIG.OPTION['data dict scope style'] == 2:
+                        temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                    child_item.setText(0, temp_str)
+                else:
+                    child_item.setText(0, paraname)
+
+            self.file_info.clear()
+            self.merge_start_time_limit = st
+            self.merge_end_time_limit = et
+            self.file_info['_mergefile'] = (i, fn, ft, st, et, pl, fr)
+            
+            self.combo_box_filetype.setCurrentIndex(0)
+            self.line_edit_starttime.setText(st)
+            self.line_edit_endtime.setText(et)
+            self.line_edit_fre.setText(str(fr))
+            self.line_edit_file_name.setText(fn)
+            self.line_edit_file_dir.setText(self.dir)
+
     def accept(self):
         
         self.signal_send_status.emit('导出数据中...', 0)
         existint_file = ''
         for file_dir in self.file_info:
-            index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
+            index, filename, filetype, stime, etime, paralist, fre = self.file_info[file_dir]
             filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
             if os.path.exists(filepath):
                 existint_file += filename + filetype + '\n'
@@ -2943,27 +3081,32 @@ class ParameterExportDialog(QDialog):
                                     QCoreApplication.translate('ParameterExportDialog', '导出提示'),
                                     QCoreApplication.translate('ParameterExportDialog', existint_file))
         else:
-            for file_dir in self.file_info:
-                index, filename, filetype, stime, etime, paralist = self.file_info[file_dir]
-    #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
-                if file_dir[0] == '_':
-                    real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
-                else:
-                    data = DataFactory(file_dir, paralist, self._dict_filetype[file_dir])
-                    real_timerange, data = data.get_trange_data(stime, etime)
-                filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
-                file_outpout = DataFile(filepath)
-    #            导出TXT文件
-                if filetype == '.txt':
-                    file_outpout.save_file(filepath , data , sep = '\t')
-    #            导出CSV文件
-                if filetype == '.csv':
-                    file_outpout.save_file(filepath , data , sep = ',')
-    #            导出MAT文件
-                if filetype == '.mat':
-                    file_outpout.save_matfile(filepath, data)
-                CONFIG.OPTION['dir of export data'] = self.line_edit_file_dir.text()
-            self.signal_send_status.emit('导出数据成功！', 1500)
+            if not self.is_merge:
+                for file_dir in self.file_info:
+                    index, filename, filetype, stime, etime, paralist, fre = self.file_info[file_dir]
+        #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
+                    if file_dir[0] == '_':
+                        real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
+                    else:
+                        data = DataFactory(file_dir, paralist, self._dict_filetype[file_dir])
+                        real_timerange, data = data.get_trange_data(stime, etime)
+                    filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
+                    file_outpout = DataFile(filepath)
+        #            导出TXT文件
+                    if filetype == '.txt':
+                        file_outpout.save_file(filepath , data , sep = '\t')
+        #            导出CSV文件
+                    if filetype == '.csv':
+                        file_outpout.save_file(filepath , data , sep = ',')
+        #            导出MAT文件
+                    if filetype == '.mat':
+                        file_outpout.save_matfile(filepath, data)
+                    CONFIG.OPTION['dir of export data'] = self.line_edit_file_dir.text()
+                self.signal_send_status.emit('导出数据成功！', 1500)
+            else:
+#                在这里添加同步导出的
+#                self.merge_use_file_info和self.file_info['mergefile']变量存储着导出所需的文件信息
+                pass
             
             QDialog.accept(self)
             
@@ -2972,6 +3115,7 @@ class ParameterExportDialog(QDialog):
         stime = ''
         etime = ''
         f = ''
+        sf = ''
         for index, file_dir in enumerate(dict_paras):
             if type(dict_paras[file_dir]) == list:
 #                file = Normal_DataFile(file_dir)
@@ -2980,6 +3124,7 @@ class ParameterExportDialog(QDialog):
                 start = file.time_range[0]
                 end = file.time_range[1]
                 paralist = dict_paras[file_dir]
+                fre = file.sample_frequency
             elif type(dict_paras[file_dir]) == pd.DataFrame:
                 data = DataFactory(dict_paras[file_dir])
                 self.dict_data[file_dir] = data
@@ -2987,6 +3132,7 @@ class ParameterExportDialog(QDialog):
                 start = data.time_range[0]
                 end = data.time_range[1]
                 paralist = data.get_paralist()
+                fre = data.sample_frequency
             elif type(dict_paras[file_dir]) == DataFactory:
                 data = dict_paras[file_dir]
                 self.dict_data[file_dir] = data
@@ -2994,6 +3140,7 @@ class ParameterExportDialog(QDialog):
                 start = data.time_range[0]
                 end = data.time_range[1]
                 paralist = data.get_paralist()
+                fre = data.sample_frequency
 #            在树组件中显示
             item = QTreeWidgetItem(self.tree_widget_export_paras)
             item.setIcon(0, self.outfile_icon)
@@ -3001,6 +3148,7 @@ class ParameterExportDialog(QDialog):
             item.setData(0, Qt.UserRole, file_dir)
             item.setText(1, start)
             item.setText(2, end)
+            item.setText(3, str(fre))
             for paraname in paralist:
                 child_item = QTreeWidgetItem(item)
                 child_item.setIcon(0, self.para_icon)
@@ -3021,24 +3169,26 @@ class ParameterExportDialog(QDialog):
 #            self.combo_box_filename.addItem(filename)
 #            self.combo_box_filename.setItemData(i, file_dir, Qt.UserRole)
 #            存取文件信息（文件名，文件类型，起始时间，终止时间，排好序的参数列表），以供导出
-            self.file_info[file_dir] = (index, filename, '.txt', start, end, paralist)
+            self.file_info[file_dir] = (index, filename, '.txt', start, end, paralist, fre)
             if index == 0:
                 stime = start
                 etime = end
                 f = filename
+                sf = str(fre)
                 self.current_file_dir = file_dir
 #        self.combo_box_filename.setCurrentIndex(0)
         self.tree_widget_export_paras.setCurrentItem(self.tree_widget_export_paras.topLevelItem(0))
         self.combo_box_filetype.setCurrentIndex(0)
         self.line_edit_starttime.setText(stime)
         self.line_edit_endtime.setText(etime)
+        self.line_edit_fre.setText(sf)
         self.line_edit_file_name.setText(f)
         self.line_edit_file_dir.setText(self.dir)
         
     def load_data_dict(self):
         
         try:
-            with open(CONFIG.SETUP_DIR + r'\data\data_dict.json') as f_obj:
+            with open(CONFIG.SETUP_DIR + r'\data\data_dicts\\' + CONFIG.OPTION['data dict version']) as f_obj:
                 self._data_dict = json.load(f_obj)
         except:
             pass            
@@ -3050,11 +3200,13 @@ class ParameterExportDialog(QDialog):
         self.tree_widget_export_paras.headerItem().setText(0, _translate('ParameterExportDialog', '文件名'))
         self.tree_widget_export_paras.headerItem().setText(1, _translate('ParameterExportDialog', '起始时间'))
         self.tree_widget_export_paras.headerItem().setText(2, _translate('ParameterExportDialog', '终止时间'))
+        self.tree_widget_export_paras.headerItem().setText(3, _translate('ParameterExportDialog', '频率'))
         self.group_box_setting.setTitle(_translate('ParameterExportDialog', '导出设置'))
         self.groupBox.setTitle(_translate('ParameterExportDialog', '时间设置'))
         self.label_starttime.setText(_translate('ParameterExportDialog', '起始时间'))
         self.label_endtime.setText(_translate('ParameterExportDialog', '终止时间'))
-        self.push_btn_apply_all_files.setText(_translate('ParameterExportDialog', '同步设置'))
+        self.label_fre.setText(_translate('ParameterExportDialog', '频率'))
+        self.push_btn_apply_all_files.setText(_translate('ParameterExportDialog', '全部设置'))
         self.group_box_file_setting.setTitle(_translate('ParameterExportDialog', '文件设置'))
         self.label_file_type.setText(_translate('ParameterExportDialog', '文件类型'))
         self.label_file_name.setText(_translate('ParameterExportDialog', '文件名'))
@@ -3063,6 +3215,7 @@ class ParameterExportDialog(QDialog):
         self.combo_box_filetype.setItemText(0, _translate('ParameterExportDialog', 'TXT file'))
         self.combo_box_filetype.setItemText(1, _translate('ParameterExportDialog', 'CSV file'))
         self.combo_box_filetype.setItemText(2, _translate('ParameterExportDialog', 'MAT file'))
+        self.push_btn_merge.setText(_translate('ParameterExportDialog', '合并'))
         self.push_btn_confirm.setText(_translate('ParameterExportDialog', '导出'))
         self.push_btn_cancel.setText(_translate('ParameterExportDialog', '取消'))
         
@@ -3665,7 +3818,7 @@ class FileProcessDialog(QDialog):
         self.label_starttime.setText(_translate('FileProcessDialog', '起始时间'))
         self.label_endtime.setText(_translate('FileProcessDialog', '终止时间'))
         self.label_fre.setText(_translate('FileProcessDialog', '频率'))
-        self.push_btn_apply_all_files.setText(_translate('FileProcessDialog', '同步设置'))
+        self.push_btn_apply_all_files.setText(_translate('FileProcessDialog', '全部设置'))
         self.group_box_file_setting.setTitle(_translate('FileProcessDialog', '文件设置'))
         self.label_file_type.setText(_translate('FileProcessDialog', '文件类型'))
         self.label_file_name.setText(_translate('FileProcessDialog', '文件名'))
