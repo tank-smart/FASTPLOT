@@ -24,15 +24,15 @@ from PyQt5.QtCore import QObject, QSize, Qt, QCoreApplication, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QCloseEvent, QPixmap
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QMenuBar, 
                              QFileDialog, QMessageBox, QMenu, QToolBar, 
-                             QAction, QStatusBar, QStackedWidget,
-                             QDockWidget, QVBoxLayout, QDialog)
+                             QAction, QStatusBar, QDockWidget, QVBoxLayout, 
+                             QDialog)
 
 # =============================================================================
 # Package views imports
 # =============================================================================
 from views.plot_window import PlotWindow
 from views.paralist_window import ParalistWindow
-from models.datafile_model import Normal_DataFile, GPS_DataFile, DataFile_Factory
+from models.datafile_model import Normal_DataFile, DataFile_Factory
 from views.data_sift_window import DataSiftWindow
 from views.data_process_window import DataProcessWindow
 from views.mathematics_window import MathematicsWindow
@@ -478,14 +478,14 @@ class MainWindow(QMainWindow):
         init_dir = CONFIG.OPTION['dir of quick import']
         if os.path.exists(init_dir):
             file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
-                    self, QCoreApplication.translate('MainWindow', '快速导入'), 
+                    self, QCoreApplication.translate('MainWindow', '导入标准数据'), 
                     init_dir,
-                    QCoreApplication.translate('MainWindow', '普通试飞数据文件(*.txt)'))
+                    QCoreApplication.translate('MainWindow', '标准试飞数据文件(*.txt)'))
         else:
             file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
-                    self, QCoreApplication.translate('MainWindow', '快速打开'),
+                    self, QCoreApplication.translate('MainWindow', '导入标准数据'),
                     CONFIG.SETUP_DIR,
-                    QCoreApplication.translate('MainWindow', '普通试飞数据文件(*.txt)'))
+                    QCoreApplication.translate('MainWindow', '标准试飞数据文件(*.txt)'))
         if file_dir_list:
             file_dir_list = [file.replace('/','\\') for file in file_dir_list]
             if os.path.exists(file_dir_list[0]):
@@ -503,7 +503,7 @@ class MainWindow(QMainWindow):
                 else:
                     ex_files.append(file_dir)
             if nor_datafiles:
-                print_info = '以下文件不是普通试飞数据文件：'
+                print_info = '以下文件不是标准试飞数据文件：'
                 for file in nor_datafiles:
                     print_info += ('<br>' + file)
                 QMessageBox.information(self,
@@ -854,9 +854,9 @@ class MainWindow(QMainWindow):
 #        self.menu_window.setTitle(_translate('MainWindow', '窗口'))
         self.menu_help.setTitle(_translate('MainWindow', '帮助'))
         self.toolbar.setWindowTitle(_translate('MainWindow', '工具栏'))
-        self.action_open_normal_datafile.setText(_translate('MainWindow', '快速导入'))
-        self.action_open_normal_datafile.setToolTip(_translate('MainWindow', '快速导入'))
-        self.action_open_datafile.setText(_translate('MainWindow', '数据导入'))
+        self.action_open_normal_datafile.setText(_translate('MainWindow', '导入标准数据'))
+        self.action_open_normal_datafile.setToolTip(_translate('MainWindow', '导入标准数据'))
+        self.action_open_datafile.setText(_translate('MainWindow', '导入特殊数据'))
         self.action_file_process.setText(_translate('MainWindow', '文件数据导出'))
         self.action_exit.setText(_translate('MainWindow', '退出'))
         self.action_mathematics.setText(_translate('MainWindow', '数学计算'))
@@ -874,7 +874,7 @@ class MainWindow(QMainWindow):
         self.action_add_ma_fig.setText(_translate('MainWindow', '添加多坐标图'))
         self.action_add_sa_fig.setText(_translate('MainWindow', '添加单坐标图'))
         self.action_add_sta_fig.setText(_translate('MainWindow', '添加重叠图'))
-        self.action_add_sut_fig.setText(_translate('MainWindow', '添加散点图'))
+        self.action_add_sut_fig.setText(_translate('MainWindow', '添加自定义坐标图'))
         
 def main():
     app = QApplication(sys.argv)

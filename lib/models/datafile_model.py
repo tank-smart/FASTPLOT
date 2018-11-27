@@ -264,9 +264,15 @@ class Normal_DataFile(DataFile):
             while True:
                 file.seek(offset, 2)
                 lines = file.readlines()
-                if (len(lines) >= 2):
-                    stop_line = lines[-1]
-                    stop_line = stop_line.decode()
+                filter_lines = []
+#                过滤掉空行
+                for line in lines:
+                    line = line.decode()
+                    line = line.strip()
+                    if line:
+                        filter_lines.append(line)
+                if (len(filter_lines) >= 2):
+                    stop_line = filter_lines[-1]
                     break
                 offset = offset * 2
             stop_time = re.split(sep, stop_line)[0]
@@ -573,8 +579,15 @@ class GPS_DataFile(DataFile):
                 file.seek(offset, 2)
                 lines = file.readlines()
                 if (len(lines) >= 2):
-                    stop_line = lines[-1]
-                    stop_line = stop_line.decode()
+#                    无法避免文件末尾有空行的情况，因为修改
+#                    stop_line = lines[-1]
+#                    stop_line = stop_line.decode()
+                    for line in reversed(lines):
+                        line = line.decode()
+                        line = line.strip()
+                        if line:
+                            stop_line = line
+                            break
                     break
                 offset = offset * 2
             stop_time = re.split(sep, stop_line)[0]
@@ -780,8 +793,15 @@ class Custom_DataFile(DataFile):
                 file.seek(offset, 2)
                 lines = file.readlines()
                 if (len(lines) >= 2):
-                    stop_line = lines[-1]
-                    stop_line = stop_line.decode()
+#                    无法避免文件末尾有空行的情况，因为修改
+#                    stop_line = lines[-1]
+#                    stop_line = stop_line.decode()
+                    for line in reversed(lines):
+                        line = line.decode()
+                        line = line.strip()
+                        if line:
+                            stop_line = line
+                            break
                     break
                 offset = offset * 2
             stop_time = re.split(sep, stop_line)[self.timecol]
