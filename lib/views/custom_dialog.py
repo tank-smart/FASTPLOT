@@ -33,6 +33,7 @@
 # =============================================================================
 import os, sys, re, json
 import pandas as pd
+import copy
 from matplotlib.lines import Line2D
 from matplotlib.text import Annotation
 from matplotlib.axes import Axes
@@ -64,7 +65,7 @@ from models.datafile_model import DataFile, Normal_DataFile, DataFile_Factory
 import views.config_info as CONFIG
 import models.time_model as Time_Model
 from models.data_model import DataFactory
-from models.analysis_model import DataAnalysis
+from models.analysis_model import DataAnalysis, whole_synchro
 
 #这个类可以用QInputDialog类代替，所以没必要创建，后续改进
 class SaveTemplateDialog(QDialog):
@@ -2997,7 +2998,8 @@ class ParameterExportDialog(QDialog):
         
         if self.file_info and not self.is_merge:
             self.is_merge = True
-            self.merge_use_file_info = self.file_info
+            self.merge_use_file_info = copy.deepcopy(self.file_info)
+            print(self.merge_use_file_info)
             self.current_file_dir = '_mergefile'
     
             st = None
@@ -3089,7 +3091,17 @@ class ParameterExportDialog(QDialog):
                         real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
                     else:
                         data = DataFactory(file_dir, paralist, self._dict_filetype[file_dir])
+                        initial_fre = data.sample_frequency
+                        time_format = data.time_format
                         real_timerange, data = data.get_trange_data(stime, etime)
+                        if fre<initial_fre:
+                            ANA = DataAnalysis(time_format)
+                            data = ANA.downsample(data, fre)
+                        elif fre>initial_fre:
+                            ANA = DataAnalysis(time_format)
+                            data = ANA.upsample(data, fre)
+                        else:
+                            data = data
                     filepath = self.line_edit_file_dir.text() + '\\' + filename + filetype
                     file_outpout = DataFile(filepath)
         #            导出TXT文件
@@ -3106,7 +3118,32 @@ class ParameterExportDialog(QDialog):
             else:
 #                在这里添加同步导出的
 #                self.merge_use_file_info和self.file_info['mergefile']变量存储着导出所需的文件信息
-                pass
+                df_list = []
+                print(self.merge_use_file_info)
+                for file_dir in self.merge_use_file_info:
+                    index, filename, filetype, stime, etime, paralist, fre = self.merge_use_file_info[file_dir]
+        #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
+                    if file_dir[0] == '_':
+                        real_timerange, data = self.dict_data[file_dir].get_trange_data(stime, etime)
+                    else:
+                        data = DataFactory(file_dir, paralist, self._dict_filetype[file_dir])
+                        real_timerange, data = data.get_trange_data(stime, etime)
+                    df_list.append(data)
+                m_index, m_filename, m_filetype, m_stime, m_etime, m_paralist, m_fre = self.file_info['_mergefile']
+                result_df = whole_synchro(df_list, m_fre, output = 'dataframe')
+                filepath = self.line_edit_file_dir.text() + '\\' + m_filename + m_filetype
+                file_outpout = DataFile(filepath)
+    #            导出TXT文件
+                if filetype == '.txt':
+                    file_outpout.save_file(filepath , result_df , sep = '\t')
+    #            导出CSV文件
+                if filetype == '.csv':
+                    file_outpout.save_file(filepath , result_df , sep = ',')
+    #            导出MAT文件
+                if filetype == '.mat':
+                    file_outpout.save_matfile(filepath, result_df)
+                CONFIG.OPTION['dir of export data'] = self.line_edit_file_dir.text()
+                self.signal_send_status.emit('导出数据成功！', 1500)    
             
             QDialog.accept(self)
             

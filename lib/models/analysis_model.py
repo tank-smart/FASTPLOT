@@ -363,6 +363,7 @@ class DataAnalysis(object):
     
     def downsample(self,df,f,closed='left',label='left'):
         timestr=str(round(1000/f,3))+'ms'
+        col = df.columns
         timecol=df.columns.tolist()[0]
         df[timecol]=pd.to_datetime(df[timecol],format=self.time_format)
         df_new=df.set_index(timecol,drop=True)
@@ -376,7 +377,9 @@ class DataAnalysis(object):
         #可以恢复原索引
 #        result.iloc[:,0] = result.iloc[:,0].apply(lambda x: x.strftime(self.time_format))
         sample.index=sample.index.to_timestamp().strftime(self.time_format)
-        result=sample.reset_index() 
+        result=sample.reset_index()
+        result.columns = col
+#        result=sample.reset_index() 
 #        print(result)
 #        result=sample
 #        new_start=result.index[0]
@@ -442,9 +445,10 @@ class DataAnalysis(object):
     
     def upsample(self,df,f):
         timestr=str(round(1000/f,3))+'ms'
+        col =df.columns
         timecol=df.columns.tolist()[0]
         df[timecol]=pd.to_datetime(df[timecol],format=self.time_format)
-        df_new=df.set_index(df[timecol],drop=True)
+        df_new=df.set_index(timecol,drop=True)
         new_index=pd.PeriodIndex(df_new.index,start=df_new.index[0],end=df_new.index[-1],freq='us')
 #        print(new_index)
         df_used=df_new.set_index(new_index)
@@ -456,6 +460,8 @@ class DataAnalysis(object):
 #        pandas has bug in converting periodindex to string when date_format is '%H:%M:%S:%f'
         result.index=result.index.to_timestamp().strftime(self.time_format)
         result=result.reset_index()
+        print(result)
+        result.columns = col
         return result
     
     def upsample_synchro(self,df,f):

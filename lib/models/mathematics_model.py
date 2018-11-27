@@ -799,7 +799,7 @@ class MathematicsEditor(QPlainTextEdit):
 #            pos = match.end(0)
 #        self.expression_consist_of_tokens = tokens
         self.paras_on_expr = paranames
-        print(self.paras_on_expr)
+#        print(self.paras_on_expr)
         if self.paras_on_expr == []:
             return (0,charaters)
         else:
