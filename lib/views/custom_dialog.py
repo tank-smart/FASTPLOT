@@ -3007,15 +3007,13 @@ class ParameterExportDialog(QDialog):
             for file_dir in self.file_info:
                 index, filename, filetype, stime, etime, paralist, fre = self.file_info[file_dir]
                 if not st:
-                    st = stime
-                else:
-                    if Time_Model.compare(st, stime) == -1:
-                        st = stime
+                    st = Time_Model.str_time_delta(stime, stime)
                 if not et:
-                    et = etime
+                    et = Time_Model.str_time_delta(etime, stime)
                 else:
-                    if Time_Model.compare(et, etime) == 1:
-                        et = etime
+                    td = Time_Model.str_time_delta(etime, stime)
+                    if Time_Model.compare(et, td) == 1:
+                        et = td
                 if not pl:
                     pl = paralist
                 else:
