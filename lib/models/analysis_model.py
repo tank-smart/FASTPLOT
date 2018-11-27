@@ -460,7 +460,6 @@ class DataAnalysis(object):
 #        pandas has bug in converting periodindex to string when date_format is '%H:%M:%S:%f'
         result.index=result.index.to_timestamp().strftime(self.time_format)
         result=result.reset_index()
-        print(result)
         result.columns = col
         return result
     
