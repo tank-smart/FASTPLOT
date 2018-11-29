@@ -13,6 +13,7 @@
 # =============================================================================
 import re
 import pandas as pd
+import numpy as np
 
 # =============================================================================
 # Qt imports
@@ -85,6 +86,7 @@ class MathematicsEditor(QPlainTextEdit):
         self.scope={}
         self.time_df=None
         self.count=0
+        self.df_func=None
         self.script_dialog = MathScriptDialog(self)
 #----------       yanhua 加结束
         self.pre_exper = ''
@@ -368,7 +370,10 @@ class MathematicsEditor(QPlainTextEdit):
                             df_result = pd.DataFrame({'Time' : result.iloc[:,0], 
                                                       result_name: result.iloc[:,1]}, columns = ['Time', result_name])
     #                        否则认为是一个数
-    #                            
+#                           保留ndarray的输出方式                   
+                        elif isinstance(result, np.ndarray):
+                            df_result = pd.DataFrame({'Vector' : range(len(result)), 
+                                                      result_name: result}, columns = ['Vector', result_name])
                         else:
                             
                             df_result = pd.DataFrame({'Label' : [1],
@@ -426,8 +431,16 @@ class MathematicsEditor(QPlainTextEdit):
         self.scope['init_time']=self.init_time
         self.scope['output']=self.output
         self.scope['combine']=self.combine
+        self.scope['sin']=self.sin
+        self.scope['cos']=self.cos
+        self.scope['tan']=self.tan
+        self.scope['arcsin']=self.arcsin
+        self.scope['arccos']=self.arccos
+        self.scope['arctan']=self.arctan
+        self.scope['fft']=self.fft
 #        函数名称列表，用于高亮显示
-        self.funcs = self.df_func.iloc[:,0].tolist()
+        if self.df_func is not None:
+            self.funcs = self.df_func.iloc[:,0].tolist()
         
 #        self.funcs = ['abs','add','sub','mul','div','resample','sqrt','pow',
 #                      'init_time','output','.interpolate','.isna','.append']
@@ -437,6 +450,7 @@ class MathematicsEditor(QPlainTextEdit):
 #            token_exprs.appned((func, self.FUNC))
 #        self.token_exprs = token_exprs
 
+#内置函数
     def clc(self):
         self.scope={}
         self.scope_setup()
@@ -531,7 +545,35 @@ class MathematicsEditor(QPlainTextEdit):
             timeseries = timeseries - dtime
             df_series.iloc[:,0] = timeseries.apply(lambda x: x.strftime(time_format))
             result=df_series.set_index(df_series.columns[0]).iloc[:,0]
-        return result   
+        return result  
+    
+    def sin(self, series):
+        if isinstance(series, pd.Series):
+            return np.sin(series)
+        
+    def cos(self, series):
+        if isinstance(series, pd.Series):
+            return np.cos(series)
+        
+    def tan(self, series):
+        if isinstance(series, pd.Series):
+            return np.tan(series)
+        
+    def arcsin(self, series):
+        if isinstance(series, pd.Series):
+            return np.arcsin(series)
+        
+    def arccos(self, series):
+        if isinstance(series, pd.Series):
+            return np.arccos(series)
+        
+    def arctan(self, series):
+        if isinstance(series, pd.Series):
+            return np.arctan(series)
+        
+    def fft(self, series):
+        if isinstance(series, pd.Series):
+            return np.fft.fft(series)
 
     def output(self, result_name = None):
         result = eval(result_name,self.scope)
@@ -865,16 +907,17 @@ class MathematicsEditor(QPlainTextEdit):
     
 if __name__ == '__main__':
     
-    file_dir = r'D:\flightdata\shoufei_AGIdata\FTPD-C919-10101-PD-170505-G-01-000FTE-664003-32_AGI.txt'
+    file_dir = r'C:\ftcc\FlightData\170323_664\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt'
     file = Normal_DataFile(file_dir)
-    df1 = DataFactory(file_dir, [file.paras_in_file[1]])
+    df1 = DataFactory(file_dir, [file.paras_in_file[1]], {'filetype':'normal datafile'})
     df1 = df1.data.set_index(df1.data.columns[0])                                  
     para_df1 = df1.iloc[:,0]
-    df2 = DataFactory(file_dir, [file.paras_in_file[2]])
+    df2 = DataFactory(file_dir, [file.paras_in_file[2]], {'filetype':'normal datafile'})
     df2 = df2.data.set_index(df2.data.columns[0])                                  
     para_df2 = df2.iloc[:,0]
-    me = MathematicsEditor()
-    result = me.div(para_df1,para_df2)
-    result = me.set_t0(para_df1)
+#    me = MathematicsEditor()
+#    result = me.div(para_df1,para_df2)
+#    result = me.set_t0(para_df1)
+    result = np.fft.fft(para_df1)
     print(result)
     

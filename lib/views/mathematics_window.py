@@ -219,6 +219,13 @@ class MathematicsWindow(QWidget):
             item.setText(2, str(max_value))
             item.setText(3, str(min_value))
             self.dict_result_paras[paraname] = DataFactory(result)
+        elif col_list[0] == 'Vector':
+            max_value = result[col_list[1]].max()
+            min_value = result[col_list[1]].min()
+#            item.setText(1, 'Vector: ' + str(result.iloc[0, 0]) + ' - ' + str(result.iloc[-1, 0]))
+            item.setText(1, 'Vector: ' + str(result.iloc[:,1].values))
+            item.setText(2, str(max_value))
+            item.setText(3, str(min_value))
         else:
 #            self.dict_result_paras[paraname] = result
 #!!!!            单值不加入self.dict_result_paras，也不进行绘图和分析
