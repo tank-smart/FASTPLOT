@@ -179,6 +179,29 @@ def datetime_to_origintime(dt : Pytime):
     else:
         return None
     
+def str_time_delta(time2, time1):
+    
+    if compare(time1, time2) == 1:
+        t = time1
+        time1 = time2
+        time2 = t
+    td = to_datetime(time2) - to_datetime(time1)
+    h = int(td.seconds / 3600)
+    m = int((td.seconds % 3600) / 60)
+    s = td.seconds % 60
+    i = 0
+    temp = td.microseconds
+    while temp:
+        temp = int(temp / 10)
+        i += 1
+    insert = ''
+    if i != 0:
+        for j in range(6 - i):
+            insert += '0'
+    ms = insert + str(td.microseconds)
+    str_td = str(h) + ':' + str(m) + ':' + str(s) + '.' + ms
+    return timestr_to_stdtimestr(str_td)
+    
 if __name__ == '__main__':
 #    print(is_in_range('6:13','12:13:47.291','6:14:47.291'))
 #    print(is_std_format('12:13:47*'))
@@ -187,7 +210,8 @@ if __name__ == '__main__':
 #    print(count_between_time(t, '12:13:47.291', 16))
 #    print(datetime_to_timestr(t))
 #    print(and_time_intervals(('6:13','12:13:47.291'),('14:13','16:13')))
-    print(time_format('5:57:15'))
+#    print(time_format('5:57:15'))
+    print(str_time_delta('7:13:12:12', '6:13:12:120'))
 
     
     
