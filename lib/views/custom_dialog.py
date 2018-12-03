@@ -176,9 +176,8 @@ class SelectTemplateBaseDialog(QDialog):
         self.horizontalLayout.addWidget(self.button_cancel)
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
-        self.signal_slot_connect()
-        
         self.retranslateUi()
+        self.signal_slot_connect()
         
     def accept(self):
         
@@ -310,10 +309,30 @@ class SelectPlotTemplateDialog(SelectTemplateBaseDialog):
             
 class MathScriptDialog(SelectTemplateBaseDialog):
     
-    def __init__(self, parent = None):
+    def __init__(self, parent = None, **arg):
         
         super().__init__(parent)
+        
+#        脚本的字符串
+        self.script = ''
+        self.dict_scripts = {}
+        self.current_script_item = None
+        self.load_scripts()
+        self.current_files = None
+        self.dict_filetype = None
+        self.df_func = None
+        if 'current_files' in arg:
+            self.current_files = arg['current_files']
+        if 'dict_filetype' in arg:
+            self.dict_filetype = arg['dict_filetype']
+        if 'df_func' in arg:
+            self.df_func = arg['df_func']
+        
+    def signal_slot_connect(self):
+        
 #        UI改动
+        self.button_exec = QPushButton(self)
+        self.horizontalLayout.addWidget(self.button_exec)
         self.script_edit_win = QPlainTextEdit(self)
         self.verticalLayout_2.addWidget(self.script_edit_win)
         
@@ -324,16 +343,6 @@ class MathScriptDialog(SelectTemplateBaseDialog):
         self.button_cancel.setText(QCoreApplication.translate('MathScriptDialog', '重置'))
         self.button_exec.setText(QCoreApplication.translate('MathScriptDialog', '执行'))
         
-#        脚本的字符串
-        self.script = ''
-        self.dict_scripts = {}
-        self.current_script_item = None
-        self.load_scripts()
-        
-    def signal_slot_connect(self):
-        
-        self.button_exec = QPushButton(self)
-        self.horizontalLayout.addWidget(self.button_exec)
         self.list_temps.setContextMenuPolicy(Qt.CustomContextMenu)
         self.action_create_scp = QAction(self.list_temps)
         self.action_create_scp.setText(QCoreApplication.
@@ -341,6 +350,13 @@ class MathScriptDialog(SelectTemplateBaseDialog):
         self.action_delete_scp = QAction(self.list_temps)
         self.action_delete_scp.setText(QCoreApplication.
                                        translate('MathScriptDialog', '删除脚本'))
+        self.script_edit_win.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.action_add_para = QAction(self.script_edit_win)
+        self.action_add_para.setText(QCoreApplication.
+                                     translate('MathScriptDialog', '添加参数'))
+        self.action_add_func = QAction(self.script_edit_win)
+        self.action_add_func.setText(QCoreApplication.
+                                     translate('MathScriptDialog', '添加函数'))
         
         self.button_confirm.clicked.connect(self.slot_save_script)
         self.button_cancel.clicked.connect(self.slot_reset_script)
@@ -349,6 +365,10 @@ class MathScriptDialog(SelectTemplateBaseDialog):
                 self.on_tree_context_menu)
         self.action_create_scp.triggered.connect(self.slot_create_scp)
         self.action_delete_scp.triggered.connect(self.slot_delete_scp)
+        self.script_edit_win.customContextMenuRequested.connect(
+                self.on_script_edit_menu)
+        self.action_add_para.triggered.connect(self.slot_add_para)
+        self.action_add_func.triggered.connect(self.slot_add_func)
         self.list_temps.itemClicked.connect(self.slot_display_script)
         self.list_temps.itemChanged.connect(self.slot_script_name_change)
         
@@ -366,6 +386,13 @@ class MathScriptDialog(SelectTemplateBaseDialog):
         else:
             self.action_delete_scp.setEnabled(False)
         menu.exec_(self.list_temps.mapToGlobal(pos))
+        
+    def on_script_edit_menu(self, pos):
+        
+        menu = QMenu(self.script_edit_win)
+        menu.addActions([self.action_add_para,
+                         self.action_add_func])
+        menu.exec_(self.script_edit_win.mapToGlobal(pos))
     
     def slot_create_scp(self):
         
@@ -440,6 +467,25 @@ class MathScriptDialog(SelectTemplateBaseDialog):
         else:
             item.setText(item.data(Qt.UserRole))
             
+    def slot_add_para(self):
+        
+        if self.current_files and self.dict_filetype:
+#            采用单选模式
+            dialog = SelParasDialog(self, self.current_files, 0, self.dict_filetype)
+            return_signal = dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                paras = dialog.get_list_sel_paras()
+                if paras:
+                    self.script_edit_win.insertPlainText(paras[0])
+    
+    def slot_add_func(self):
+        
+        dialog = SelfuncDialog(self, self.df_func, 0)
+        return_signal = dialog.exec_()
+        if (return_signal == QDialog.Accepted):
+            paras = dialog.get_list_sel_paras()
+            if paras:
+                self.script_edit_win.insertPlainText(paras[0])
     
 #    执行脚本
     def accept(self):
@@ -869,16 +915,20 @@ class ParaSetupDialog(QDialog):
     
     signal_accept = pyqtSignal(tuple)
     
-    def __init__(self, parent = None, current_files = None, data_dict = None, dict_filetype  = None):
+    def __init__(self, parent = None, datadict = None, sorted_paras = None, 
+                 current_files = None, dict_filetype  = None):
+        
         super().__init__(parent)
+        
+        self.dictdata = datadict
+        self.sorted_paras = sorted_paras
+        self._current_files = current_files
+        self._data_dict = None
+        self._dict_filetype = dict_filetype 
 #        self.setAcceptDrops(True)
         self.setup()
         self.setWindowModality(Qt.NonModal)
-        self.dictdata = None  
-        self.sorted_paras = None
-        self._current_files = current_files
-        self._data_dict = data_dict
-        self._dict_filetype = dict_filetype 
+        self.init_display_paras()
         
     def setup(self):
         
@@ -953,6 +1003,8 @@ class ParaSetupDialog(QDialog):
         self.verticalLayout_3.addLayout(self.horizontalLayout)
 
         self.retranslateUi()
+        self.load_data_dict()
+        
         self.btn_confirm.clicked.connect(self.accept)
         self.btn_cancel.clicked.connect(self.reject)
         
@@ -1179,6 +1231,51 @@ class ParaSetupDialog(QDialog):
             if (message == QMessageBox.Yes):
                 for item in sel_items:
                     self.list_wi_yparas.takeItem(self.list_wi_yparas.row(item))
+                    
+    def init_display_paras(self):
+        
+        if self.sorted_paras:
+            xpara, file_dir = self.sorted_paras[0]
+            if (self._data_dict and 
+                CONFIG.OPTION['data dict scope paralist'] and
+                xpara in self._data_dict):
+                if CONFIG.OPTION['data dict scope style'] == 0:
+                    temp_str = self._data_dict[xpara][0]
+                if CONFIG.OPTION['data dict scope style'] == 1:
+                    temp_str = xpara + '(' + self._data_dict[xpara][0] + ')'
+                if CONFIG.OPTION['data dict scope style'] == 2:
+                    temp_str = self._data_dict[xpara][0] + '(' + xpara + ')'
+                self.list_wi_xpara.item(0).setText(temp_str)
+                
+            else:
+                self.list_wi_xpara.item(0).setText(xpara)
+            self.list_wi_xpara.item(0).setData(Qt.UserRole, (xpara, file_dir))
+            
+            ex_paras = []
+#            norfile_list = {}
+            
+            if len(self.sorted_paras) > 2:
+                for para_info in self.sorted_paras[1:]:
+                    paraname, file_dir = para_info
+#                    判断导入的参数是否已存在
+                    if self.is_in_sel_paras((paraname, file_dir)):
+                        ex_paras.append(paraname)
+                    else:
+                        item_para = QListWidgetItem(self.list_wi_yparas)
+                        
+                        if (self._data_dict and 
+                            CONFIG.OPTION['data dict scope paralist'] and
+                            paraname in self._data_dict):
+                            if CONFIG.OPTION['data dict scope style'] == 0:
+                                temp_str = self._data_dict[paraname][0]
+                            if CONFIG.OPTION['data dict scope style'] == 1:
+                                temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                            if CONFIG.OPTION['data dict scope style'] == 2:
+                                temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                            item_para.setText(temp_str)
+                        else:
+                            item_para.setText(paraname)
+                        item_para.setData(Qt.UserRole, (paraname, file_dir))
 
     def is_in_sel_paras(self, file_tuple):
         paraname, file_dir = file_tuple
@@ -1244,6 +1341,14 @@ class ParaSetupDialog(QDialog):
         self.sorted_paras.insert(0, xp)
     
         return (self.dictdata, self.sorted_paras)
+    
+    def load_data_dict(self):
+        
+        try:
+            with open(CONFIG.SETUP_DIR + r'\data\data_dicts\\' + CONFIG.OPTION['data dict version']) as f_obj:
+                self._data_dict = json.load(f_obj)
+        except:
+            pass
 
     def retranslateUi(self):
         
@@ -1286,13 +1391,9 @@ class Base_LineSettingDialog(QDialog):
                                  'Tri_down', 'Tri_up', 'Tri_left', 'Tri_right', 
                                  'Square', 'Star', 'Plus', 'x', 'Diamond']
 #        判断是否是取值标记线，是的话就将文字标注对象保存起来
-        self.text_mark = None
-        ax = self.markline.axes
-        if ax:
-            list_text = ax.findobj(Annotation)
-            for text in list_text:
-                if self.markline.get_gid() and self.markline.get_gid() == text.get_gid():
-                    self.text_mark = text
+        self.is_value_mark = False
+        if self.markline.get_gid() and self.markline.get_gid().find('_value') != -1:
+            self.is_value_mark = True
         
         self.setup()
     
@@ -3227,7 +3328,7 @@ class ParameterExportDialog(QDialog):
             with open(CONFIG.SETUP_DIR + r'\data\data_dicts\\' + CONFIG.OPTION['data dict version']) as f_obj:
                 self._data_dict = json.load(f_obj)
         except:
-            pass            
+            pass
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate

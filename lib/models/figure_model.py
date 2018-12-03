@@ -50,7 +50,7 @@ from views.custom_dialog import (Base_LineSettingDialog, LineSettingDialog,
                                  AnnotationSettingDialog, AxisSettingDialog,
                                  StackAxisSettingDialog, DisplayParaAggregateInfoDialog, 
                                  SaveTemplateDialog, ParameterExportDialog,
-                                 SingleUtAxisSettingDialog)
+                                 SingleUtAxisSettingDialog, ParaSetupDialog)
 import models.time_model as Time_Model
 from models.data_model import DataFactory
 # =============================================================================
@@ -1002,6 +1002,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         
         self.aux_lines = []
         self._count_value_mark = 0
+        self.vaule_mark_container = {}
 #        数据选段
         self.data_span = None
         self.cid_drag_data_inter = None
@@ -1116,24 +1117,22 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             real_time = list_paravalue_info[index][0]
             if real_time != '':
                 rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
-                self.current_axes.axvline(rt, c = self.current_markline_color,
-                                          ls = self.current_markline_style,
-                                          marker = self.current_markline_marker,
-                                          picker = 5,
-                                          gid = '_valuemark' + str(self._count_value_mark))
-                self.current_axes.annotate('时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]),
-                                           xy = (rt, list_paravalue_info[index][2]),
-                                           color = self.current_text_color,
-                                           size = self.current_text_size,
-                                           picker = 1,
-                                           bbox = dict(boxstyle = 'square, pad = 0.5', 
-                                                       fc = 'w', ec = self.current_text_color,
-                                                       visible = self.current_text_bbox),
-                                           arrowprops = dict(arrowstyle = '->',
-                                                             color = self.current_text_color,
-                                                             visible = self.current_text_arrow),
-                                           fontproperties = font,
-                                           gid = '_valuemark' + str(self._count_value_mark))
+                self.create_value_mark_line(rt, self.current_axes)
+                t_gid = '_valuemark' + str(self._count_value_mark)
+                anno = self.current_axes.annotate('时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]),
+                                                  xy = (rt, list_paravalue_info[index][2]),
+                                                  color = self.current_text_color,
+                                                  size = self.current_text_size,
+                                                  picker = 1,
+                                                  bbox = dict(boxstyle = 'square, pad = 0.5', 
+                                                              fc = 'w', ec = self.current_text_color,
+                                                              visible = self.current_text_bbox),
+                                                  arrowprops = dict(arrowstyle = '->',
+                                                                    color = self.current_text_color,
+                                                                    visible = self.current_text_arrow),
+                                                  fontproperties = font,
+                                                  gid = t_gid)
+                self.vaule_mark_container[t_gid]['text'] = anno
                 self._count_value_mark += 1
                 self.draw()
             else:
@@ -1142,6 +1141,19 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                                         QCoreApplication.translate('FastPlotCanvas', '时间：' + Time_Model.datetime_to_timestr(datatime_sel) + '处无数据'))
         if event.button == 1:
             self.slot_disconnect()
+            
+    def create_value_mark_line(self, x, cur_ax):
+        
+        l_gid = '_valuemark' + str(self._count_value_mark)
+        self.vaule_mark_container[l_gid] = {}
+        self.vaule_mark_container[l_gid]['lines'] = []
+        for ax in self.fig.axes:
+            line = ax.axvline(x, c = self.current_markline_color,
+                              ls = self.current_markline_style,
+                              marker = self.current_markline_marker,
+                              picker = 5,
+                              gid = l_gid)
+            self.vaule_mark_container[l_gid]['lines'].append(line)
 
     def set_line_props(self, event):
         
@@ -1153,10 +1165,12 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             self.current_markline_color = dialog.line_color
             self.current_markline_style = dialog.line_ls
             self.current_markline_marker = dialog.line_marker
-            if dialog.text_mark and xdata[0] != dialog.line_xdata[0]:
+            if dialog.is_value_mark and xdata[0] != dialog.line_xdata[0]:
                 index = 0
+                line_gid = line.get_gid()
+                text = self.vaule_mark_container[line_gid]['text']
                 for i, axis in enumerate(self.fig.axes):
-                    if line.axes == axis:
+                    if text.axes == axis:
                         index = i
                         break
                 datatime_sel = mdates.num2date(dialog.line_xdata[0])
@@ -1170,10 +1184,11 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 
                 if real_time != '':
                     rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
-                    line.set_xdata([rt, rt])
-                    dialog.text_mark.xy = (rt, list_paravalue_info[index][2])
-                    dialog.text_mark.set_text('时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]))
-                    dialog.text_mark.set_position((rt, list_paravalue_info[index][2]))
+                    for l in self.vaule_mark_container[line_gid]['lines']:
+                        l.set_xdata([rt, rt])
+                    text.xy = (rt, list_paravalue_info[index][2])
+                    text.set_text('时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]))
+                    text.set_position((rt, list_paravalue_info[index][2]))
                 else:
                     line.set_xdata(xdata)
                     QMessageBox.information(self,
@@ -1184,28 +1199,38 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
     def slot_del_artist(self):
 
         message = QMessageBox.warning(self,
-                      QCoreApplication.translate('FastPlotCanvas', '删除标记'),
-                      QCoreApplication.translate('FastPlotCanvas',
-                                        '''<p>确定要删除吗？'''),
-                      QMessageBox.Yes | QMessageBox.No)
+                                      QCoreApplication.translate('FastPlotCanvas', '删除标记'),
+                                      QCoreApplication.translate('FastPlotCanvas',
+                                                                 '''<p>确定要删除吗？'''),
+                                      QMessageBox.Yes | QMessageBox.No)
         if (message == QMessageBox.Yes):
 #            实现删除取值标注中的线或文字时能同时删除
-            if type(self.picked_del_artist) == Line2D:
-                ax = self.picked_del_artist.axes
-                if ax:
-                    list_text = ax.findobj(Annotation)
-                    for text in list_text:
-                        if (self.picked_del_artist.get_gid() and
-                            self.picked_del_artist.get_gid() == text.get_gid()):
-                            text.remove()
-            if type(self.picked_del_artist) == Annotation:
-                ax = self.picked_del_artist.axes
-                if ax:
-                    list_line = ax.findobj(Line2D)
-                    for line in list_line:
-                        if (self.picked_del_artist.get_gid() and
-                            self.picked_del_artist.get_gid() == line.get_gid()):
+            if self.vaule_mark_container:
+                art_gid = self.picked_del_artist.get_gid()
+                if art_gid in self.vaule_mark_container:
+                    for line in self.vaule_mark_container[art_gid]['lines']:
+                        if line != self.picked_del_artist:
                             line.remove()
+                    if self.vaule_mark_container[art_gid]['text'] != self.picked_del_artist:
+                        self.vaule_mark_container[art_gid]['text'].remove()
+                    self.vaule_mark_container.pop(art_gid)
+            else:
+                if type(self.picked_del_artist) == Line2D:
+                    ax = self.picked_del_artist.axes
+                    if ax:
+                        list_text = ax.findobj(Annotation)
+                        for text in list_text:
+                            if (self.picked_del_artist.get_gid() and
+                                self.picked_del_artist.get_gid() == text.get_gid()):
+                                text.remove()
+                if type(self.picked_del_artist) == Annotation:
+                    ax = self.picked_del_artist.axes
+                    if ax:
+                        list_line = ax.findobj(Line2D)
+                        for line in list_line:
+                            if (self.picked_del_artist.get_gid() and
+                                self.picked_del_artist.get_gid() == line.get_gid()):
+                                line.remove()
             self.picked_del_artist.remove()
             self.draw()
 
@@ -1257,8 +1282,11 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                         self.restore_axes_info()
                         self.delete_para_data(i)
                         self.count_axes = len(self.sorted_paralist)
-                        self.signal_adjust_win.emit()
-                        self.plot_total_data()
+                        if self.count_axes == 0:
+                            self.slot_clear_canvas()
+                        else:
+                            self.signal_adjust_win.emit()
+                            self.plot_total_data()
                     break
 
     def slot_sel_data_inter(self):
@@ -1392,6 +1420,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         
         FTDataPlotCanvasBase.slot_clear_canvas(self)
         self._count_value_mark = 0
+        self.vaule_mark_container = {}
             
     def my_format(self, x, pos=None):
         
@@ -1405,7 +1434,6 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         
         if is_plot:
             self.count_axes = len(self.sorted_paralist)
-#            发出信号让绘图窗口变化大小适应画布
             self.signal_adjust_win.emit()
             self.plot_total_data()
             
@@ -1598,36 +1626,40 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
 #    更新取值标注的状态    
     def refresh_axes_valuemark_status(self, dict_axis_info, ax):
         
-        font = matplotlib.font_manager.FontProperties(
-                fname = CONFIG.SETUP_DIR + r'\data\fonts\msyh.ttf',
-                size = 8)
+        font = matplotlib.font_manager.FontProperties(fname = CONFIG.SETUP_DIR + r'\data\fonts\msyh.ttf', size = 8)
         valuemark_ts = dict_axis_info['valuemark_texts']
         valuemark_ls = dict_axis_info['valuemark_lines']
         for vm_gid in valuemark_ts:
-            line = ax.axvline(valuemark_ls[vm_gid]['xdata'],
-                              gid = vm_gid,
-                              c = valuemark_ls[vm_gid]['color'],
-                              ls = valuemark_ls[vm_gid]['ls'],
-                              lw = valuemark_ls[vm_gid]['lw'],
-                              marker = valuemark_ls[vm_gid]['line_mark'],
-                              picker = 5)
-            line.set_ydata(valuemark_ls[vm_gid]['ydata'])
-            
-            ax.annotate(valuemark_ts[vm_gid]['content'],
-                        gid = vm_gid,
-                        xy =  valuemark_ts[vm_gid]['xy'],
-                        xytext = valuemark_ts[vm_gid]['xytext'],
-                        color = valuemark_ts[vm_gid]['color'],
-                        rotation = valuemark_ts[vm_gid]['rotation'],
-                        size = valuemark_ts[vm_gid]['fontsize'],
-                        bbox = dict(boxstyle = 'square, pad = 0.5',
-                                    fc = 'w', ec = valuemark_ts[vm_gid]['color'],
-                                    visible = valuemark_ts[vm_gid]['bbox_visible']),
-                        arrowprops = dict(arrowstyle = '->',
-                                          color = valuemark_ts[vm_gid]['color'],
-                                          visible = valuemark_ts[vm_gid]['arrow_visible']),
-                        picker = 1,
-                        fontproperties = font)
+            if vm_gid in self.vaule_mark_container:
+                self.vaule_mark_container[vm_gid] = {}
+                self.vaule_mark_container[vm_gid]['lines'] = []
+                for axis in self.fig.axes:
+                    line = axis.axvline(valuemark_ls[vm_gid]['xdata'],
+                                        gid = vm_gid,
+                                        c = valuemark_ls[vm_gid]['color'],
+                                        ls = valuemark_ls[vm_gid]['ls'],
+                                        lw = valuemark_ls[vm_gid]['lw'],
+                                        marker = valuemark_ls[vm_gid]['line_mark'],
+                                        picker = 5)
+                    line.set_ydata(valuemark_ls[vm_gid]['ydata'])
+                    self.vaule_mark_container[vm_gid]['lines'].append(line)
+                
+                text = ax.annotate(valuemark_ts[vm_gid]['content'],
+                                   gid = vm_gid,
+                                   xy =  valuemark_ts[vm_gid]['xy'],
+                                   xytext = valuemark_ts[vm_gid]['xytext'],
+                                   color = valuemark_ts[vm_gid]['color'],
+                                   rotation = valuemark_ts[vm_gid]['rotation'],
+                                   size = valuemark_ts[vm_gid]['fontsize'],
+                                   bbox = dict(boxstyle = 'square, pad = 0.5',
+                                               fc = 'w', ec = valuemark_ts[vm_gid]['color'],
+                                               visible = valuemark_ts[vm_gid]['bbox_visible']),
+                                   arrowprops = dict(arrowstyle = '->',
+                                                     color = valuemark_ts[vm_gid]['color'],
+                                                     visible = valuemark_ts[vm_gid]['arrow_visible']),
+                                   picker = 1,
+                                   fontproperties = font)
+                self.vaule_mark_container[vm_gid]['text'] = text
             
     def adjust_figure(self):
         
@@ -1950,7 +1982,6 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         valuemark_ts = dict_axis_info['valuemark_texts']
         valuemark_ls = dict_axis_info['valuemark_lines']
         for vm_gid in valuemark_ts:
-            
             xdata = ax_xlim[0] + valuemark_ls[vm_gid]['xdata'] * (ax_xlim[1] - ax_xlim[0])
             datatime_sel = mdates.num2date(xdata)
             list_paravalue_info = self.get_paravalue(datatime_sel)
@@ -1962,30 +1993,36 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             real_time = list_paravalue_info[index][0]
             if real_time != '':
                 rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
-                line = ax.axvline(rt,
-                                  gid = '_valuemark' + str(self._count_value_mark),
-                                  c = valuemark_ls[vm_gid]['color'],
-                                  ls = valuemark_ls[vm_gid]['ls'],
-                                  lw = valuemark_ls[vm_gid]['lw'],
-                                  marker = valuemark_ls[vm_gid]['line_mark'],
-                                  picker = 5)
-                line.set_ydata(valuemark_ls[vm_gid]['ydata'])
+                mark_gid = '_valuemark' + str(self._count_value_mark)
+                self.vaule_mark_container[mark_gid] = {}
+                self.vaule_mark_container[mark_gid]['lines'] = []
+                for axis in self.fig.axes:
+                    line = axis.axvline(rt,
+                                        gid = mark_gid,
+                                        c = valuemark_ls[vm_gid]['color'],
+                                        ls = valuemark_ls[vm_gid]['ls'],
+                                        lw = valuemark_ls[vm_gid]['lw'],
+                                        marker = valuemark_ls[vm_gid]['line_mark'],
+                                        picker = 5)
+                    line.set_ydata(valuemark_ls[vm_gid]['ydata'])
+                    self.vaule_mark_container[mark_gid]['lines'].append(line)
                 
-                ax.annotate('时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]),
-                            gid = '_valuemark' + str(self._count_value_mark),
-                            xy =  (rel_2_abs(valuemark_ts[vm_gid]['xy'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xy'][1], ax_ylim)),
-                            xytext = (rel_2_abs(valuemark_ts[vm_gid]['xytext'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xytext'][1], ax_ylim)),
-                            color = valuemark_ts[vm_gid]['color'],
-                            rotation = valuemark_ts[vm_gid]['rotation'],
-                            size = valuemark_ts[vm_gid]['fontsize'],
-                            bbox = dict(boxstyle = 'square, pad = 0.5',
-                                        fc = 'w', ec = valuemark_ts[vm_gid]['color'],
-                                        visible = valuemark_ts[vm_gid]['bbox_visible']),
-                            arrowprops = dict(arrowstyle = '->',
-                                              color = valuemark_ts[vm_gid]['color'],
-                                              visible = valuemark_ts[vm_gid]['arrow_visible']),
-                            picker = 1,
-                            fontproperties = font)
+                text = ax.annotate('时间 = ' + real_time + '\n' + list_paravalue_info[index][1] + ' = ' + str(list_paravalue_info[index][2]),
+                                   gid = mark_gid,
+                                   xy =  (rel_2_abs(valuemark_ts[vm_gid]['xy'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xy'][1], ax_ylim)),
+                                   xytext = (rel_2_abs(valuemark_ts[vm_gid]['xytext'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xytext'][1], ax_ylim)),
+                                   color = valuemark_ts[vm_gid]['color'],
+                                   rotation = valuemark_ts[vm_gid]['rotation'],
+                                   size = valuemark_ts[vm_gid]['fontsize'],
+                                   bbox = dict(boxstyle = 'square, pad = 0.5',
+                                               fc = 'w', ec = valuemark_ts[vm_gid]['color'],
+                                               visible = valuemark_ts[vm_gid]['bbox_visible']),
+                                   arrowprops = dict(arrowstyle = '->',
+                                                     color = valuemark_ts[vm_gid]['color'],
+                                                     visible = valuemark_ts[vm_gid]['arrow_visible']),
+                                   picker = 1,
+                                   fontproperties = font)
+                self.vaule_mark_container[mark_gid]['text'] = text
                 self._count_value_mark += 1
 
     def save_plot_temp(self):
@@ -2228,10 +2265,11 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
     
     signal_adjust_win = pyqtSignal()
     
-    def __init__(self, parent = None):
+    def __init__(self, parent = None, **sapc_args):
     
         super().__init__(parent)
         self.count_axes = 1
+        self.exit_paras_setup_dialog = False
         self.data_timerange = {'enable' : True,
                                'whole_stime' : '',
                                'whole_etime' : '',
@@ -2266,15 +2304,20 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
             if action == ac:
                 pn = gid[9 : ]
                 break
+        flag = -1
         for i, para_info in enumerate(self.sorted_paralist):
             para_name, index = para_info
             if para_name == pn:
-                self.restore_axes_info()
-                self.delete_para_data(i)
-                self.count_axes = len(self.sorted_paralist)
+                flag = i
+                break
+        if flag != -1:
+            self.restore_axes_info()
+            self.delete_para_data(flag)
+            if len(self.sorted_paralist) > 1:
                 self.signal_adjust_win.emit()
                 self.plot_total_data()
-                break
+            else:
+                self.slot_clear_canvas()
         
     def slot_axis_setting(self):
         
@@ -2288,90 +2331,182 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
         
     def slot_clear_canvas(self):
         
-        self.count_axes = 1
         self.data_timerange = {'enable' : True,
                                'whole_stime' : '',
                                'whole_etime' : '',
                                'view_stime' : '',
                                'view_etime' : ''}
         self.del_curve_acitons = []
+        self.exit_paras_setup_dialog = False
         FTDataPlotCanvasBase.slot_clear_canvas(self)
         
-    def plot_paras(self, datalist, sorted_paras):
+#    datadict中的参数和sorted_paras中的参数个数是一致的，这在输入时就保证了
+    def process_data(self, datadict, sorted_paras, dict_filetype):
+        
+        if datadict:
+            dict_data_project = {}
+            for datasource in datadict:
+                data = datadict[datasource]
+                if type(data) == list and dict_filetype:
+#                    此时datasource是文件路径，data是参数列表
+                    data_factory = DataFactory(datasource, data, dict_filetype[datasource])
+                elif type(data) == pd.DataFrame:
+                    data_factory = DataFactory(data)
+                elif type(data) == DataFactory:
+                    data_factory = data
+                else:
+                    data_factory = None
+                if data_factory:
+                    get_same_time_df = False
+                    for index_df in self.total_data:
+                        if self.total_data[index_df].is_extended_by(data_factory):
+                            get_same_time_df = True
+                            dict_data_project[datasource] = index_df
+                            self.total_data[index_df].extend_data(data_factory)
+                            break
+                    if not get_same_time_df:
+                        if self.total_data:
+#                            如果有不同长度的，直接跳出循环
+                            self.is_same_length = False
+                            break
+                        else:
+                            data_label = '_figure_data_' + str(self.count_created_data)
+                            dict_data_project[datasource] = data_label
+#                            total_data里存的就是当前绘图的参数数据，没有多余参数
+                            self.total_data[data_label] = data_factory
+#                            把时间列读出来，因为matplotlib只识别ndarray，所以进行类型转换
+                            if data_factory.time_format is not None:
+                                self.time_series_list[data_label] = np.array(pd.to_datetime(data_factory.data.iloc[:, 0],format=data_factory.time_format))
+#                            实际应该推断dataframe的timeformat
+                            else:
+                                self.time_series_list[data_label] = np.array(pd.to_datetime(data_factory.data.iloc[:, 0],format='%H:%M:%S:%f'))
+                            self.count_created_data += 1
+
+            exit_paras = []
+            unsame_long_paras = []
+            for index_para in sorted_paras:
+                pn, sr = index_para
+                if sr in dict_data_project:
+                    new_sr = dict_data_project[sr]
+                    get_same_para = False
+                    for index_sp in self.sorted_paralist:
+                        spn, sp_sr = index_sp
+                        if (pn == spn) and (new_sr == sp_sr):
+                            get_same_para = True
+                            break
+                    if not get_same_para:
+                        self.sorted_paralist.append((pn, new_sr))
+                    else:
+                        exit_paras.append(pn)
+                else:
+                    unsame_long_paras.append(pn)
+                    
+            if exit_paras:
+                print_para = '以下参数已存在：'
+                for pa in exit_paras:
+                    print_para += ('<br>' + pa)
+                QMessageBox.information(self,
+                                        QCoreApplication.translate('SingleAxisPlotCanvas', '绘图提示'),
+                                        QCoreApplication.translate('SingleAxisPlotCanvas', print_para))
+
+            if not self.is_same_length:
+                self.is_same_length = True
+                if unsame_long_paras:
+                    print_para = '数据长度不一致的参数未绘制：'
+                    for pa in unsame_long_paras:
+                        print_para += ('<br>' + pa)
+                    QMessageBox.information(self,
+                                            QCoreApplication.translate('SingleAxisPlotCanvas', '绘图提示'),
+                                            QCoreApplication.translate('SingleAxisPlotCanvas', print_para))
+                else:
+                    QMessageBox.information(self,
+                                            QCoreApplication.translate('SingleAxisPlotCanvas', '绘图提示'),
+                                            QCoreApplication.translate('SingleAxisPlotCanvas', '数据长度不一致!'))
+            
+#            如果要绘制的参数都在，则不执行画图函数
+            if (len(exit_paras) + len(unsame_long_paras)) == len(sorted_paras):
+                return False
+            else:
+                return True
+        
+    def plot_paras(self, datadict, sorted_paras, cur_files):
+        
+        def slot_single_plot(signal_tuple):
+        
+            datadict, sorted_paras = signal_tuple
+            is_plot = self.process_data(datadict, sorted_paras, self.dict_filetype)
+            
+            if is_plot:
+                self.signal_adjust_win.emit()
+                
+                x_paraname, x_index = self.sorted_paralist[0]
+                tr = self.total_data[x_index].time_range
+                self.data_timerange['whole_stime'] = self.data_timerange['view_stime'] = tr[0]
+                self.data_timerange['whole_etime'] = self.data_timerange['view_etime'] = tr[1]
+                
+                self.plot_total_data()
 
         self.restore_axes_info()
-        is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
-        
-        if is_plot:
-            self.count_axes = 1
-            self.signal_adjust_win.emit()
-            
-            x_paraname, x_index = self.sorted_paralist[0]
-            tr = self.total_data[x_index].time_range
-            self.data_timerange['whole_stime'] = self.data_timerange['view_stime'] = tr[0]
-            self.data_timerange['whole_etime'] = self.data_timerange['view_etime'] = tr[1]
-            
-            self.plot_total_data()
+        if self.sorted_paralist:
+            slot_single_plot((datadict, sorted_paras))
+        elif not self.exit_paras_setup_dialog:
+            self.exit_paras_setup_dialog = True
+            uxplot_dialog = ParaSetupDialog(self, datadict, sorted_paras,
+                                            cur_files, self.dict_filetype)
+            uxplot_dialog.signal_accept.connect(slot_single_plot)
+            uxplot_dialog.show()
+        else:
+            pass
         
 #    默认以第一个参数为x轴坐标
     def plot_total_data(self):
 
-#        数据长度是通过判断时间是否一致来确定的，因此较特殊，后续需要改进
-        if self.is_same_length:
-            self.fig.clf()
-            if len(self.sorted_paralist) > 0:
-                matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
-                matplotlib.rcParams['ytick.direction'] = 'in'
-    #            支持中文显示
-    #            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
-                matplotlib.rcParams['axes.unicode_minus'] = False
+        self.fig.clf()
+        if len(self.sorted_paralist) > 0:
+            matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
+            matplotlib.rcParams['ytick.direction'] = 'in'
+#            支持中文显示
+#            matplotlib.rcParams['font.sans-serif'] = ['SimHei']
+            matplotlib.rcParams['axes.unicode_minus'] = False
+            
+            ax = self.fig.add_subplot(1, 1, 1)
+            count = len(self.sorted_paralist)
+            s_paralist = self.sorted_paralist
+            if count != 1:
+                s_paralist = s_paralist[1:]
+                count = count - 1
+            self.count_curves = count
+            self.color_index = 0
+            
+            x_paraname, x_index = self.sorted_paralist[0]
+            x_data = self.total_data[x_index].data[x_paraname]
+            if self.data_timerange['view_stime'] and self.data_timerange['view_etime']:
+                tr, x_data = self.total_data[x_index].get_trange_data(self.data_timerange['view_stime'], self.data_timerange['view_etime'], [x_paraname], False)
                 
-                ax = self.fig.add_subplot(1, 1, 1)
-                count = len(self.sorted_paralist)
-                s_paralist = self.sorted_paralist
-                if count != 1:
-                    s_paralist = s_paralist[1:]
-                    count = count - 1
-                self.count_curves = count
-                self.color_index = 0
-                
-                x_paraname, x_index = self.sorted_paralist[0]
-                x_data = self.total_data[x_index].data[x_paraname]
+            for i, para_tuple in enumerate(s_paralist):
+                self.signal_progress.emit(int(i/count*100))
+                paraname, index = para_tuple
+                y_data = self.total_data[index].data[paraname]
                 if self.data_timerange['view_stime'] and self.data_timerange['view_etime']:
-                    tr, x_data = self.total_data[x_index].get_trange_data(self.data_timerange['view_stime'], self.data_timerange['view_etime'], [x_paraname], False)
-                    
-                for i, para_tuple in enumerate(s_paralist):
-                    self.signal_progress.emit(int(i/count*100))
-                    paraname, index = para_tuple
-                    y_data = self.total_data[index].data[paraname]
-                    if self.data_timerange['view_stime'] and self.data_timerange['view_etime']:
-                        tr, y_data = self.total_data[index].get_trange_data(self.data_timerange['view_stime'], self.data_timerange['view_etime'], [paraname], False)
-                        self.data_timerange['view_stime'] = tr[0]
-                        self.data_timerange['view_etime'] = tr[1]
-                    
-                    if (self._data_dict and 
-                        CONFIG.OPTION['data dict scope plot'] and
-                        paraname in self._data_dict):
-                        pn = self._data_dict[paraname][0]
-                        unit = self._data_dict[paraname][1]
-                        if pn != 'NaN':
-                            if unit != 'NaN' and unit != '1':
-                                pn = pn + '(' + unit + ')'
-                            ax.plot(x_data, 
-                                    y_data,
-                                    label = pn,
-                                    color = self.curve_colors[self.color_index],
-                                    ls = '-',
-                                    lw = 1,
-                                    gid = 'dataline_' + paraname)
-                        else:
-                            ax.plot(x_data, 
-                                    y_data,
-                                    label = paraname,
-                                    color = self.curve_colors[self.color_index],
-                                    ls = '-',
-                                    lw = 1,
-                                    gid = 'dataline_' + paraname)
+                    tr, y_data = self.total_data[index].get_trange_data(self.data_timerange['view_stime'], self.data_timerange['view_etime'], [paraname], False)
+                    self.data_timerange['view_stime'] = tr[0]
+                    self.data_timerange['view_etime'] = tr[1]
+                
+                if (self._data_dict and 
+                    CONFIG.OPTION['data dict scope plot'] and
+                    paraname in self._data_dict):
+                    pn = self._data_dict[paraname][0]
+                    unit = self._data_dict[paraname][1]
+                    if pn != 'NaN':
+                        if unit != 'NaN' and unit != '1':
+                            pn = pn + '(' + unit + ')'
+                        ax.plot(x_data, 
+                                y_data,
+                                label = pn,
+                                color = self.curve_colors[self.color_index],
+                                ls = '-',
+                                lw = 1,
+                                gid = 'dataline_' + paraname)
                     else:
                         ax.plot(x_data, 
                                 y_data,
@@ -2380,51 +2515,55 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
                                 ls = '-',
                                 lw = 1,
                                 gid = 'dataline_' + paraname)
-    #                一共有十种颜色可用
-                    if self.color_index == 9:
-                        self.color_index = 0
-                    else:
-                        self.color_index += 1
+                else:
+                    ax.plot(x_data, 
+                            y_data,
+                            label = paraname,
+                            color = self.curve_colors[self.color_index],
+                            ls = '-',
+                            lw = 1,
+                            gid = 'dataline_' + paraname)
+#                一共有十种颜色可用
+                if self.color_index == 9:
+                    self.color_index = 0
+                else:
+                    self.color_index += 1
+            
                 
-                    
-                xlabel = x_paraname
-                if (self._data_dict and 
-                    CONFIG.OPTION['data dict scope plot'] and
-                    x_paraname in self._data_dict):
-                    xlabel = self._data_dict[x_paraname][0]
-                    xunit = self._data_dict[x_paraname][1]
-                    if xlabel != 'NaN':
-                        if xunit != 'NaN' and xunit != '1':
-                            xlabel = xlabel + '(' + xunit + ')'
+            xlabel = x_paraname
+            if (self._data_dict and 
+                CONFIG.OPTION['data dict scope plot'] and
+                x_paraname in self._data_dict):
+                xlabel = self._data_dict[x_paraname][0]
+                xunit = self._data_dict[x_paraname][1]
+                if xlabel != 'NaN':
+                    if xunit != 'NaN' and xunit != '1':
+                        xlabel = xlabel + '(' + xunit + ')'
+            
+            ax.set_xlabel(xlabel, fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
+    
+#            ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
+#            若已指定fontproperties属性，则fontsize不起作用
+            plt.setp(ax.get_xticklabels(),
+                 horizontalalignment = 'center',
+                 rotation = 'horizontal',
+                 fontproperties = CONFIG.FONT_MSYH)
+            plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
+            ax.legend(loc=(0,1), ncol=4, frameon=False, borderpad = 0.15,
+                      prop = CONFIG.FONT_MSYH)
+            ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+            ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
+            ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
+            ax.grid(which='major',linestyle='--',color = '0.45')
+            ax.grid(which='minor',linestyle='--',color = '0.75')
                 
-                ax.set_xlabel(xlabel, fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
-        
-    #            ax.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
-    #            若已指定fontproperties属性，则fontsize不起作用
-                plt.setp(ax.get_xticklabels(),
-                     horizontalalignment = 'center',
-                     rotation = 'horizontal',
-                     fontproperties = CONFIG.FONT_MSYH)
-                plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
-                ax.legend(loc=(0,1), ncol=4, frameon=False, borderpad = 0.15,
-                          prop = CONFIG.FONT_MSYH)
-                ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
-                ax.xaxis.set_minor_locator(AutoMinorLocator(n=2))
-                ax.yaxis.set_major_locator(MaxNLocator(nbins=5))
-                ax.yaxis.set_minor_locator(AutoMinorLocator(n=2))
-                ax.grid(which='major',linestyle='--',color = '0.45')
-                ax.grid(which='minor',linestyle='--',color = '0.75')
-                    
-                self.init_axes_lim = {}
-                self.init_axes_lim = self.get_current_axes_lim()
-                self.refresh_axes_status()
-                self.adjust_figure()
-            else:
-                self.draw()
+            self.init_axes_lim = {}
+            self.init_axes_lim = self.get_current_axes_lim()
+            self.refresh_axes_status()
+            self.adjust_figure()
         else:
-            QMessageBox.information(self,
-                                    QCoreApplication.translate('SingleAxisPlotCanvas', '绘图提示'),
-                                    QCoreApplication.translate('SingleAxisPlotCanvas', '数据长度不一致'))
+            self.draw()
             
     def restore_axes_info(self):
         
@@ -2880,6 +3019,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
     
         super().__init__(parent)
         self.del_curve_acitons = []
+        self.count_axes = 1
         self.count_curves = 0
         
     def custom_context_menu(self, event):
@@ -2911,15 +3051,21 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
             if action == ac:
                 pn = gid[9 : ]
                 break
+            
+        flag = -1
         for i, para_info in enumerate(self.sorted_paralist):
             para_name, index = para_info
             if para_name == pn:
-                self.restore_axes_info()
-                self.delete_para_data(i)
-                self.count_axes = len(self.sorted_paralist)
+                flag = i
+                break
+        if flag != -1:
+            self.restore_axes_info()
+            self.delete_para_data(flag)
+            if len(self.sorted_paralist) != 0:
                 self.signal_adjust_win.emit()
                 self.plot_total_data()
-                break
+            else:
+                self.slot_clear_canvas()
         
     def slot_onpress_mark_data(self, event):
 
@@ -2978,7 +3124,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
             self.current_markline_color = dialog.line_color
             self.current_markline_style = dialog.line_ls
             self.current_markline_marker = dialog.line_marker
-            if dialog.text_mark and xdata[0] != dialog.line_xdata[0]:
+            if dialog.is_value_mark and xdata[0] != dialog.line_xdata[0]:
                 datatime_sel = mdates.num2date(dialog.line_xdata[0])
                 list_paravalue_info = self.get_paravalue(datatime_sel)
                 real_time = ''
@@ -2991,12 +3137,19 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
                 if real_time != '':
                     rt = mdates.date2num(Time_Model.str_to_datetime(real_time))
                     line.set_xdata([rt, rt])
-                    dialog.text_mark.xy = (rt, event.mouseevent.inaxes.get_ylim()[0])
-                    dis_str = '时间 = ' + real_time
-                    for para_info in list_paravalue_info:
-                        dis_str += '\n' + para_info[1] + ' = ' + str(para_info[2])
-                    dialog.text_mark.set_text(dis_str)
-                    dialog.text_mark.set_position((rt, event.mouseevent.inaxes.get_ylim()[0]))
+                    ax = line.axes
+                    texts = ax.findobj(Annotation)
+                    text_mark = None
+                    for tx in texts:
+                        if tx.get_gid() and tx.get_gid() == line.get_gid():
+                            text_mark = tx
+                    if text_mark:
+                        text_mark.xy = (rt, event.mouseevent.inaxes.get_ylim()[0])
+                        dis_str = '时间 = ' + real_time
+                        for para_info in list_paravalue_info:
+                            dis_str += '\n' + para_info[1] + ' = ' + str(para_info[2])
+                        text_mark.set_text(dis_str)
+                        text_mark.set_position((rt, event.mouseevent.inaxes.get_ylim()[0]))
                 else:
                     line.set_xdata(xdata)
                     QMessageBox.information(self,
@@ -3028,7 +3181,6 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         is_plot = self.process_data(datalist, sorted_paras, self.dict_filetype)
         
         if is_plot:
-            self.count_axes = 1
             self.signal_adjust_win.emit()
             self.plot_total_data()
             
@@ -3156,8 +3308,8 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
             
             ax.annotate(dis_str,
                         gid = vm_gid,
-                        xy =  valuemark_ts[vm_gid]['xy'],
-                        xytext = valuemark_ts[vm_gid]['xytext'],
+                        xy = (rt, ax.get_ylim()[0]),
+#                        xytext = valuemark_ts[vm_gid]['xytext'],
                         color = valuemark_ts[vm_gid]['color'],
                         rotation = valuemark_ts[vm_gid]['rotation'],
                         size = valuemark_ts[vm_gid]['fontsize'],
@@ -3178,7 +3330,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
             return rg[0] + f * (rg[1] - rg[0])
         
         ax_xlim = ax.get_xlim()
-        ax_ylim = ax.get_ylim()
+#        ax_ylim = ax.get_ylim()
         font = matplotlib.font_manager.FontProperties(
                 fname = CONFIG.SETUP_DIR + r'\data\fonts\msyh.ttf',
                 size = 8)
@@ -3218,8 +3370,8 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
             
             ax.annotate(dis_str,
                         gid = '_valuemark' + str(self._count_value_mark),
-                        xy =  (rel_2_abs(valuemark_ts[vm_gid]['xy'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xy'][1], ax_ylim)),
-                        xytext = (rel_2_abs(valuemark_ts[vm_gid]['xytext'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xytext'][1], ax_ylim)),
+                        xy =  (rel_2_abs(valuemark_ts[vm_gid]['xy'][0], ax_xlim), ax.get_ylim()[0]),
+#                        xytext = (rel_2_abs(valuemark_ts[vm_gid]['xytext'][0], ax_xlim), rel_2_abs(valuemark_ts[vm_gid]['xytext'][1], ax_ylim)),
                         color = valuemark_ts[vm_gid]['color'],
                         rotation = valuemark_ts[vm_gid]['rotation'],
                         size = valuemark_ts[vm_gid]['fontsize'],
@@ -3396,8 +3548,11 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                 self.restore_axes_info()
                 self.delete_para_data(self.selected_sta_axis_index)
                 self.count_axes = len(self.sorted_paralist)
-                self.signal_adjust_win.emit()
-                self.plot_total_data()
+                if self.count_axes != 0:
+                    self.signal_adjust_win.emit()
+                    self.plot_total_data()
+                else:
+                    self.slot_clear_canvas()
                         
 #    重载缩放函数
     def slot_pan(self):

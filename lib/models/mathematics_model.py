@@ -86,8 +86,7 @@ class MathematicsEditor(QPlainTextEdit):
         self.scope={}
         self.time_df=None
         self.count=0
-        self.df_func=None
-        self.script_dialog = MathScriptDialog(self)
+#        self.script_dialog = MathScriptDialog(self)
 #----------       yanhua 加结束
         self.pre_exper = ''
         self.RESERVED = 'RESERVED'
@@ -122,6 +121,7 @@ class MathematicsEditor(QPlainTextEdit):
 #        self.expression_consist_of_tokens = []
         self.paras_on_expr = []
         self.load_desc()
+        self.script_dialog = MathScriptDialog(self, df_func = self.df_func)
         self.setup()
 #---------   yanhua 加
         self.scope_setup()
@@ -674,6 +674,10 @@ class MathematicsEditor(QPlainTextEdit):
         
         self._current_files = files
         self._dict_filetype = dict_filetype
+        
+        self.script_dialog.current_files = files
+        self.script_dialog.dict_filetype = dict_filetype
+        
         paras = []
         for file in files:
             file_fac = DataFile_Factory(file, **dict_filetype[file])
