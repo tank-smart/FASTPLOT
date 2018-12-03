@@ -79,7 +79,13 @@ class PlotCanvasBase(FigureCanvas):
         self.count_curves = 0
 #        坐标信息
         self.axes_info = {}
+#        坐标的初始范围
         self.init_axes_lim = {}
+#        坐标变化记录
+        self.axes_lim_change_info = []
+        self.axes_lim_change_index = -1
+#        最多记录10条
+        self.axes_lim_info_num = 10
 
 #        当前光标在坐标内的样式
         self.current_cursor_inaxes = None
@@ -459,6 +465,11 @@ class PlotCanvasBase(FigureCanvas):
         if event.button == 1:
             self.slot_disconnect()
             
+    def slot_home(self):
+
+        if self.init_axes_lim:
+            self.set_axes_lim(self.init_axes_lim)
+            
     def slot_pan(self):
         
         self.toolbar.pan()
@@ -467,11 +478,22 @@ class PlotCanvasBase(FigureCanvas):
         
         pass
     
-    def slot_home(self):
+    def slot_zoom(self):
         
-        if self.init_axes_lim:
-            self.set_axes_init_lim(self.init_axes_lim)
-
+        self.toolbar.zoom()
+    
+    def slot_disconnect_zoom(self):
+        
+        pass
+    
+    def slot_back(self):
+        
+        self.toolbar.back()
+        
+    def slot_forward(self):
+        
+        self.toolbar.forward()
+    
     def slot_set_cursor(self, event):
         
 #        当鼠标在坐标轴内保持当前特定的光标状态，否则为箭头
@@ -531,6 +553,8 @@ class PlotCanvasBase(FigureCanvas):
 #        坐标信息
         self.axes_info = {}
         self.init_axes_lim = {}
+        self.axes_lim_change_info = []
+        self.axes_lim_change_index = -1
 
 #        当前光标所在的坐标
         self.current_axes = None
@@ -578,7 +602,7 @@ class PlotCanvasBase(FigureCanvas):
                 
         return axes_lim
                 
-    def set_axes_init_lim(self, axes_lim : dict):
+    def set_axes_lim(self, axes_lim : dict):
         
         if axes_lim:
             for label, ax_info in axes_lim.items():
@@ -586,6 +610,7 @@ class PlotCanvasBase(FigureCanvas):
                 ax.set_xlim(xlim[0], xlim[1])
                 ax.set_ylim(ylim[0], ylim[1])
             self.draw()
+            
 
 #    def slot_save_time(self):
 #        
@@ -2266,7 +2291,6 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
     def __init__(self, parent = None, **sapc_args):
     
         super().__init__(parent)
-        self.count_axes = 1
         self.exit_paras_setup_dialog = False
         self.data_timerange = {'enable' : True,
                                'whole_stime' : '',
@@ -3017,8 +3041,6 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
     
         super().__init__(parent)
         self.del_curve_acitons = []
-        self.count_axes = 1
-        self.count_curves = 0
         
     def custom_context_menu(self, event):
 #        如果重载函数内有单独使用self变量的情况，调用重载函数时需要加上self作为参数
@@ -3171,7 +3193,6 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         
         FTDataPlotCanvasBase.slot_clear_canvas(self)
         self.del_curve_acitons = []
-        self.count_curves = 0
         
     def plot_paras(self, datalist, sorted_paras):
 
@@ -3452,6 +3473,9 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         self.init_cursor_pos = None
         self.init_xlim = None
         self.init_ylim = None
+#        框选
+        self.cid_drag_zoom = None
+        self.cid_release_zoom = None
 #        坐标设置相关的变量
         self.selected_sta_axis = None
         self.selected_sta_axis_index = 0
@@ -3555,6 +3579,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
 #    重载缩放函数
     def slot_pan(self):
         
+        self.slot_disconnect_zoom()
         self.cid_press_pan = self.mpl_connect('button_press_event',
                                               self.slot_press_pan)
         self.cid_move_pan = self.mpl_connect('motion_notify_event',
@@ -3617,6 +3642,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         self.init_xlim = None
         self.init_ylim = None
         self.init_ylim_factor = None
+        self.add_axes_lim_info()
         
     def slot_disconnect_pan(self):
         
@@ -3627,6 +3653,79 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             self.cid_press_pan = None
             self.cid_move_pan = None
             self.cid_release_pan = None
+            
+    def slot_zoom(self):
+        
+        self.zoom_views_artist = None
+        self.slot_disconnect_pan()
+        self.cid_drag_zoom = self.mpl_connect('motion_notify_event',
+                                              self.slot_onmove_zoom)
+        self.cid_release_zoom = self.mpl_connect('button_release_event',
+                                                 self.slot_release_zoom)
+        
+    def slot_onmove_zoom(self, event):
+        
+        if event.inaxes and event.button == 1:
+            if self.zoom_views_artist:
+#                返回四个点的位置N×2的numpy
+                xy = self.zoom_views_artist.get_xy()
+                xy[2][0] = event.xdata
+                xy[3][0] = event.xdata
+                self.zoom_views_artist.set_xy(xy)
+                self.draw()
+            else:
+                self.zoom_views_artist = self.current_axes.axvspan(event.xdata, event.xdata,
+                                                                   facecolor = 'black', alpha = 0.2)
+    
+    def slot_release_zoom(self, event):
+        
+        if event.button == 1 and self.zoom_views_artist:
+            xy = self.zoom_views_artist.get_xy()
+            self.zoom_views_artist.remove()
+            self.zoom_views_artist = None
+            
+            l_lim = xy[0][0]
+            r_lim = xy[2][0]
+            if l_lim > r_lim:
+                t = l_lim
+                l_lim = r_lim
+                r_lim = t
+            self.current_axes.set_xlim(l_lim, r_lim)
+            self.add_axes_lim_info()
+            self.draw()
+            
+    def slot_disconnect_zoom(self):
+
+        if self.cid_drag_zoom and self.cid_release_zoom:
+            self.mpl_disconnect(self.cid_drag_zoom)
+            self.mpl_disconnect(self.cid_release_zoom)
+            self.cid_drag_zoom = None
+            self.cid_release_zoom = None
+            if self.zoom_views_artist:
+                self.zoom_views_artist.remove()
+                self.zoom_views_artist = None
+                self.draw()
+            
+    def slot_back(self):
+        
+        l = len(self.axes_lim_change_info)
+        if l > 1:
+            if self.axes_lim_change_index < 0:
+                self.set_axes_lim(self.axes_lim_change_info[-2])
+                self.axes_lim_change_index = l - 2
+            elif self.axes_lim_change_index > 0:
+                self.set_axes_lim(self.axes_lim_change_info[self.axes_lim_change_index - 1])
+                self.axes_lim_change_index -= 1
+            else:
+                pass
+        
+    def slot_forward(self):
+        
+        l = len(self.axes_lim_change_info)
+        if l > 1:
+            if self.axes_lim_change_index > -1 and self.axes_lim_change_index < (l - 1):
+                self.set_axes_lim(self.axes_lim_change_info[self.axes_lim_change_index + 1])
+                self.axes_lim_change_index += 1
         
     def slot_clear_canvas(self):
         
@@ -3749,9 +3848,13 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             else:
                 self.color_index += 1
                 
+#        重置
         self.init_axes_lim = {}
+#        记录
         self.init_axes_lim = self.get_current_axes_lim()
         self.refresh_axes_status()
+        self.axes_lim_change_info = []
+        self.axes_lim_change_info.append(self.get_current_axes_lim())
         self.adjust_figure()
         
 #    根据存储的坐标信息，把重画后的坐标状态还原
@@ -3965,7 +4068,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                 
         return axes_lim
                 
-    def set_axes_init_lim(self, axes_lim : dict):
+    def set_axes_lim(self, axes_lim : dict):
         
         if axes_lim:
             for label, ax_info in axes_lim.items():
@@ -3973,7 +4076,17 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                 ax.set_xlim(xlim[0], xlim[1])
                 self.adjust_view_axis(ax, ax_i, ylim[0], ylim[1])
             self.draw()
-
+            
+    def add_axes_lim_info(self):
+        
+        if self.axes_lim_change_index != -1:
+            self.axes_lim_change_info = self.axes_lim_change_info[ : (self.axes_lim_change_index + 1)]
+        self.axes_lim_change_index = -1
+        self.axes_lim_change_info.append(self.get_current_axes_lim())
+        if len(self.axes_lim_change_info) > self.axes_lim_info_num:
+#            因为只添加了一个变化记录，所以可以这样写
+            self.axes_lim_change_info = self.axes_lim_change_info[1 : self.axes_lim_info_num]
+        
 #class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
 #    
 #    def __init__(self, parent = None):

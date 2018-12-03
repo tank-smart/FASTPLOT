@@ -424,8 +424,8 @@ class PlotWindow(QWidget):
 #        self.button_edit.clicked.connect(self.current_canva.toolbar.edit_parameters)
 #        self.button_config.clicked.connect(self.current_canva.toolbar.configure_subplots)
         self.button_home.clicked.connect(self.current_canva.slot_home)
-        self.button_back.clicked.connect(self.current_canva.toolbar.back)
-        self.button_forward.clicked.connect(self.current_canva.toolbar.forward)
+        self.button_back.clicked.connect(self.current_canva.slot_back)
+        self.button_forward.clicked.connect(self.current_canva.slot_forward)
         self.button_save_temp.clicked.connect(self.current_canva.save_plot_temp)
         self.current_fig_win.signal_resize.connect(self.slot_resize_canvas)
         self.current_fig_win.signal_drop_paras.connect(self.slot_plot)
@@ -446,8 +446,8 @@ class PlotWindow(QWidget):
 #        self.button_edit.clicked.connect(self.current_canva.toolbar.edit_parameters)
 #        self.button_config.clicked.connect(self.current_canva.toolbar.configure_subplots)
         self.button_home.clicked.disconnect(self.current_canva.slot_home)
-        self.button_back.clicked.disconnect(self.current_canva.toolbar.back)
-        self.button_forward.clicked.disconnect(self.current_canva.toolbar.forward)
+        self.button_back.clicked.disconnect(self.current_canva.slot_back)
+        self.button_forward.clicked.disconnect(self.current_canva.slot_forward)
         self.button_save_temp.clicked.disconnect(self.current_canva.save_plot_temp)
         self.current_fig_win.signal_resize.disconnect(self.slot_resize_canvas)
         self.current_fig_win.signal_drop_paras.disconnect(self.slot_plot)
@@ -574,11 +574,15 @@ class PlotWindow(QWidget):
         
     def slot_zoom(self):
         
-        self.button_zoom.setCheckable(True)
-        self.current_canva.toolbar.zoom()
+#        self.button_zoom.setCheckable(True)
+#        self.current_canva.toolbar.zoom()
+        self.current_canva.slot_zoom()
         
         if self.button_zoom.isChecked():
-            self.current_canva.current_cursor_inaxes = Qt.CrossCursor
+            if type(self.current_canva) == StackAxisPlotCanvas:
+                self.current_canva.current_cursor_inaxes = Qt.SizeHorCursor
+            else:
+                self.current_canva.current_cursor_inaxes = Qt.CrossCursor
             self.signal_is_display_menu.emit(False)
 #            保证功能冲突的按钮不能同时处于按下状态，zoom和pan由于使用自带的函数，
 #            无法控制功能实现过程，在调用的时候已经处理好功能唯一性了
@@ -593,6 +597,7 @@ class PlotWindow(QWidget):
         else:
             self.current_canva.current_cursor_inaxes = Qt.ArrowCursor
             self.signal_is_display_menu.emit(True)
+            self.current_canva.slot_disconnect_zoom()
         
 #    def slot_emit_request_plot_temps(self):
 #        
@@ -852,14 +857,14 @@ class PlotWindow(QWidget):
             self.tab_widget_figure.setCurrentIndex(index)
             
             self.current_count_axes = self.current_canva.count_axes
-            if type(self.current_canva) == StackAxisPlotCanvas:
-                self.button_zoom.setEnabled(False)
-                self.button_back.setEnabled(False)
-                self.button_forward.setEnabled(False)
-            else:
-                self.button_zoom.setEnabled(True)
-                self.button_back.setEnabled(True)
-                self.button_forward.setEnabled(True)
+#            if type(self.current_canva) == StackAxisPlotCanvas:
+#                self.button_zoom.setEnabled(False)
+#                self.button_back.setEnabled(False)
+#                self.button_forward.setEnabled(False)
+#            else:
+#                self.button_zoom.setEnabled(True)
+#                self.button_back.setEnabled(True)
+#                self.button_forward.setEnabled(True)
             if type(self.current_canva) == SingleAxisPlotCanvas:
                 self.button_get_paravalue.setEnabled(False)
                 self.button_sel_data_inter.setEnabled(False)
@@ -1033,12 +1038,27 @@ class PlotWindow(QWidget):
                                     QCoreApplication.translate('PlotWindow', '模板应用提示'),
                                     QCoreApplication.translate('PlotWindow', '尚未绘图...'))
             
-#    实现按下Esc键后当前操作取消的功能
     def keyPressEvent(self, event : QKeyEvent):
         
+#        实现按下Esc键后当前操作取消的功能
         if event.key() == Qt.Key_Escape and self.current_clicked_btn:
             if self.current_clicked_btn.isChecked():
                 self.current_clicked_btn.click()
+#        后退（Ctrl+Z）
+        if event.key() == Qt.Key_Z and event.modifiers() == Qt.ControlModifier:
+            self.button_back.click()
+#        前进（Ctrl+Y）
+        if event.key() == Qt.Key_Y and event.modifiers() == Qt.ControlModifier:
+            self.button_forward.click()
+#        保存图片（Ctrl+S）
+        if event.key() == Qt.Key_S and event.modifiers() == Qt.ControlModifier:
+            self.button_save.click()
+#        移动缩放（Ctrl+W）
+        if event.key() == Qt.Key_W and event.modifiers() == Qt.ControlModifier:
+            self.button_pan.click()
+#        框选缩放（Ctrl+Q）
+        if event.key() == Qt.Key_Q and event.modifiers() == Qt.ControlModifier:
+            self.button_zoom.click()
 
 # =============================================================================
 # 功能函数模块
@@ -1053,14 +1073,14 @@ class PlotWindow(QWidget):
         _translate = QCoreApplication.translate
         self.setWindowTitle(_translate('PlotWindow', 'Plot'))
         self.button_home.setToolTip(_translate('PlotWindow', '原始大小'))
-        self.button_pan.setToolTip(_translate('PlotWindow', '移动与缩放'))
-        self.button_zoom.setToolTip(_translate('PlotWindow', '框选缩放'))
+        self.button_pan.setToolTip(_translate('PlotWindow', '移动与缩放（Ctrl+W）'))
+        self.button_zoom.setToolTip(_translate('PlotWindow', '框选缩放（Ctrl+Q）'))
 #        self.button_plot_setting.setToolTip(_translate('PlotWindow', '绘图设置'))
 #        self.button_config.setToolTip(_translate('PlotWindow', '画布设置'))
 #        self.button_edit.setToolTip(_translate('PlotWindow', '图表设置'))
-        self.button_forward.setToolTip(_translate('PlotWindow', '前进'))
-        self.button_back.setToolTip(_translate('PlotWindow', '后退'))
-        self.button_save.setToolTip(_translate('PlotWindow', '保存'))
+        self.button_forward.setToolTip(_translate('PlotWindow', '前进（Ctrl+Y）'))
+        self.button_back.setToolTip(_translate('PlotWindow', '后退（Ctrl+Z）'))
+        self.button_save.setToolTip(_translate('PlotWindow', '保存（Ctrl+S）'))
 #        self.button_save_temp.setToolTip(_translate('PlotWindow', '保存模板'))
 #        self.button_sel_temp.setToolTip(_translate('PlotWindow', '选择模板'))
         self.button_clear_canvas.setToolTip(_translate('PlotWindow', '清空画布'))
