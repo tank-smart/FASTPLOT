@@ -20,6 +20,7 @@ import pandas as pd
 # =============================================================================
 from models.datafile_model import Normal_DataFile, DataFile_Factory
 import models.time_model as Time_Model
+import numpy as np
 
 class DataFactory(object):
     
@@ -107,6 +108,35 @@ class DataFactory(object):
             if not get_fre:
                 fre = 0
             self.sample_frequency = fre
+            
+        elif type(data_source) == np.ndarray:
+#            确定数据类型
+            self.data_type = 'Vector'
+#            确定数据
+            
+            self.data = data_source
+#            确定数据中的参数列表
+            self.data_paralist = None
+#            确定起止时间
+            self.lenth = len(data_source)
+#            stime = Time_Model.timestr_to_stdtimestr(data_source.iloc[0, 0])
+#            etime = Time_Model.timestr_to_stdtimestr(data_source.iloc[-1, 0])
+#            self.time_range = [stime, etime]
+#            确定采样频率
+#            get_fre = False
+#            fre = 1
+#            first_time = self.data.iloc[0, 0]
+#            length_time = len(self.data)
+#            while (not get_fre) and fre <= length_time:
+#                next_time = self.data.iloc[fre, 0]
+#                count = Time_Model.count_between_time(first_time, next_time, 1)
+#                if count == 1:
+#                    get_fre = True
+#                else:
+#                    fre += 1
+#            if not get_fre:
+#                fre = 0
+#            self.sample_frequency = fre
 
 #    time为datatime类型或字符串时间
 #    返回一个元组（时间，参数值列表）

@@ -27,6 +27,7 @@
 # DisplayParaValuesDialog
 # DisplayParaAggregateInfoDialog
 # ImportDataFileDialog
+# DataviewDialog
 # =============================================================================
 # =============================================================================
 # Imports
@@ -2999,7 +3000,7 @@ class ParameterExportDialog(QDialog):
         if self.file_info and not self.is_merge:
             self.is_merge = True
             self.merge_use_file_info = copy.deepcopy(self.file_info)
-            print(self.merge_use_file_info)
+#            print(self.merge_use_file_info)
             self.current_file_dir = '_mergefile'
     
             st = None
@@ -3117,7 +3118,7 @@ class ParameterExportDialog(QDialog):
 #                在这里添加同步导出的
 #                self.merge_use_file_info和self.file_info['mergefile']变量存储着导出所需的文件信息
                 df_list = []
-                print(self.merge_use_file_info)
+#                print(self.merge_use_file_info)
                 for file_dir in self.merge_use_file_info:
                     index, filename, filetype, stime, etime, paralist, fre = self.merge_use_file_info[file_dir]
         #            判断是否为文件路径，其他类型的数据字典的键暂时约定在开头加‘_’前缀
@@ -4755,6 +4756,147 @@ class ImportDataFileDialog(QDialog):
         self.cb_time_format.setItemText(6, _translate('ImportDataFileDialog', '推断'))
         self.btn_confirm.setText(_translate('ImportDataFileDialog', '导入'))
         self.btn_cancel.setText(_translate('ImportDataFileDialog', '取消'))
+
+class DataviewDialog(QDialog):
+
+#    signal_add_paras = pyqtSignal()
+    
+    def __init__(self, parent = None, dictdata = None, sorted_paralist = []):
+        
+        super().__init__(parent)
+        
+#        self._data_dict = None
+#        self.paraicon = QIcon(CONFIG.ICON_PARA)
+        
+        self.sel_mode = QAbstractItemView.ExtendedSelection
+        
+        self.setup()
+        max_rows = 0
+        for source in dictdata:
+            datafactory = dictdata[source]
+            if len(datafactory.data)>max_rows:
+                max_rows = len(datafactory.data)
+        self.preview_widget.setColumnCount(len(sorted_paralist))
+        self.preview_widget.setRowCount(max_rows)
+        self.dictdata = dictdata
+        self.sorted_paralist = sorted_paralist
+        self.display_paras()
+
+    def setup(self):
+
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
+        self.resize(550, 550)
+        self.verticalLayout = QVBoxLayout(self)
+        self.line_edit_search = QLineEdit(self)
+        self.line_edit_search.setMinimumSize(QSize(0, 24))
+        self.line_edit_search.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout.addWidget(self.line_edit_search)
+        self.preview_widget = QTableWidget(self)
+        self.preview_widget.setSelectionMode(self.sel_mode)
+        self.preview_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.preview_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.preview_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.preview_widget.horizontalHeader().setVisible(False)
+        self.verticalLayout.addWidget(self.preview_widget)
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setSpacing(10)
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItem)
+        self.btn_confirm = QPushButton(self)
+        self.btn_confirm.setMinimumSize(QSize(0, 24))
+        self.btn_confirm.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.btn_confirm)
+#        暂时屏蔽添加按钮，预留！！！！！！！！！
+        if self.sel_mode == QAbstractItemView.ExtendedSelection & 0==1:
+            self.btn_add = QPushButton(self)
+            self.btn_add.setMinimumSize(QSize(0, 24))
+            self.btn_add.setMaximumSize(QSize(16777215, 24))
+            self.horizontalLayout.addWidget(self.btn_add)
+        self.btn_cancel = QPushButton(self)
+        self.btn_cancel.setMinimumSize(QSize(0, 24))
+        self.btn_cancel.setMaximumSize(QSize(16777215, 24))
+        self.horizontalLayout.addWidget(self.btn_cancel)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+
+        self.btn_confirm.clicked.connect(self.accept)
+        self.btn_cancel.clicked.connect(self.reject)
+#        暂时屏蔽添加按钮，预留！！！！！！！！！同上
+        if self.sel_mode == QAbstractItemView.ExtendedSelection & 0==1:
+            self.btn_add.clicked.connect(self.signal_add_paras)
+        if self.sel_mode == QAbstractItemView.SingleSelection:
+            self.preview_widget.itemDoubleClicked.connect(self.accept)
+        self.line_edit_search.textChanged.connect(self.slot_search_func)
+        
+#        self.load_desc()
+        self.retranslateUi()
+    
+    def slot_search_func(self, func_name):
+        
+        if self.preview_widget:
+            pattern = re.compile('.*' + func_name + '.*')
+            count = self.preview_widget.rowCount()
+            for i in range(count):
+                item = self.preview_widget.item(i,0)
+                funcname = item.data(Qt.UserRole)
+                func_alias = item.text()
+                if re.match(pattern, funcname) or re.match(pattern, func_alias):
+                    self.preview_widget.setRowHidden(i, False)
+                else:
+                    self.preview_widget.setRowHidden(i, True)
+
+    def get_list_sel_paras(self):
+        
+        preview_widget = []
+        for item in self.preview_widget.selectedItems():
+            
+            preview_widget.append(item.data(Qt.UserRole))
+        return preview_widget
+        
+#    不显示时间
+    def display_paras(self):
+        if self.sorted_paralist:
+            for i, para_tuple in enumerate(self.sorted_paralist):
+                paraname, index = para_tuple
+                viewdata = self.dictdata[index].data[paraname]
+                print(viewdata)
+                for j in range(len(viewdata)):
+#                    不同数据类型需要统一的索引方式
+                    print('-'+str(viewdata.iat[j]))
+                    itemji = QTableWidgetItem(str(viewdata.iat[j]))
+                    self.preview_widget.setItem(j,i,itemji)
+                
+    
+    def get_preview_widget(self):
+        
+        preview_widget = []
+        count = self.preview_widget.count()
+        for i in range(count):
+            item = self.preview_widget.item(i)
+            preview_widget.append(item.data(Qt.UserRole))
+        return preview_widget
+    
+    def load_desc(self):
+        
+        try:
+            filedir = CONFIG.SETUP_DIR + r'\data\func_desc.txt'
+            funcfile = DataFile(filedir, sep='\t')
+            df_func = funcfile.all_input()
+            self.df_func = df_func
+        except:
+            pass
+
+    def retranslateUi(self):
+        _translate = QCoreApplication.translate
+        self.setWindowTitle(_translate('SelfuncsDialog', '数据查看器'))
+        self.line_edit_search.setPlaceholderText(_translate('SelParasDialog', '过滤器'))
+        self.btn_confirm.setText(_translate('SelfuncsDialog', '确定'))
+#        暂时屏蔽添加按钮，预留！！！！！！！！！,同上
+        if self.sel_mode == QAbstractItemView.ExtendedSelection and 0==1:
+            self.btn_add.setText(_translate('SelfuncsDialog', '添加'))
+        self.btn_cancel.setText(_translate('SelfuncsDialog', '取消'))
+
         
 #测试用     
 if __name__ == '__main__':

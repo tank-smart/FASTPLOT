@@ -441,6 +441,8 @@ class MathematicsEditor(QPlainTextEdit):
 #        函数名称列表，用于高亮显示
         if self.df_func is not None:
             self.funcs = self.df_func.iloc[:,0].tolist()
+        exec('import pandas as pd', self.scope)
+        exec('import numpy as np', self.scope)
         
 #        self.funcs = ['abs','add','sub','mul','div','resample','sqrt','pow',
 #                      'init_time','output','.interpolate','.isna','.append']
@@ -589,7 +591,10 @@ class MathematicsEditor(QPlainTextEdit):
                 df_result = pd.DataFrame({'Time' : result.iloc[:,0], 
                                           result_name: result.iloc[:,1]}, columns = ['Time', result_name])
 #                        否则认为是一个数
-#                            
+#           
+            elif isinstance(result, np.ndarray):
+                            df_result = pd.DataFrame({'Vector' : range(len(result)), 
+                                                      result_name: result}, columns = ['Vector', result_name])                 
             else:
                 
                 df_result = pd.DataFrame({'Label' : [1],

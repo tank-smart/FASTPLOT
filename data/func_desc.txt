@@ -1,15 +1,22 @@
 abs|abs(a)：取绝对值函数，a可以是参数时间序列向量、数值或矩阵，对a中所有元素取绝对值，返回a的原类型
 add|add(left, right)：强制加法运算，left,right为加法左右变量，除一般的加法功能外还适用于时间序列不同的参数间的强制相加，取较长范围的参数时间序列为结果时间序列，返回原参数类型
+arccos|arccos(a): 反余弦函数，a为参数序列或数值，返回函数计算后的序列或数值
+arcsin|arcsin(a): 反正弦函数，a为参数序列或数值，返回函数计算后的序列或数值
+arctan|arctan(a): 反正切函数，a为参数序列或数值，返回函数计算后的序列或数值
 clear|clear()：清除内存，清除所有内存中的变量，并清除计算结果参数栏内容
 combine|combine(left, right, func)：通过自定义函数组合两个参数序列向量，func形式为2个input，1个output，返回新参数序列
+cos|cos(a): 余弦函数，a为参数序列或数值，返回函数计算后的序列或数值
 describe|describe(a)：获取参数序列快速描述信息，a为参数序列，返回信息字符串
 div|div(left, right)：强制除法运算，同add函数
+fft|fft(a): 快速傅里叶变换，返回fft后的ndarray类型向量
 init_time|init_time(a)：时间初始化函数，将参数时间序列的时间索引初始化为从0开始，返回新参数序列
 mul|mul(left, right)：强制乘法运算，同add函数
 output|output(result_name : str = None)：输出变量，注意result_name为变量名的字符串，即例如变量a, result_name='a';结果将显示在计算结果参数栏，可供继续进行绘图或添加到分析参数界面
 pow|pow(a, e)：求幂函数，对a序列的每个元素e次幂，即a^e，返回结果序列
 resample|resample(a, freq)：升降频函数，a为参数序列，freq为新频率数值，返回a参数序列经过升降频后的新序列
+sin|sin(a): 正弦函数，a为参数序列或数值，返回函数计算后的序列或数值
 sqrt|sqrt(a)：平方根函数，对a序列每个值求平方根，返回结果序列
+tan|tan(a): 正切函数，a为参数序列或数值，返回函数计算后的序列或数值
 .append|.append(other)：参数序列对象的拼接函数，将other和本参数序列对象按时间索引拼接，包含重复时间索引，返回新参数序列向量
 .between|.between(left, right)：参数序列中所有值的范围筛选，left<=parameter<=right，返回与原序列索引相同的bool向量，在序列原位置对范围内的数值置为True，否则为False
 .clip|.clip(lower, upper)：参数序列对象的限幅函数，通过lower，upper设定上下限，返回参数序列对象本身

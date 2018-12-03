@@ -415,7 +415,6 @@ class DataAnalysis(object):
         new_index=pd.PeriodIndex(df_new.index,start=df_new.index[0],end=df_new.index[-1],freq='us')
 #        print(new_index)
         df_used=df_new.set_index(new_index)
-#        print(df_used)
         sample=df_used.resample(timestr,axis=0,closed=closed,label=label,convention='s').ffill()
         #可以恢复原索引
 #        result.iloc[:,0] = result.iloc[:,0].apply(lambda x: x.strftime(self.time_format))
@@ -517,7 +516,7 @@ class DataAnalysis(object):
         for df in df_list:
             df = df.iloc[0:lenth-1,:]
             df = df.set_index(df.columns[0])
-            print(df)
+#            print(df)
             df_newlist.append(df)
         result = pd.concat(df_newlist, axis=1, join='outer', join_axes=[df_newlist[0].index])
         result = result.reset_index()
@@ -546,7 +545,8 @@ def whole_synchro(df_list, f, output = 'list'):
             datafac.data = ana.upsample_synchro(datafac.data, f)
         else:
             datafac.data = ana.downsample_synchro(datafac.data, f)
-        datafac.data = datafac.data.iloc[0:lenth-1,:]
+#            datafac.data = datafac.data
+        datafac.data = datafac.data.iloc[0:lenth,:]
         df_result.append(datafac.data)
     if output == 'list':
         return df_result

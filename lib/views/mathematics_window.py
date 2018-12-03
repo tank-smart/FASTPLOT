@@ -18,13 +18,14 @@ from PyQt5.QtCore import QCoreApplication, Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QTreeWidget, QMenu, QAction,
                              QTreeWidgetItem, QGroupBox, QAbstractItemView,
-                             QHeaderView, QMessageBox)
+                             QHeaderView, QMessageBox, QDialog)
 # =============================================================================
 # Package views imports
 # =============================================================================
 from models.mathematics_model import MathematicsEditor
 import views.config_info as CONFIG
 from models.data_model import DataFactory
+from views.custom_dialog import DataviewDialog
 
 class MathematicsWindow(QWidget):
     
@@ -83,6 +84,9 @@ class MathematicsWindow(QWidget):
         self.action_analysis = QAction(self.tree_widget_result_paras)
         self.action_analysis.setText(QCoreApplication.
                                      translate('MathematicsWindow', '添加到分析参数'))
+        self.action_view = QAction(self.tree_widget_result_paras)
+        self.action_view.setText(QCoreApplication.
+                                     translate('MathematicsWindow', '查看数据'))
         self.action_delete = QAction(self.tree_widget_result_paras)
         self.action_delete.setText(QCoreApplication.
                                    translate('MathematicsWindow', '删除'))
@@ -96,6 +100,7 @@ class MathematicsWindow(QWidget):
         self.action_plot.triggered.connect(self.slot_plot_result)
 #        self.action_export.triggered.connect(self.slot_export_result)
         self.action_analysis.triggered.connect(self.slot_sendto_analysis)
+        self.action_view.triggered.connect(self.slot_viewdata)
         self.action_delete.triggered.connect(self.slot_delete)
         
         self.plain_text_edit_conmandline.signal_compute_result.connect(
@@ -117,6 +122,7 @@ class MathematicsWindow(QWidget):
             menu.addActions([self.action_plot,
 #                             self.action_export,
                              self.action_analysis,
+                             self.action_view,
                              self.action_delete])
             menu.exec_(self.tree_widget_result_paras.mapToGlobal(pos))
         
@@ -159,6 +165,27 @@ class MathematicsWindow(QWidget):
         if dsp:
             self.signal_sendto_ananlysis.emit(dsp)
     
+    def slot_viewdata(self):
+        items = self.tree_widget_result_paras.selectedItems()
+        dsp = {}
+        paras = []
+        for item in items:
+            name = item.text(0)
+            if name in self.dict_result_paras:
+                dsp[name] = self.dict_result_paras[name]
+                paralist = self.dict_result_paras[name].get_paralist()
+                for paraname in paralist:
+                    paras.append((paraname, name))
+            else:   
+                QMessageBox.information(self,
+                            QCoreApplication.translate("MathematicsWindow","提示"),
+                            QCoreApplication.translate("MathematicsWindow","无法对选中的常数绘图"))
+        if dsp and paras:
+            self.dataview_dialog = DataviewDialog(self, dsp, paras)
+            return_signal = self.dataview_dialog.exec_()
+            if (return_signal == QDialog.Accepted):
+                pass
+
     def slot_delete(self):
         
         sel_items = self.tree_widget_result_paras.selectedItems()
@@ -226,6 +253,7 @@ class MathematicsWindow(QWidget):
             item.setText(1, 'Vector: ' + str(result.iloc[:,1].values))
             item.setText(2, str(max_value))
             item.setText(3, str(min_value))
+#            self.dict_result_paras[paraname] = DataFactory(result)
         else:
 #            self.dict_result_paras[paraname] = result
 #!!!!            单值不加入self.dict_result_paras，也不进行绘图和分析
