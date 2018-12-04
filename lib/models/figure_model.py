@@ -40,6 +40,7 @@ from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationTo
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.text import Annotation, Text
+#from matplotlib.offsetbox import AnchoredText
 # 用于PyQt交互的包
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QPoint, Qt
 from PyQt5.QtGui import QIcon
@@ -611,6 +612,21 @@ class PlotCanvasBase(FigureCanvas):
                 ax.set_ylim(ylim[0], ylim[1])
             self.draw()
             
+#    用于设置标注在右上角的图片信息
+    def set_data_picture_info(self, ax):
+        
+        if CONFIG.OPTION['data description']:
+            if CONFIG.OPTION['data description'] != 'whosyourdaddy':
+                s = CONFIG.OPTION['data description'] + '\n' + CONFIG.SOFTNAME
+            else:
+                s = ''
+        else:
+            s = CONFIG.SOFTNAME
+        ax.set_title(s,
+                     loc = 'right',
+                     pad = 3,
+                     fontdict  = dict(fontstyle = 'italic', fontsize = 8),
+                     fontproperties = CONFIG.FONT_MSYH)
 
 #    def slot_save_time(self):
 #        
@@ -892,11 +908,12 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                 self.signal_cursor_xdata.emit(real_time, list_paravalue_info)
                 self.aux_line = ax.axvline(rt, 
                                            gid = 'getvalue',
-                                           c = 'black',
-                                           ls = '--',
+                                           c = '#c30000',
+                                           ls = '-',
+                                           lw = 1,
                                            marker = 'd',
-                                           markerfacecolor = 'green',
-                                           markersize = 8)
+                                           markerfacecolor = '#c30000',
+                                           markersize = 6)
                 self.draw()
         self.cid_dppv_move = self.mpl_connect('motion_notify_event',
                                               self.slot_display_paravalue)
@@ -933,19 +950,21 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                         self.aux_line.remove()
                         self.aux_line = event.inaxes.axvline(rt,
                                                              gid = 'getvalue',
-                                                             c = 'black',
-                                                             ls = '--',
+                                                             c = '#c30000',
+                                                             ls = '-',
+                                                             lw = 1,
                                                              marker = 'd',
-                                                             markerfacecolor = 'green',
-                                                             markersize = 8)
+                                                             markerfacecolor = '#c30000',
+                                                             markersize = 6)
                 else:
                     self.aux_line = event.inaxes.axvline(rt,
                                                          gid = 'getvalue',
-                                                         c = 'black',
-                                                         ls = '--',
+                                                         c = '#c30000',
+                                                         ls = '-',
+                                                         lw = 1,
                                                          marker = 'd',
-                                                         markerfacecolor = 'green',
-                                                         markersize = 8)
+                                                         markerfacecolor = '#c30000',
+                                                         markersize = 6)
                 self.draw()
 
     def get_paravalue(self, dt):
@@ -1108,7 +1127,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                     if pn != 'NaN':
                         paraname = pn
                         
-                if not data.empty:
+                if type(data) == pd.DataFrame:
                     para_info_list.append((paraname,
                                            data.mean()[paraname_init], 
                                            data.max()[paraname_init], 
@@ -1388,11 +1407,12 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 for axis in self.fig.axes:
                     line = axis.axvline(rt,
                                         gid = 'getvalue',
-                                        c = 'black',
-                                        ls = '--',
+                                        c = '#c30000',
+                                        ls = '-',
+                                        lw = 1,
                                         marker = 'd',
-                                        markerfacecolor = 'green',
-                                        markersize = 8)
+                                        markerfacecolor = '#c30000',
+                                        markersize = 6)
                     self.aux_lines.append(line)
                 self.draw()
         self.cid_dppv_move = self.mpl_connect('motion_notify_event',
@@ -1431,11 +1451,12 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                     for axis in self.fig.axes:
                         line = axis.axvline(rt,
                                             gid = 'getvalue',
-                                            c = 'black',
-                                            ls = '--',
+                                            c = '#c30000',
+                                            ls = '-',
+                                            lw = 1,
                                             marker = 'd',
-                                            markerfacecolor = 'green',
-                                            markersize = 8)
+                                            markerfacecolor = '#c30000',
+                                            markersize = 6)
                         self.aux_lines.append(line)
                 self.draw()
                 
@@ -1482,6 +1503,12 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             if i == 0:
                 ax = self.fig.add_subplot(count, 1, 1)
                 first_axis = ax
+                self.set_data_picture_info(ax)
+#                ax.add_artist(AnchoredText(CONFIG.SOFTNAME,
+#                                           'upper right',
+#                                           bbox_to_anchor = [0, 0, 1, 1],
+#                                           frameon = False,
+#                                           prop = dict(fontstyle = 'italic', fontsize = 8)))
             else:
                 ax = self.fig.add_subplot(count, 1, i+1, sharex = first_axis)
             if (self._data_dict and 
@@ -1546,7 +1573,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         self.init_axes_lim = self.get_current_axes_lim()
         self.refresh_axes_status()
         self.adjust_figure()
-        
+      
 #    根据存储的坐标信息，把重画后的坐标状态还原
     def refresh_axes_status(self):
         
@@ -1582,7 +1609,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                     
         if ax.get_legend():
 #            设置图注
-            hs, ls = ax.get_legend_handles_labels()
+            hs, ls = ax.get_text_handles_labels()
             i = 0
             for j, curve in enumerate(lines):
                 for i, dl in enumerate(datalines):
@@ -1700,18 +1727,18 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         
     def adjust_savefig(self):
         
-#        图注高度
-        legend_h = 18
+#        文字高度
+        text_h = 18
 #        坐标高度
         axis_h = 100
 #        画布尺寸
-        h = self.count_axes * (axis_h + legend_h) + legend_h
+        h = self.count_axes * (axis_h + text_h) + text_h
         w = 650
-        bottom_gap = round(legend_h * 2 / h, 2)
+        bottom_gap = round(text_h * 2 / h, 2)
         right_gap = round((w - 10) / w, 2)
         left_gap = round(50 / w, 2)
-        top_gap = round((h - legend_h) / h, 2)
-        hs = round(legend_h / (axis_h + legend_h), 2)
+        top_gap = round((h - text_h * 2) / h, 2)
+        hs = round(text_h / (axis_h + text_h), 2)
         self.resize(w, h)
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap, hspace = hs)
@@ -1930,7 +1957,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                     
         if ax.get_legend():
 #            设置图注
-            hs, ls = ax.get_legend_handles_labels()
+            hs, ls = ax.get_text_handles_labels()
             for i, curve in enumerate(dlines):
                 hs[i].set_color(datalines[i]['color'])
 #            似乎获得图注labels时是返回曲线的label而不是当前状态，所以需要用下面这个设置下
@@ -2265,21 +2292,21 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
 #        
 #    def adjust_savefig(self):
 #        
-##        图注高度
-#        legend_h = 18
+##        文字高度
+#        text_h = 18
 ##        坐标高度
 #        axis_h = 300
 ##        画布尺寸
-#        h = (axis_h + legend_h) + legend_h
+#        h = (axis_h + text_h) + text_h
 #        w = 650
-#        bottom_gap = round(legend_h * 2 / h, 2)
+#        bottom_gap = round(text_h * 2 / h, 2)
 #        right_gap = round((w - 10) / w, 2)
 #        left_gap = round(50 / w, 2)
 #        m = int(self.count_curves / 4)
 #        if self.count_curves % 4 != 0:
 #            m += 1
-#        top_gap = round((h - legend_h * m) / h, 2)
-#        hs = round(legend_h / (axis_h + legend_h), 2)
+#        top_gap = round((h - text_h * (m + 1)) / h, 2)
+#        hs = round(text_h / (axis_h + text_h), 2)
 #        self.resize(w, h)
 #        self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
 #                                 right = right_gap, top = top_gap, hspace = hs)
@@ -2291,6 +2318,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
     def __init__(self, parent = None, **sapc_args):
     
         super().__init__(parent)
+#        当前已经有一个参数选择对话框存在
         self.exit_paras_setup_dialog = False
         self.data_timerange = {'enable' : True,
                                'whole_stime' : '',
@@ -2455,6 +2483,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
         
         def slot_single_plot(signal_tuple):
         
+            self.exit_paras_setup_dialog = False
             datadict, sorted_paras = signal_tuple
             is_plot = self.process_data(datadict, sorted_paras, self.dict_filetype)
             
@@ -2467,6 +2496,10 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
                 self.data_timerange['whole_etime'] = self.data_timerange['view_etime'] = tr[1]
                 
                 self.plot_total_data()
+                
+        def slot_reject():
+            
+            self.exit_paras_setup_dialog = False
 
         self.restore_axes_info()
         if self.sorted_paralist:
@@ -2476,6 +2509,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
             uxplot_dialog = ParaSetupDialog(self, datadict, sorted_paras,
                                             cur_files, self.dict_filetype)
             uxplot_dialog.signal_accept.connect(slot_single_plot)
+            uxplot_dialog.rejected.connect(slot_reject)
             uxplot_dialog.show()
         else:
             pass
@@ -2492,6 +2526,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
             matplotlib.rcParams['axes.unicode_minus'] = False
             
             ax = self.fig.add_subplot(1, 1, 1)
+            self.set_data_picture_info(ax)
             count = len(self.sorted_paralist)
             s_paralist = self.sorted_paralist
             if count != 1:
@@ -2586,7 +2621,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
             self.adjust_figure()
         else:
             self.draw()
-            
+
     def restore_axes_info(self):
         
         axes = self.fig.axes
@@ -2676,7 +2711,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
                     
         if ax.get_legend():
 #            设置图注
-            hs, ls = ax.get_legend_handles_labels()
+            hs, ls = ax.get_text_handles_labels()
             i = 0
             for j, curve in enumerate(lines):
                 for i, dl in enumerate(datalines):
@@ -2866,7 +2901,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
                     
         if ax.get_legend():
 #            设置图注
-            hs, ls = ax.get_legend_handles_labels()
+            hs, ls = ax.get_text_handles_labels()
             for i, curve in enumerate(dlines):
                 hs[i].set_color(datalines[i]['color'])
 #            似乎获得图注labels时是返回曲线的label而不是当前状态，所以需要用下面这个设置下
@@ -3008,7 +3043,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
         m = int(self.count_curves / 4)
         if self.count_curves % 4 != 0:
             m += 1
-        top_gap = round((h - 20 * m) / h, 2)
+        top_gap = round((h - 20 * m - 20) / h, 2)
 
         self.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                  right=right_gap,top=top_gap,hspace=0.16)
@@ -3016,21 +3051,21 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
         
     def adjust_savefig(self):
         
-#        图注高度
-        legend_h = 18
+#        文字高度
+        text_h = 18
 #        坐标高度
         axis_h = 300
 #        画布尺寸
-        h = (axis_h + legend_h) + legend_h
+        h = (axis_h + text_h) + text_h
         w = 650
-        bottom_gap = round(legend_h * 2 / h, 2)
+        bottom_gap = round(text_h * 2 / h, 2)
         right_gap = round((w - 10) / w, 2)
         left_gap = round(50 / w, 2)
         m = int(self.count_curves / 4)
         if self.count_curves % 4 != 0:
             m += 1
-        top_gap = round((h - legend_h * m) / h, 2)
-        hs = round(legend_h / (axis_h + legend_h), 2)
+        top_gap = round((h - text_h * (m + 1)) / h, 2)
+        hs = round(text_h / (axis_h + text_h), 2)
         self.resize(w, h)
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap, hspace = hs)
@@ -3215,6 +3250,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
             matplotlib.rcParams['axes.unicode_minus'] = False
             
             ax = self.fig.add_subplot(1, 1, 1)
+            self.set_data_picture_info(ax)
             count = len(self.sorted_paralist)
             self.count_curves = count
         
@@ -3422,7 +3458,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         m = int(self.count_curves / 4)
         if self.count_curves % 4 != 0:
             m += 1
-        top_gap = round((h - 20 * m) / h, 2)
+        top_gap = round((h - 20 * m - 20) / h, 2)
 
         self.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                  right=right_gap,top=top_gap,hspace=0.16)
@@ -3430,21 +3466,21 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         
     def adjust_savefig(self):
         
-#        图注高度
-        legend_h = 18
+#        文字高度
+        text_h = 18
 #        坐标高度
         axis_h = 300
 #        画布尺寸
-        h = (axis_h + legend_h) + legend_h
+        h = (axis_h + text_h) + text_h
         w = 650
-        bottom_gap = round(legend_h * 2 / h, 2)
+        bottom_gap = round(text_h * 2 / h, 2)
         right_gap = round((w - 10) / w, 2)
         left_gap = round(50 / w, 2)
         m = int(self.count_curves / 4)
         if self.count_curves % 4 != 0:
             m += 1
-        top_gap = round((h - legend_h * m) / h, 2)
-        hs = round(legend_h / (axis_h + legend_h), 2)
+        top_gap = round((h - text_h * (m + 1)) / h, 2)
+        hs = round(text_h / (axis_h + text_h), 2)
         self.resize(w, h)
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap, hspace = hs)
@@ -3769,6 +3805,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
 #            count = len(self.sorted_paralist)
 
         host = self.fig.add_subplot(1, 1, 1)
+        self.set_data_picture_info(host)
         plt.setp(host.get_xticklabels(),
                  horizontalalignment = 'center',
                  rotation = 'horizontal',
@@ -3918,18 +3955,18 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         
     def adjust_savefig(self):
         
-#        图注高度
-        legend_h = 18
+#        文字高度
+        text_h = 18
 #        画布尺寸
         if self.count_axes <= 7:
-            h = legend_h * 3 + (3 * (7 - 1) + 4) * 20
+            h = text_h * 3 + (3 * (7 - 1) + 4) * 20
         else:
-            h = legend_h * 3 + (3 * (self.count_axes - 1) + 4) * 20
+            h = text_h * 3 + (3 * (self.count_axes - 1) + 4) * 20
         w = 650
-        bottom_gap = round(legend_h * 2 / h, 2)
+        bottom_gap = round(text_h * 2 / h, 2)
         right_gap = round((w - 10) / w, 2)
         left_gap = 0.21
-        top_gap = round((h - legend_h) / h, 2)
+        top_gap = round((h - text_h * 2) / h, 2)
         self.resize(w, h)
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap)

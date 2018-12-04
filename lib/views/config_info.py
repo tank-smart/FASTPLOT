@@ -32,7 +32,8 @@ OPTION = {'dir of quick import' : '',
           'plot font bbox' : True,
           'plot markline style' : '--',
           'plot markline color' : '#aa0000',
-          'plot markline marker' : 'None'}
+          'plot markline marker' : 'None',
+          'data description' : ''}
 # =============================================================================
 # 字体
 # =============================================================================

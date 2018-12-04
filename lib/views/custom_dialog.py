@@ -1252,7 +1252,7 @@ class ParaSetupDialog(QDialog):
             ex_paras = []
 #            norfile_list = {}
             
-            if len(self.sorted_paras) > 2:
+            if len(self.sorted_paras) >= 2:
                 for para_info in self.sorted_paras[1:]:
                     paraname, file_dir = para_info
 #                    判断导入的参数是否已存在
@@ -4206,6 +4206,22 @@ class OptionDialog(QDialog):
         self.horizontalLayout_10.addWidget(self.cb_lm)
         self.verticalLayout_7.addLayout(self.horizontalLayout_10)
         self.verticalLayout_3.addWidget(self.group_box_line)
+        
+        self.group_box_data_description = QGroupBox(self.page_plot)
+        self.verticalLayout_10 = QVBoxLayout(self.group_box_data_description)
+        self.verticalLayout_10.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_10.setSpacing(2)
+        self.line_edit_data_description = QLineEdit(self.group_box_data_description)
+        if CONFIG.OPTION['data description'] == 'whosyourdaddy':
+            s = ''
+        else:
+            s = CONFIG.OPTION['data description']
+        self.line_edit_data_description.setText(s)
+        self.line_edit_data_description.setMinimumSize(QSize(0, 24))
+        self.line_edit_data_description.setMaximumSize(QSize(16777215, 24))
+        self.verticalLayout_10.addWidget(self.line_edit_data_description)
+        self.verticalLayout_3.addWidget(self.group_box_data_description)
+        
         spacerItem1 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem1)
         self.stack_option_win.addWidget(self.page_plot)
@@ -4337,7 +4353,7 @@ class OptionDialog(QDialog):
         if CONFIG.OPTION['data dict version'] != self.cb_dd_version.currentData():
             CONFIG.OPTION['data dict version'] = self.cb_dd_version.currentData()
             self.dd_version_changed = True
-        
+        CONFIG.OPTION['data description'] = self.line_edit_data_description.text()
         
         try:
     #        打开保存模板的文件（将从头写入，覆盖之前的内容）
@@ -4365,6 +4381,7 @@ class OptionDialog(QDialog):
             self.line_color = '#aa0000'
             self.label_lc_view.setPalette(QPalette(QColor(self.line_color)))
             self.cb_lm.setCurrentIndex(0)
+            self.line_edit_data_description.setText('')
         if index == 2:
             self.cb_paralist_win.setChecked(True)
             self.cb_plot_win.setChecked(True)
@@ -4436,6 +4453,7 @@ class OptionDialog(QDialog):
         self.label_color.setText(_translate('OptionDialog', ''))
         self.btn_sel_color.setText(_translate('OptionDialog', 'C'))
         self.group_box_line.setTitle(_translate('OptionDialog', '标注线'))
+        self.group_box_data_description.setTitle(_translate("Dialog", "数据描述"))
         self.label_ls.setText(_translate('OptionDialog', '线型'))
 #        self.label_lw.setText(_translate('OptionDialog', '线宽'))
         self.label_lc.setText(_translate('OptionDialog', '颜色'))
@@ -4512,7 +4530,7 @@ class DsiplayParaInfoBaseDialog(QDialog):
         self.group_box_para_info.setTitle(_translate('DsiplayParaInfoBaseDialog', '参数信息'))
         for i, info in enumerate(cols_info):
             item = self.table_widget_para_info.horizontalHeaderItem(i)
-            item.setText(_translate('DisplayParaValuesDialog', info))
+            item.setText(_translate('DsiplayParaInfoBaseDialog', info))
 
 class DisplayParaValuesDialog(DsiplayParaInfoBaseDialog):
     
@@ -4520,34 +4538,33 @@ class DisplayParaValuesDialog(DsiplayParaInfoBaseDialog):
     
         super().__init__(parent, 2, ['参数名', '参数值'])
 
-        self.retranslateUi_custom()
+        self.group_box_tip.setVisible(False)
+        self.table_widget_para_info.horizontalHeader().setVisible(False)
+        self.setWindowTitle(QCoreApplication.translate('DisplayParaValuesDialog', '参数值'))
+        self.group_box_para_info.setTitle('')
 
 #    实时显示参数值
     def slot_display_paravalue(self, time : str, list_paravalue_info : list):
         
-#        显示时间
-        if time != '':
-            self.label_tip.setText(time)
-        else:
-            self.label_tip.setText('No Data!')
-        
-        count = len(list_paravalue_info)
+        count = len(list_paravalue_info) + 1
         self.table_widget_para_info.clearContents()
         self.table_widget_para_info.setRowCount(count)
+        
+#        显示时间
+        item1 = QTableWidgetItem(QCoreApplication.translate('DisplayParaValuesDialog', '时刻'))
+        self.table_widget_para_info.setItem(0, 0, item1)
+        if time != '':
+            item2 = QTableWidgetItem(time)
+        else:
+            item2 = QTableWidgetItem(QCoreApplication.translate('DisplayParaValuesDialog', '无数据'))
+        self.table_widget_para_info.setItem(0, 1, item2)
+        
         for row, para_tuple in enumerate(list_paravalue_info):
             time, paraname, value = para_tuple
             item1 = QTableWidgetItem(paraname)
-            self.table_widget_para_info.setItem(row, 0, item1)
+            self.table_widget_para_info.setItem(row + 1, 0, item1)
             item2 = QTableWidgetItem(str(value))
-            self.table_widget_para_info.setItem(row, 1, item2)
-
-    def retranslateUi_custom(self):
-        
-        _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate('DisplayParaValuesDialog', '参数值'))
-        self.group_box_tip.setTitle(_translate('DisplayParaValuesDialog', '时刻'))
-        self.label_tip.setText(_translate('DisplayParaValuesDialog', '00:00:00.000'))
-        self.group_box_para_info.setTitle(_translate('DisplayParaValuesDialog', '参数信息'))
+            self.table_widget_para_info.setItem(row + 1, 1, item2)
         
 class DisplayParaAggregateInfoDialog(DsiplayParaInfoBaseDialog):
 
