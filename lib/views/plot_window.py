@@ -27,7 +27,8 @@ from PyQt5.QtGui import QIcon, QKeyEvent, QFont
 # Package views imports
 # =============================================================================
 from models.figure_model import (FastPlotCanvas, SingleAxisXTimePlotCanvas,
-                                 StackAxisPlotCanvas, SingleAxisPlotCanvas)
+                                 StackAxisPlotCanvas, SingleAxisPlotCanvas,
+                                 SingleAxisYSharePlotCanvas)
 from views.custom_dialog import (DisplayParaValuesDialog, SelectPlotTemplateDialog)
 import views.config_info as CONFIG
 # =============================================================================
@@ -50,6 +51,7 @@ class FigureWindow(QScrollArea):
             self.canva = SingleAxisXTimePlotCanvas(self)
         if fig_style == 'stack_axis_fig':
             self.canva = StackAxisPlotCanvas(self)
+#            self.canva = SingleAxisYSharePlotCanvas(self)
         self.setWidget(self.canva)
         self.setWidgetResizable(True)
         self.setAcceptDrops(True)
@@ -530,14 +532,16 @@ class PlotWindow(QWidget):
     def adjust_fig_win(self):
         
         self.current_count_axes = self.current_canva.count_axes
+        if type(self.current_canva) == SingleAxisYSharePlotCanvas:
+            self.current_count_axes = 1
         if self.current_count_axes > 4:
             self.current_fig_win.setWidgetResizable(False)
 #            乘以1.05是估计的，刚好能放下四张图，
 #            减去的19是滚动条的宽度
             if type(self.current_canva) == StackAxisPlotCanvas:
-                if self.current_count_axes > 7:
-                    n = self.current_count_axes - 7
-                    d = 3 * (n - 1) + 4
+                if self.current_count_axes > self.current_canva.num_axes_no_scroll:
+                    n = self.current_count_axes - self.current_canva.num_axes_no_scroll
+                    d = self.current_canva.num_scales_between_ylabel * (n - 1) + self.current_canva.num_view_yscales
                     height = self.current_fig_win.height() + d * 20
                     self.current_canva.resize(self.current_fig_win.width() - 19,
                                               height)
@@ -812,7 +816,8 @@ class PlotWindow(QWidget):
             self.current_canva.adjust_savefig()
             
 #            保存变形后的画布
-            self.current_canva.toolbar.save_figure()
+            self.current_canva.fig.savefig('E:\\xx.png', dpi = 400)
+#            self.current_canva.toolbar.save_figure()
             self.on_saving_fig = False
             if type(self.current_canva) == StackAxisPlotCanvas:
                 self.current_canva.visible_axis_sel_status(True)
