@@ -3520,10 +3520,10 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         self.num_axes_no_scroll = 7
 #        y轴标签间间隔的刻度数
         self.num_scales_between_ylabel = 3
-#        每个坐标用多少个实际刻度显示，取偶数
+#        坐标用多少个实际刻度显示，取偶数
         self.num_view_yscales = 4
-#        坐标的刻度用几个实际刻度显示，目前只显示三个刻度值，所以除以2
-        self.num_yview_scales = self.num_view_yscales / 2
+#        坐标单位刻度用几个实际刻度显示
+        self.num_yview_scales = 2
 #        y坐标的实际刻度数
         self.num_yscales = self.num_scales_between_ylabel * (self.num_axes_no_scroll - 1) + self.num_view_yscales
         
@@ -3636,13 +3636,13 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             ax = self.selected_sta_axis
             ax_inv = ax.transData.inverted()
             x0data, self.real_init_cursor_ypos = ax_inv.transform(event.inaxes.transData.transform((event.xdata, event.ydata)))
-            y0data = (ax.get_yticks()[2] + ax.get_yticks()[0]) / 2
+            y0data = (ax.get_yticks()[int(self.num_view_yscales / self.num_yview_scales)] + ax.get_yticks()[0]) / 2
             self.init_cursor_pos = (x0data, y0data)
             self.init_xlim = ax.get_xlim()
             init_ylim = ax.get_ylim()
             x_frac = (self.init_cursor_pos[0] - self.init_xlim[0]) / (self.init_xlim[1] - self.init_xlim[0])
             y_frac = (self.real_init_cursor_ypos - init_ylim[0]) / (init_ylim[1] - init_ylim[0])
-            self.init_view_ylim = (ax.get_yticks()[0], ax.get_yticks()[2])
+            self.init_view_ylim = (ax.get_yticks()[0], ax.get_yticks()[int(self.num_view_yscales / self.num_yview_scales)])
             self.init_pos_frac = (x_frac, y_frac)
     
     def slot_move_pan(self, event):
@@ -3661,7 +3661,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                 xl -= dx
                 xr -= dx
                 yl = ax.get_yticks()[0] - dy
-                yu = ax.get_yticks()[2] - dy
+                yu = ax.get_yticks()[int(self.num_view_yscales / self.num_yview_scales)] - dy
 #            缩放
             if event.button == 3:
                 new_xpos_frac = (new_pos[0] - xl) / (xr - xl)
@@ -3985,7 +3985,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                 self.axes_info[pn]['scr_index'] = scr_index
                 self.axes_info[pn]['ylabel'] = axes[i].get_ylabel()
                 self.axes_info[pn]['xlim'] = axes[i].get_xlim()
-                self.axes_info[pn]['ylim'] = (axes[i].get_yticks()[0], axes[i].get_yticks()[2])
+                self.axes_info[pn]['ylim'] = (axes[i].get_yticks()[0], axes[i].get_yticks()[int(self.num_view_yscales / self.num_yview_scales)])
                 self.axes_info[pn]['color'] = axes[i].spines['left'].get_edgecolor()
                 self.restore_axes_artist_info(self.axes_info[pn], axes[i])
         
@@ -3996,12 +3996,24 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         new_view_scale = self.reg_scale(old_view_scale)
         base_mid = int((yl + yu) / 2 / new_view_scale)
         bias_mid = (yl + yu) / 2 / new_view_scale - base_mid
-#                正数的四舍五入，实数的则要考虑负数的情况，这里bias_mid肯定是正数
-        if bias_mid > 0.5:
-            base_mid += 1
-        mid = base_mid * new_view_scale
-        lb = mid - new_view_scale
-        ub = mid + new_view_scale
+        if (self.num_view_yscales / self.num_yview_scales) % 2 == 0:
+#            正数的四舍五入，实数的则要考虑负数的情况，这里bias_mid肯定是正数
+            if bias_mid > 0.5:
+                base_mid += 1
+            mid = base_mid * new_view_scale
+            lb = mid - new_view_scale * (self.num_view_yscales / self.num_yview_scales) / 2
+            ub = mid + new_view_scale * (self.num_view_yscales / self.num_yview_scales) / 2
+#        暂时不考虑奇数的情况
+        else:
+            pass
+#        base_mid = int((yl + yu) / 2 / new_view_scale)
+#        bias_mid = (yl + yu) / 2 / new_view_scale - base_mid
+##        正数的四舍五入，实数的则要考虑负数的情况，这里bias_mid肯定是正数
+#        if bias_mid > 0.5:
+#            base_mid += 1
+#        mid = base_mid * new_view_scale
+#        lb = mid - new_view_scale
+#        ub = mid + new_view_scale
         
         return (lb, ub)
     
@@ -4031,7 +4043,11 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         
         real_scale = (view_yu - view_yl) / self.num_view_yscales
 #        设置需显示的刻度值，并垂直放置
-        ax.set_yticks([view_yl, (view_yl + view_yu) / 2, view_yu])
+        list_ticks = [view_yl]
+        de = real_scale * self.num_yview_scales
+        for i in range(int(self.num_view_yscales / self.num_yview_scales)):
+            list_ticks.append(view_yl + de * (i + 1))
+        ax.set_yticks(list_ticks)
 #        设置刻度值的字体样式
         plt.setp(ax.get_yticklabels(),
                  rotation = 'vertical',
@@ -4040,7 +4056,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         ax.spines['left'].set_bounds(view_yl, view_yu)
 #        设置y轴标签
         ax.set_ylabel(ax.get_ylabel(),
-                      y = 1 - (self.num_scales_between_ylabel * ax_index + self.num_yview_scales) / self.num_yscales,
+                      y = 1 - (self.num_scales_between_ylabel * ax_index + self.num_view_yscales / 2) / self.num_yscales,
                       picker = 1)
 #        设置坐标轴范围
         ax.set_ylim(view_yl - (self.num_yscales - self.num_scales_between_ylabel * ax_index - self.num_view_yscales) * real_scale, 
@@ -4122,7 +4138,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             for i, ax in enumerate(self.fig.axes):
                 if i != 0:
                     label = 'axis_' + str(i)
-                    ylim = (ax.get_yticks()[0], ax.get_yticks()[2])
+                    ylim = (ax.get_yticks()[0], ax.get_yticks()[int(self.num_view_yscales / self.num_yview_scales)])
                     axes_lim[label] = (ax, i - 1, ax.get_xlim(), ylim)
                 
         return axes_lim
@@ -4151,6 +4167,11 @@ class SingleAxisYSharePlotCanvas(StackAxisPlotCanvas):
     def __init__(self, parent = None):
     
         super().__init__(parent)
+        self.num_yview_scales = 2
+        self.action_up_axis.setText(QCoreApplication.
+                                    translate('FastPlotCanvas', '左移刻度线'))
+        self.action_down_axis.setText(QCoreApplication.
+                                      translate('FastPlotCanvas', '右移刻度线'))
         
 #    设置网格线个数，重载函数
     def set_num_yscales_base_curves_count(self, count):
@@ -4172,7 +4193,11 @@ class SingleAxisYSharePlotCanvas(StackAxisPlotCanvas):
         ax_index = 0
         real_scale = (view_yu - view_yl) / self.num_view_yscales
 #        设置需显示的刻度值，并垂直放置
-        ax.set_yticks([view_yl, (view_yl + view_yu) / 2, view_yu])
+        list_ticks = [view_yl]
+        de = real_scale * self.num_yview_scales
+        for i in range(int(self.num_view_yscales / self.num_yview_scales)):
+            list_ticks.append(view_yl + de * (i + 1))
+        ax.set_yticks(list_ticks)
 #        设置刻度值的字体样式
         plt.setp(ax.get_yticklabels(),
                  rotation = 'vertical',
@@ -4181,7 +4206,7 @@ class SingleAxisYSharePlotCanvas(StackAxisPlotCanvas):
         ax.spines['left'].set_bounds(view_yl, view_yu)
 #        设置y轴标签
         ax.set_ylabel(ax.get_ylabel(),
-                      y = 1 - (self.num_scales_between_ylabel * ax_index + self.num_yview_scales) / self.num_yscales,
+                      y = 1 - (self.num_scales_between_ylabel * ax_index + self.num_view_yscales / 2) / self.num_yscales,
                       picker = 1)
 #        设置坐标轴范围
         ax.set_ylim(view_yl - (self.num_yscales - self.num_scales_between_ylabel * ax_index - self.num_view_yscales) * real_scale, 

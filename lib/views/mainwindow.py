@@ -127,7 +127,7 @@ class MainWindow(QMainWindow):
 #        让dock窗口不可依靠
         self.data_process_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.data_process_fun_win.setMinimumSize(QSize(800, 500))
-        self.data_process_fun_win.setGeometry(150, 150, 800, 500)
+        self.data_process_fun_win.setGeometry(350, 150, 800, 500)
         self.data_process_fun_win.setWindowTitle(QCoreApplication.
                                                  translate('MainWindow', '参数选择'))
         self.data_process_wid = QWidget(self)
@@ -141,7 +141,7 @@ class MainWindow(QMainWindow):
         self.data_sift_fun_win = QDockWidget(self)
         self.data_sift_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.data_sift_fun_win.setMinimumSize(QSize(800, 500))
-        self.data_sift_fun_win.setGeometry(200, 180, 800, 500)
+        self.data_sift_fun_win.setGeometry(400, 150, 800, 500)
         self.data_sift_fun_win.setWindowTitle(QCoreApplication.
                                               translate('MainWindow', '数据筛选'))
         self.data_sift_wid = QWidget(self)
@@ -155,7 +155,7 @@ class MainWindow(QMainWindow):
         self.mathematics_fun_win = QDockWidget(self)
         self.mathematics_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.mathematics_fun_win.setMinimumSize(QSize(800, 500))
-        self.mathematics_fun_win.setGeometry(250, 210, 800, 500)
+        self.mathematics_fun_win.setGeometry(450, 150, 800, 500)
         self.mathematics_fun_win.setWindowTitle(QCoreApplication.
                                                 translate('MainWindow', '数学计算'))
         self.mathematics_wid = QWidget(self)
@@ -169,7 +169,7 @@ class MainWindow(QMainWindow):
         self.para_temp_fun_win = QDockWidget(self)
         self.para_temp_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.para_temp_fun_win.setMinimumSize(QSize(800, 500))
-        self.para_temp_fun_win.setGeometry(300, 240, 800, 500)
+        self.para_temp_fun_win.setGeometry(500, 150, 800, 500)
         self.para_temp_fun_win.setWindowTitle(QCoreApplication.
                                               translate('MainWindow', '参数模板'))
         self.para_temp_wid = QWidget(self)
@@ -183,7 +183,7 @@ class MainWindow(QMainWindow):
         self.data_dict_fun_win = QDockWidget(self)
         self.data_dict_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.data_dict_fun_win.setMinimumSize(QSize(800, 500))
-        self.data_dict_fun_win.setGeometry(350, 270, 800, 500)
+        self.data_dict_fun_win.setGeometry(550, 150, 800, 500)
         self.data_dict_fun_win.setWindowTitle(QCoreApplication.
                                               translate('MainWindow', '数据字典'))
         self.data_dict_wid = QWidget(self)
@@ -478,7 +478,8 @@ class MainWindow(QMainWindow):
         init_dir = CONFIG.OPTION['dir of quick import']
         if os.path.exists(init_dir):
             file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
-                    self, QCoreApplication.translate('MainWindow', '导入标准数据'), 
+                    self,
+                    QCoreApplication.translate('MainWindow', '导入标准数据'),
                     init_dir,
                     QCoreApplication.translate('MainWindow', '标准试飞数据文件(*.txt)'))
         else:

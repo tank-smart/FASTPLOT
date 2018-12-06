@@ -2654,7 +2654,7 @@ class StackAxisSettingDialog(AxisSettingDialog):
         
         self.num_yscales, self.num_scales_between_ylabel, self.num_view_yscales, self.num_yview_scales, self.i = layout_info
         self.view_llimit = axes.get_yticks()[0]
-        self.view_ulimit = axes.get_yticks()[2]
+        self.view_ulimit = axes.get_yticks()[int(self.num_view_yscales / self.num_yview_scales)]
         self.line_edit_y_top.setText(str(self.view_ulimit))
         self.line_edit_y_bottom.setText(str(self.view_llimit))
         
@@ -2673,14 +2673,20 @@ class StackAxisSettingDialog(AxisSettingDialog):
             self.xlim = (x0, x1)
             self.view_llimit = float(str_y_bottom)
             self.view_ulimit = float(str_y_top)
-            new_scale = (self.view_ulimit - self.view_llimit) / self.num_yview_scales
-            self.ylim = (self.view_llimit - (self.num_yscales - self.num_scales_between_ylabel * self.i - self.num_view_yscales) * new_scale / self.num_yview_scales, 
-                         self.view_ulimit + self.num_scales_between_ylabel * self.i * new_scale / self.num_yview_scales)
+            new_scale = (self.view_ulimit - self.view_llimit) / self.num_view_yscales
+            self.ylim = (self.view_llimit - (self.num_yscales - self.num_scales_between_ylabel * self.i - self.num_view_yscales) * new_scale, 
+                         self.view_ulimit + self.num_scales_between_ylabel * self.i * new_scale)
         except:
             pass
         self.axes.set_xlim(self.xlim)
         self.axes.set_ylim(self.ylim)
-        self.axes.set_yticks([self.view_llimit,(self.view_llimit + self.view_ulimit) / 2, self.view_ulimit])
+        
+        list_ticks = [self.view_llimit]
+        de = (self.view_ulimit - self.view_llimit) / self.num_view_yscales * self.num_yview_scales
+        for i in range(int(self.num_view_yscales / self.num_yview_scales)):
+            list_ticks.append(self.view_llimit + de * (i + 1))
+        self.axes.set_yticks(list_ticks)
+#        self.axes.set_yticks([self.view_llimit,(self.view_llimit + self.view_ulimit) / 2, self.view_ulimit])
         self.axes.spines['left'].set_bounds(self.view_llimit, self.view_ulimit)
         
 #        设置图注

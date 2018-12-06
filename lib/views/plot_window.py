@@ -11,14 +11,15 @@
 # 
 
 # =============================================================================
-
+import os
 # =============================================================================
 # Qt imports
 # =============================================================================
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
                              QMessageBox, QScrollArea, QProgressDialog,
-                             QTabWidget, QApplication, QFrame, QDialog)
+                             QTabWidget, QApplication, QFrame, QDialog,
+                             QFileDialog)
 from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
                           QIODevice, Qt)
 from PyQt5.QtGui import QIcon, QKeyEvent, QFont
@@ -50,8 +51,8 @@ class FigureWindow(QScrollArea):
         if fig_style == 'single_axis_xtime_fig':
             self.canva = SingleAxisXTimePlotCanvas(self)
         if fig_style == 'stack_axis_fig':
-            self.canva = StackAxisPlotCanvas(self)
-#            self.canva = SingleAxisYSharePlotCanvas(self)
+#            self.canva = StackAxisPlotCanvas(self)
+            self.canva = SingleAxisYSharePlotCanvas(self)
         self.setWidget(self.canva)
         self.setWidgetResizable(True)
         self.setAcceptDrops(True)
@@ -125,6 +126,9 @@ class PlotWindow(QWidget):
         self._current_files = None
         self._dict_filetype = None
         self._data_dict = None
+        
+#        保存图片的路径
+        self.save_fig_dir = CONFIG.SETUP_DIR
 
 # =============================================================================
 # UI模块        
@@ -811,15 +815,29 @@ class PlotWindow(QWidget):
 #            将画布变形成合适的尺寸
             self.current_fig_win.setWidgetResizable(False)
             self.on_saving_fig = True
-            if type(self.current_canva) == StackAxisPlotCanvas:
+            if (type(self.current_canva) == StackAxisPlotCanvas or
+                type(self.current_canva) == SingleAxisYSharePlotCanvas):
                 self.current_canva.visible_axis_sel_status(False)
             self.current_canva.adjust_savefig()
             
 #            保存变形后的画布
-            self.current_canva.fig.savefig('E:\\xx.png', dpi = 400)
+            filename, suffix_info = QFileDialog.getSaveFileName(
+                    self,
+                    QCoreApplication.translate('PlotWindow', '保存图片'),
+                    self.save_fig_dir + '\\image.png',
+                    QCoreApplication.translate('PlotWindow', '''PNG (*.png);;JPEG (*.jpg);;
+                                               PDF (*.pdf);;SVG (*.svg);;RAW (*.raw);;
+                                               TIFF (*.tiff);;PS (*.ps)'''))
+            if filename:
+                self.current_canva.fig.savefig(filename, dpi = 400)
+                self.save_fig_dir = os.path.dirname(filename)
+                QMessageBox.information(self,
+                                        QCoreApplication.translate('PlotWindow', '保存提示'),
+                                        QCoreApplication.translate('PlotWindow', '图片保存成功！'))
 #            self.current_canva.toolbar.save_figure()
             self.on_saving_fig = False
-            if type(self.current_canva) == StackAxisPlotCanvas:
+            if (type(self.current_canva) == StackAxisPlotCanvas or
+                type(self.current_canva) == SingleAxisYSharePlotCanvas):
                 self.current_canva.visible_axis_sel_status(True)
             
 #            将画布还原回查看状态下的尺寸
