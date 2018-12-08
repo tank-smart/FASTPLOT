@@ -51,7 +51,8 @@ class FigureWindow(QScrollArea):
         if fig_style == 'single_axis_xtime_fig':
             self.canva = SingleAxisXTimePlotCanvas(self)
         if fig_style == 'stack_axis_fig':
-#            self.canva = StackAxisPlotCanvas(self)
+            self.canva = StackAxisPlotCanvas(self)
+        if fig_style == 'single_axis_yshare_fig':
             self.canva = SingleAxisYSharePlotCanvas(self)
         self.setWidget(self.canva)
         self.setWidgetResizable(True)
@@ -903,7 +904,7 @@ class PlotWindow(QWidget):
         self.tab_widget_figure.addTab(sa_fig_win,
                                       QIcon(CONFIG.ICON_SINGLE_AXIS),
                                       QCoreApplication.translate('PlotWindow',
-                                                                 '单坐标图'))
+                                                                 '单坐标图（时间历程）'))
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
         sa_fig_win.canva.signal_progress.connect(self.set_value)
     
@@ -927,13 +928,23 @@ class PlotWindow(QWidget):
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(stack_fig_win))
         stack_fig_win.canva.signal_progress.connect(self.set_value)
         
+    def slot_add_sa_ys_fig(self):
+        
+        sa_ys_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_yshare_fig')
+        self.tab_widget_figure.addTab(sa_ys_fig_win,
+                                      QIcon(CONFIG.ICON_SINGLE_YS_AXIS),
+                                      QCoreApplication.translate('PlotWindow',
+                                                                 '单坐标图（Y轴不共享）'))
+        self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_ys_fig_win))
+        sa_ys_fig_win.canva.signal_progress.connect(self.set_value)
+        
     def slot_add_sut_fig(self):
         
         sa_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_fig')
         self.tab_widget_figure.addTab(sa_fig_win,
                                       QIcon(CONFIG.ICON_SINGLE_UT_AXIS),
                                       QCoreApplication.translate('PlotWindow',
-                                                                 '自定义坐标图'))
+                                                                 '单坐标图（非时间历程）'))
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
         sa_fig_win.canva.signal_progress.connect(self.set_value)
 

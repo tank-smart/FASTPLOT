@@ -165,7 +165,7 @@ class SelectTemplateBaseDialog(QDialog):
         self.horizontalLayout_2.setStretch(1, 3)
         self.verticalLayout_3.addLayout(self.horizontalLayout_2)
         self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setSpacing(10)
+        self.horizontalLayout.setSpacing(4)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem)
         self.button_confirm = QPushButton(self)
@@ -331,6 +331,8 @@ class MathScriptDialog(SelectTemplateBaseDialog):
 #        UI改动
         self.button_exec = QPushButton(self)
         self.horizontalLayout.addWidget(self.button_exec)
+        self.button_close = QPushButton(self)
+        self.horizontalLayout.addWidget(self.button_close)
         self.script_edit_win = QPlainTextEdit(self)
         self.verticalLayout_2.addWidget(self.script_edit_win)
         
@@ -340,6 +342,7 @@ class MathScriptDialog(SelectTemplateBaseDialog):
         self.button_confirm.setText(QCoreApplication.translate('MathScriptDialog', '保存'))
         self.button_cancel.setText(QCoreApplication.translate('MathScriptDialog', '重置'))
         self.button_exec.setText(QCoreApplication.translate('MathScriptDialog', '执行'))
+        self.button_close.setText(QCoreApplication.translate('MathScriptDialog', '关闭'))
         
         self.list_temps.setContextMenuPolicy(Qt.CustomContextMenu)
         self.action_create_scp = QAction(self.list_temps)
@@ -359,6 +362,7 @@ class MathScriptDialog(SelectTemplateBaseDialog):
         self.button_confirm.clicked.connect(self.slot_save_script)
         self.button_cancel.clicked.connect(self.slot_reset_script)
         self.button_exec.clicked.connect(self.accept)
+        self.button_close.clicked.connect(self.reject)
         self.list_temps.customContextMenuRequested.connect(
                 self.on_tree_context_menu)
         self.action_create_scp.triggered.connect(self.slot_create_scp)
