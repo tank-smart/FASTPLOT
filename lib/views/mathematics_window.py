@@ -160,11 +160,11 @@ class MathematicsWindow(QWidget):
         self.btn_pow.setMaximumSize(QSize(40, 30))
         self.btn_pow.setFont(font_10)
         self.gridLayout.addWidget(self.btn_pow, 2, 2, 1, 1)
-        self.btn_log = QPushButton(self.group_box_commandline)
-        self.btn_log.setMinimumSize(QSize(40, 30))
-        self.btn_log.setMaximumSize(QSize(40, 30))
-        self.btn_log.setFont(font_10)
-        self.gridLayout.addWidget(self.btn_log, 2, 3, 1, 1)
+        self.btn_lg = QPushButton(self.group_box_commandline)
+        self.btn_lg.setMinimumSize(QSize(40, 30))
+        self.btn_lg.setMaximumSize(QSize(40, 30))
+        self.btn_lg.setFont(font_10)
+        self.gridLayout.addWidget(self.btn_lg, 2, 3, 1, 1)
         spacerItem3 = QSpacerItem(0, 20, QSizePolicy.Minimum, QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem3, 2, 4, 1, 1)
         self.btn_sin = QPushButton(self.group_box_commandline)
@@ -264,7 +264,7 @@ class MathematicsWindow(QWidget):
         self.btn_sqrt.clicked.connect(self.slot_send_op_func_str)
         self.btn_pow_ten.clicked.connect(self.slot_send_op_func_str)
         self.btn_pow.clicked.connect(self.slot_send_op_func_str)
-        self.btn_log.clicked.connect(self.slot_send_op_func_str)
+        self.btn_lg.clicked.connect(self.slot_send_op_func_str)
         self.btn_abs.clicked.connect(self.slot_send_op_func_str)
         self.btn_sin.clicked.connect(self.slot_send_op_func_str)
         self.btn_cos.clicked.connect(self.slot_send_op_func_str)
@@ -333,7 +333,7 @@ class MathematicsWindow(QWidget):
             if name in self.dict_result_paras:
                 dsp[name] = self.dict_result_paras[name]
                 paralist = self.dict_result_paras[name].get_paralist()
-                print(dsp[name].data)
+                
                 self.dataview_dialog = DataviewDialog(self, dsp[name].data, paralist)
                 self.dataview_dialog.show()
                 
@@ -446,8 +446,8 @@ class MathematicsWindow(QWidget):
             self.signal_op_fun_str.emit('pow(10, )')
         if sender == self.btn_pow:
             self.signal_op_fun_str.emit('pow()')
-        if sender == self.btn_log:
-            self.signal_op_fun_str.emit('log()')
+        if sender == self.btn_lg:
+            self.signal_op_fun_str.emit('lg()')
         if sender == self.btn_abs:
             self.signal_op_fun_str.emit('abs()')
         if sender == self.btn_sin:
@@ -485,7 +485,7 @@ class MathematicsWindow(QWidget):
         self.btn_square.setText(_translate('MathematicsWindow', '^2'))
         self.btn_pow_ten.setText(_translate('MathematicsWindow', '10^x'))
         self.btn_pow.setText(_translate('MathematicsWindow', 'pow'))
-        self.btn_log.setText(_translate('MathematicsWindow', 'log'))
+        self.btn_lg.setText(_translate('MathematicsWindow', 'lg'))
         self.btn_abs.setText(_translate('MathematicsWindow', 'abs'))
         self.btn_abs.setToolTip(_translate('MathematicsWindow', '取绝对值函数，a可以是参数时\n间序列向量、数值或矩阵，对a中所有元素取绝对值，返回a的原类型'))
         self.btn_sin.setText(_translate('MathematicsWindow', 'sin'))

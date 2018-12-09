@@ -1,1 +1,1 @@
-"def curve_fit(x, y, deg = 1):\n    z1 = np.polyfit(x, y, deg)#\u7528\u591a\u9879\u5f0f\u62df\u5408\n    p1 = np.poly1d(z1)\n    output('p1') #\u8f93\u51fa\u62df\u5408\u591a\u9879\u5f0f\n\nx = NX"
+"def curve_fit(x, y, deg = 1):\n    z1 = np.polyfit(x, y, deg)#\u7528\u591a\u9879\u5f0f\u62df\u5408\n    p1 = np.poly1d(z1)\n    return p1\n\na= FADEC_LA_Corrected_N1_Speed.reset_index()\nx = a.index\ny = a.iloc[:,1]\np = curve_fit(x,y)\n#print(p)\noutput('p') #\u8f93\u51fa\u62df\u5408\u591a\u9879\u5f0f"

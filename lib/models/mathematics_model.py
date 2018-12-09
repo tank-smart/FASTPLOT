@@ -440,6 +440,7 @@ class MathematicsEditor(QPlainTextEdit):
         self.scope['arcsin']=self.arcsin
         self.scope['arccos']=self.arccos
         self.scope['arctan']=self.arctan
+        self.scope['lg']=self.lg
         self.scope['fft']=self.fft
 #        函数名称列表，用于高亮显示
         if self.df_func is not None:
@@ -587,6 +588,12 @@ class MathematicsEditor(QPlainTextEdit):
             return np.arctan(variable)
         else:
             return np.arctan(variable)
+        
+    def lg(self, variable):
+        if isinstance(variable, pd.Series):
+            return np.log10(variable)
+        else:
+            return np.log10(variable)
         
     def fft(self, series):
         if isinstance(series, pd.Series):
