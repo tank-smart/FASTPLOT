@@ -4958,7 +4958,7 @@ class DataviewDialog(QDialog):
         self.comboBox.addItems(self.table_model.dropdown_list)
         self.horizontalLayout_5.addWidget(self.comboBox)
         self.verticalLayout.addLayout(self.horizontalLayout_5)
-        self.line_edit_search.textChanged.connect(self.slot_search)
+#        self.line_edit_search.textChanged.connect(self.slot_search)
         self.comboBox.activated[int].connect(self.slot_update_page)
         self.pushButton_2.clicked.connect(self.slot_pre_page)
         self.pushButton.clicked.connect(self.slot_next_page)
@@ -5013,7 +5013,7 @@ class DataviewDialog(QDialog):
             self.btn_add.clicked.connect(self.signal_add_paras)
         if self.sel_mode == QAbstractItemView.SingleSelection:
             self.preview_widget.itemDoubleClicked.connect(self.accept)
-#        self.line_edit_search.textChanged.connect(self.slot_search)
+        self.line_edit_search.textChanged.connect(self.slot_search)
 #        self.preview_widget.verticalScrollBar().valueChanged.connect(self.table_model.update_vscrollbar)
         self.preview_widget.verticalScrollBar().valueChanged.connect(self.slot_update_vscrollbar)
 #        self.scrollbar.valueChanged.connect(self.slot_update_vscrollbar)
