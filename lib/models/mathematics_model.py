@@ -20,7 +20,8 @@ import numpy as np
 # =============================================================================
 from PyQt5.QtWidgets import (QPlainTextEdit, QMessageBox, QAction, QDialog,
                              QMenu, QApplication)
-from PyQt5.QtGui import (QSyntaxHighlighter, QTextCharFormat, QTextCursor)
+from PyQt5.QtGui import (QSyntaxHighlighter, QTextCharFormat, QTextCursor,
+                         QKeyEvent)
 from PyQt5.QtCore import (Qt, QRegExp, QCoreApplication, pyqtSignal)
 
 # =============================================================================
@@ -146,19 +147,19 @@ class MathematicsEditor(QPlainTextEdit):
         self.action_script = QAction(self)
         self.action_script.setText(QCoreApplication.
                                    translate('MathematicsEditor', '计算脚本'))
-        self.action_pre_exper = QAction(self)
-        self.action_pre_exper.setText(QCoreApplication.
-                                      translate('MathematicsEditor', '上一条表达式'))
+#        self.action_pre_exper = QAction(self)
+#        self.action_pre_exper.setText(QCoreApplication.
+#                                      translate('MathematicsEditor', '上一条表达式'))
         self.action_clear_editor = QAction(self)
         self.action_clear_editor.setText(QCoreApplication.
-                                         translate('MathematicsEditor', '清空所有输入'))
+                                         translate('MathematicsEditor', '清空指令'))
         
         self.customContextMenuRequested.connect(self.conmandline_context_menu)
         self.action_add_para.triggered.connect(self.slot_add_para)
         self.action_add_func.triggered.connect(self.slot_add_func)
         self.action_script.triggered.connect(self.slot_math_script)
         self.action_clear_editor.triggered.connect(self.slot_clear)
-        self.action_pre_exper.triggered.connect(self.slot_insert_pre_exper)
+#        self.action_pre_exper.triggered.connect(self.slot_insert_pre_exper)
         
 #        判断用户是在哪里输入文字，只有在当前textblock内才能输入
         self.cursorPositionChanged.connect(self.slot_cursor_pos)
@@ -167,7 +168,7 @@ class MathematicsEditor(QPlainTextEdit):
 # =============================================================================
 # slots模块
 # =============================================================================        
-    def keyPressEvent(self, event):
+    def keyPressEvent(self, event : QKeyEvent):
         
 #        Qt的enter与事件的enter不知道为什么差了个1
 #        之所以要重写按下enter后的事件，是为了保证用户在表达式中使用enter也能执行整行代码
@@ -175,6 +176,8 @@ class MathematicsEditor(QPlainTextEdit):
             text_cursor = self.textCursor()
             text_cursor.movePosition(QTextCursor.End)
             self.setTextCursor(text_cursor)
+        if event.key() == Qt.Key_Up:
+            self.slot_insert_pre_exper()
         QPlainTextEdit.keyPressEvent(self, event)
     
     def slot_cursor_pos(self):
@@ -644,12 +647,12 @@ class MathematicsEditor(QPlainTextEdit):
         menu.addActions([self.action_add_para,
                          self.action_add_func,
                          self.action_script,
-                         self.action_pre_exper,
+#                         self.action_pre_exper,
                          self.action_clear_editor])
-        if self.pre_exper:
-            self.action_pre_exper.setEnabled(True)
-        else:
-            self.action_pre_exper.setEnabled(False)
+#        if self.pre_exper:
+#            self.action_pre_exper.setEnabled(True)
+#        else:
+#            self.action_pre_exper.setEnabled(False)
         menu.exec_(self.mapToGlobal(pos))
 
     def slot_add_para(self):
@@ -669,7 +672,11 @@ class MathematicsEditor(QPlainTextEdit):
             paras = dialog.get_list_sel_paras()
             if paras:
                 self.insertPlainText(paras[0])
+       
+    def slot_insert_op_func_str(self, s : str):
         
+        if s:
+            self.insertPlainText(s)
                     
     def slot_clear(self):
         
@@ -681,6 +688,7 @@ class MathematicsEditor(QPlainTextEdit):
             text_cursor = self.textCursor()
             text_cursor.insertText(self.pre_exper)
             self.setTextCursor(text_cursor)
+            self.pre_exper = ''
             
     def slot_update_current_files(self, files : list, dict_filetype : dict):
         

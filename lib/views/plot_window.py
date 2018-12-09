@@ -11,14 +11,15 @@
 # 
 
 # =============================================================================
-
+import os
 # =============================================================================
 # Qt imports
 # =============================================================================
 from PyQt5.QtWidgets import (QWidget, QToolButton, QSpacerItem,
                              QVBoxLayout, QHBoxLayout, QSizePolicy,
                              QMessageBox, QScrollArea, QProgressDialog,
-                             QTabWidget, QApplication, QFrame, QDialog)
+                             QTabWidget, QApplication, QFrame, QDialog,
+                             QFileDialog)
 from PyQt5.QtCore import (QCoreApplication, QSize, pyqtSignal, QDataStream,
                           QIODevice, Qt)
 from PyQt5.QtGui import QIcon, QKeyEvent, QFont
@@ -27,7 +28,8 @@ from PyQt5.QtGui import QIcon, QKeyEvent, QFont
 # Package views imports
 # =============================================================================
 from models.figure_model import (FastPlotCanvas, SingleAxisXTimePlotCanvas,
-                                 StackAxisPlotCanvas, SingleAxisPlotCanvas)
+                                 StackAxisPlotCanvas, SingleAxisPlotCanvas,
+                                 SingleAxisYSharePlotCanvas)
 from views.custom_dialog import (DisplayParaValuesDialog, SelectPlotTemplateDialog)
 import views.config_info as CONFIG
 # =============================================================================
@@ -50,6 +52,8 @@ class FigureWindow(QScrollArea):
             self.canva = SingleAxisXTimePlotCanvas(self)
         if fig_style == 'stack_axis_fig':
             self.canva = StackAxisPlotCanvas(self)
+        if fig_style == 'single_axis_yshare_fig':
+            self.canva = SingleAxisYSharePlotCanvas(self)
         self.setWidget(self.canva)
         self.setWidgetResizable(True)
         self.setAcceptDrops(True)
@@ -123,6 +127,9 @@ class PlotWindow(QWidget):
         self._current_files = None
         self._dict_filetype = None
         self._data_dict = None
+        
+#        保存图片的路径
+        self.save_fig_dir = CONFIG.SETUP_DIR
 
 # =============================================================================
 # UI模块        
@@ -200,12 +207,14 @@ class PlotWindow(QWidget):
         self.button_back.setIconSize(QSize(22, 22))
         self.button_back.setIcon(QIcon(CONFIG.ICON_BACK))
         self.verticalLayout.addWidget(self.button_back)
+        self.button_back.setVisible(False)
         self.button_forward = QToolButton(self.widget_plot_tools)
         self.button_forward.setMinimumSize(QSize(30, 30))
         self.button_forward.setMaximumSize(QSize(30, 30))
         self.button_forward.setIconSize(QSize(22, 22))
         self.button_forward.setIcon(QIcon(CONFIG.ICON_FORWARD))
-        self.verticalLayout.addWidget(self.button_forward)    
+        self.verticalLayout.addWidget(self.button_forward)
+        self.button_forward.setVisible(False)
         self.button_save = QToolButton(self.widget_plot_tools)
         self.button_save.setMinimumSize(QSize(30, 30))
         self.button_save.setMaximumSize(QSize(30, 30))
@@ -528,14 +537,16 @@ class PlotWindow(QWidget):
     def adjust_fig_win(self):
         
         self.current_count_axes = self.current_canva.count_axes
+        if type(self.current_canva) == SingleAxisYSharePlotCanvas:
+            self.current_count_axes = 1
         if self.current_count_axes > 4:
             self.current_fig_win.setWidgetResizable(False)
 #            乘以1.05是估计的，刚好能放下四张图，
 #            减去的19是滚动条的宽度
             if type(self.current_canva) == StackAxisPlotCanvas:
-                if self.current_count_axes > 7:
-                    n = self.current_count_axes - 7
-                    d = 3 * (n - 1) + 4
+                if self.current_count_axes > self.current_canva.num_axes_no_scroll:
+                    n = self.current_count_axes - self.current_canva.num_axes_no_scroll
+                    d = self.current_canva.num_scales_between_ylabel * (n - 1) + self.current_canva.num_view_yscales
                     height = self.current_fig_win.height() + d * 20
                     self.current_canva.resize(self.current_fig_win.width() - 19,
                                               height)
@@ -805,14 +816,29 @@ class PlotWindow(QWidget):
 #            将画布变形成合适的尺寸
             self.current_fig_win.setWidgetResizable(False)
             self.on_saving_fig = True
-            if type(self.current_canva) == StackAxisPlotCanvas:
+            if (type(self.current_canva) == StackAxisPlotCanvas or
+                type(self.current_canva) == SingleAxisYSharePlotCanvas):
                 self.current_canva.visible_axis_sel_status(False)
             self.current_canva.adjust_savefig()
             
 #            保存变形后的画布
-            self.current_canva.toolbar.save_figure()
+            filename, suffix_info = QFileDialog.getSaveFileName(
+                    self,
+                    QCoreApplication.translate('PlotWindow', '保存图片'),
+                    self.save_fig_dir + '\\image.png',
+                    QCoreApplication.translate('PlotWindow', '''PNG (*.png);;JPEG (*.jpg);;
+                                               PDF (*.pdf);;SVG (*.svg);;RAW (*.raw);;
+                                               TIFF (*.tiff);;PS (*.ps)'''))
+            if filename:
+                self.current_canva.fig.savefig(filename, dpi = 400)
+                self.save_fig_dir = os.path.dirname(filename)
+                QMessageBox.information(self,
+                                        QCoreApplication.translate('PlotWindow', '保存提示'),
+                                        QCoreApplication.translate('PlotWindow', '图片保存成功！'))
+#            self.current_canva.toolbar.save_figure()
             self.on_saving_fig = False
-            if type(self.current_canva) == StackAxisPlotCanvas:
+            if (type(self.current_canva) == StackAxisPlotCanvas or
+                type(self.current_canva) == SingleAxisYSharePlotCanvas):
                 self.current_canva.visible_axis_sel_status(True)
             
 #            将画布还原回查看状态下的尺寸
@@ -878,7 +904,7 @@ class PlotWindow(QWidget):
         self.tab_widget_figure.addTab(sa_fig_win,
                                       QIcon(CONFIG.ICON_SINGLE_AXIS),
                                       QCoreApplication.translate('PlotWindow',
-                                                                 '单坐标图'))
+                                                                 '单坐标图（时间历程）'))
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
         sa_fig_win.canva.signal_progress.connect(self.set_value)
     
@@ -902,13 +928,23 @@ class PlotWindow(QWidget):
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(stack_fig_win))
         stack_fig_win.canva.signal_progress.connect(self.set_value)
         
+    def slot_add_sa_ys_fig(self):
+        
+        sa_ys_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_yshare_fig')
+        self.tab_widget_figure.addTab(sa_ys_fig_win,
+                                      QIcon(CONFIG.ICON_SINGLE_YS_AXIS),
+                                      QCoreApplication.translate('PlotWindow',
+                                                                 '单坐标图（Y轴不共享）'))
+        self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_ys_fig_win))
+        sa_ys_fig_win.canva.signal_progress.connect(self.set_value)
+        
     def slot_add_sut_fig(self):
         
         sa_fig_win = FigureWindow(self.tab_widget_figure, 'single_axis_fig')
         self.tab_widget_figure.addTab(sa_fig_win,
                                       QIcon(CONFIG.ICON_SINGLE_UT_AXIS),
                                       QCoreApplication.translate('PlotWindow',
-                                                                 '自定义坐标图'))
+                                                                 '单坐标图（非时间历程）'))
         self.slot_fig_win_change(self.tab_widget_figure.indexOf(sa_fig_win))
         sa_fig_win.canva.signal_progress.connect(self.set_value)
 

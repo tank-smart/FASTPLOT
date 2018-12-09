@@ -127,7 +127,7 @@ class MainWindow(QMainWindow):
 #        让dock窗口不可依靠
         self.data_process_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.data_process_fun_win.setMinimumSize(QSize(800, 500))
-        self.data_process_fun_win.setGeometry(150, 150, 800, 500)
+        self.data_process_fun_win.setGeometry(350, 150, 800, 500)
         self.data_process_fun_win.setWindowTitle(QCoreApplication.
                                                  translate('MainWindow', '参数选择'))
         self.data_process_wid = QWidget(self)
@@ -141,7 +141,7 @@ class MainWindow(QMainWindow):
         self.data_sift_fun_win = QDockWidget(self)
         self.data_sift_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.data_sift_fun_win.setMinimumSize(QSize(800, 500))
-        self.data_sift_fun_win.setGeometry(200, 180, 800, 500)
+        self.data_sift_fun_win.setGeometry(400, 150, 800, 500)
         self.data_sift_fun_win.setWindowTitle(QCoreApplication.
                                               translate('MainWindow', '数据筛选'))
         self.data_sift_wid = QWidget(self)
@@ -155,7 +155,7 @@ class MainWindow(QMainWindow):
         self.mathematics_fun_win = QDockWidget(self)
         self.mathematics_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.mathematics_fun_win.setMinimumSize(QSize(800, 500))
-        self.mathematics_fun_win.setGeometry(250, 210, 800, 500)
+        self.mathematics_fun_win.setGeometry(450, 150, 800, 500)
         self.mathematics_fun_win.setWindowTitle(QCoreApplication.
                                                 translate('MainWindow', '数学计算'))
         self.mathematics_wid = QWidget(self)
@@ -169,7 +169,7 @@ class MainWindow(QMainWindow):
         self.para_temp_fun_win = QDockWidget(self)
         self.para_temp_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.para_temp_fun_win.setMinimumSize(QSize(800, 500))
-        self.para_temp_fun_win.setGeometry(300, 240, 800, 500)
+        self.para_temp_fun_win.setGeometry(500, 150, 800, 500)
         self.para_temp_fun_win.setWindowTitle(QCoreApplication.
                                               translate('MainWindow', '参数模板'))
         self.para_temp_wid = QWidget(self)
@@ -183,7 +183,7 @@ class MainWindow(QMainWindow):
         self.data_dict_fun_win = QDockWidget(self)
         self.data_dict_fun_win.setAllowedAreas(Qt.NoDockWidgetArea)
         self.data_dict_fun_win.setMinimumSize(QSize(800, 500))
-        self.data_dict_fun_win.setGeometry(350, 270, 800, 500)
+        self.data_dict_fun_win.setGeometry(550, 150, 800, 500)
         self.data_dict_fun_win.setWindowTitle(QCoreApplication.
                                               translate('MainWindow', '数据字典'))
         self.data_dict_wid = QWidget(self)
@@ -276,14 +276,16 @@ class MainWindow(QMainWindow):
         self.action_help_doc = QAction(self)
         self.action_help_video = QAction(self)
         
-        self.action_add_sa_fig = QAction(self)
-        self.action_add_sa_fig.setIcon(QIcon(CONFIG.ICON_SINGLE_AXIS))
         self.action_add_ma_fig = QAction(self)
         self.action_add_ma_fig.setIcon(QIcon(CONFIG.ICON_MULT_AXIS))
         self.action_add_sta_fig = QAction(self)
         self.action_add_sta_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
+        self.action_add_sa_fig = QAction(self)
+        self.action_add_sa_fig.setIcon(QIcon(CONFIG.ICON_SINGLE_AXIS))
         self.action_add_sut_fig = QAction(self)
         self.action_add_sut_fig.setIcon(QIcon(CONFIG.ICON_SINGLE_UT_AXIS))
+        self.action_add_sa_ys_fig = QAction(self)
+        self.action_add_sa_ys_fig.setIcon(QIcon(CONFIG.ICON_SINGLE_YS_AXIS))
 #        self.action_add_ux_fig = QAction(self)
 #        self.action_add_ux_fig.setIcon(QIcon(CONFIG.ICON_STACK_AXIS))
         
@@ -325,7 +327,7 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.action_open_normal_datafile)
         self.toolbar.addSeparator()
         self.toolbar.addActions([self.action_data_process,
-                                 self.action_data_sift,
+#                                 self.action_data_sift,
                                  self.action_mathematics])
 #        self.toolbar.addActions([self.action_data_process,
 #                                 self.action_data_sift])
@@ -335,10 +337,11 @@ class MainWindow(QMainWindow):
 #        self.toolbar.addSeparator()
 #        self.toolbar.addAction(self.action_about)
         
-        self.toolbar_plot.addActions([self.action_add_sa_fig,
-                                      self.action_add_ma_fig,
+        self.toolbar_plot.addActions([self.action_add_ma_fig,
                                       self.action_add_sta_fig,
-                                      self.action_add_sut_fig])
+                                      self.action_add_sa_fig,
+                                      self.action_add_sut_fig,
+                                      self.action_add_sa_ys_fig])
         
 #        将绘图页面显示为初始页面
 #        self.stacked_window.setCurrentIndex(2)
@@ -384,6 +387,7 @@ class MainWindow(QMainWindow):
         self.action_add_ma_fig.triggered.connect(self.plot_page.slot_add_ma_fig)
         self.action_add_sta_fig.triggered.connect(self.plot_page.slot_add_stack_fig)
         self.action_add_sut_fig.triggered.connect(self.plot_page.slot_add_sut_fig)
+        self.action_add_sa_ys_fig.triggered.connect(self.plot_page.slot_add_sa_ys_fig)
 #        self.action_add_ux_fig.triggered.connect(self.plot_page.slot_add_ux_fig)
         
         self.signal_import_datafiles.connect(
@@ -478,7 +482,8 @@ class MainWindow(QMainWindow):
         init_dir = CONFIG.OPTION['dir of quick import']
         if os.path.exists(init_dir):
             file_dir_list, unkonwn = QFileDialog.getOpenFileNames(
-                    self, QCoreApplication.translate('MainWindow', '导入标准数据'), 
+                    self,
+                    QCoreApplication.translate('MainWindow', '导入标准数据'),
                     init_dir,
                     QCoreApplication.translate('MainWindow', '标准试飞数据文件(*.txt)'))
         else:
@@ -872,9 +877,10 @@ class MainWindow(QMainWindow):
         self.action_help_doc.setText(_translate('MainWindow', 'FastPlot帮助文档'))
         self.action_help_video.setText(_translate('MainWindow', 'FastPlot视频教程'))
         self.action_add_ma_fig.setText(_translate('MainWindow', '添加多坐标图'))
-        self.action_add_sa_fig.setText(_translate('MainWindow', '添加单坐标图'))
+        self.action_add_sa_fig.setText(_translate('MainWindow', '添加单坐标图\n（时间历程）'))
         self.action_add_sta_fig.setText(_translate('MainWindow', '添加重叠图'))
-        self.action_add_sut_fig.setText(_translate('MainWindow', '添加自定义坐标图'))
+        self.action_add_sut_fig.setText(_translate('MainWindow', '添加单坐标图\n（非时间历程）'))
+        self.action_add_sa_ys_fig.setText(_translate('MainWindow', '添加单坐标图\n（Y轴不共享）'))
         
 def main():
     app = QApplication(sys.argv)

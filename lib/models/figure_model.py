@@ -12,6 +12,7 @@
 # SingleAxisPlotCanvas
 # SingleAxisXTimePlotCanvas
 # StackAxisPlotCanvas
+# SingleAxisYSharePlotCanvas
 # TBDPlotCanvas
 # =======使用说明
 # 参考类的使用说明
@@ -40,6 +41,7 @@ from matplotlib.backends.backend_qt5 import NavigationToolbar2QT as NavigationTo
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.text import Annotation, Text
+#from matplotlib.offsetbox import AnchoredText
 # 用于PyQt交互的包
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, QPoint, Qt
 from PyQt5.QtGui import QIcon
@@ -611,6 +613,21 @@ class PlotCanvasBase(FigureCanvas):
                 ax.set_ylim(ylim[0], ylim[1])
             self.draw()
             
+#    用于设置标注在右上角的图片信息
+    def set_data_picture_info(self, ax):
+        
+        if CONFIG.OPTION['data description']:
+            if CONFIG.OPTION['data description'] != 'whosyourdaddy':
+                s = CONFIG.OPTION['data description'] + '\n' + CONFIG.SOFTNAME
+            else:
+                s = ''
+        else:
+            s = CONFIG.SOFTNAME
+        ax.set_title(s,
+                     loc = 'right',
+                     pad = 3,
+                     fontdict  = dict(fontstyle = 'italic', fontsize = 8),
+                     fontproperties = CONFIG.FONT_MSYH)
 
 #    def slot_save_time(self):
 #        
@@ -892,11 +909,12 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                 self.signal_cursor_xdata.emit(real_time, list_paravalue_info)
                 self.aux_line = ax.axvline(rt, 
                                            gid = 'getvalue',
-                                           c = 'black',
-                                           ls = '--',
+                                           c = '#c30000',
+                                           ls = '-',
+                                           lw = 1,
                                            marker = 'd',
-                                           markerfacecolor = 'green',
-                                           markersize = 8)
+                                           markerfacecolor = '#c30000',
+                                           markersize = 6)
                 self.draw()
         self.cid_dppv_move = self.mpl_connect('motion_notify_event',
                                               self.slot_display_paravalue)
@@ -933,19 +951,21 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                         self.aux_line.remove()
                         self.aux_line = event.inaxes.axvline(rt,
                                                              gid = 'getvalue',
-                                                             c = 'black',
-                                                             ls = '--',
+                                                             c = '#c30000',
+                                                             ls = '-',
+                                                             lw = 1,
                                                              marker = 'd',
-                                                             markerfacecolor = 'green',
-                                                             markersize = 8)
+                                                             markerfacecolor = '#c30000',
+                                                             markersize = 6)
                 else:
                     self.aux_line = event.inaxes.axvline(rt,
                                                          gid = 'getvalue',
-                                                         c = 'black',
-                                                         ls = '--',
+                                                         c = '#c30000',
+                                                         ls = '-',
+                                                         lw = 1,
                                                          marker = 'd',
-                                                         markerfacecolor = 'green',
-                                                         markersize = 8)
+                                                         markerfacecolor = '#c30000',
+                                                         markersize = 6)
                 self.draw()
 
     def get_paravalue(self, dt):
@@ -1108,7 +1128,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                     if pn != 'NaN':
                         paraname = pn
                         
-                if not data.empty:
+                if type(data) == pd.DataFrame:
                     para_info_list.append((paraname,
                                            data.mean()[paraname_init], 
                                            data.max()[paraname_init], 
@@ -1390,11 +1410,12 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                 for axis in self.fig.axes:
                     line = axis.axvline(rt,
                                         gid = 'getvalue',
-                                        c = 'black',
-                                        ls = '--',
+                                        c = '#c30000',
+                                        ls = '-',
+                                        lw = 1,
                                         marker = 'd',
-                                        markerfacecolor = 'green',
-                                        markersize = 8)
+                                        markerfacecolor = '#c30000',
+                                        markersize = 6)
                     self.aux_lines.append(line)
                 self.draw()
         self.cid_dppv_move = self.mpl_connect('motion_notify_event',
@@ -1433,11 +1454,12 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                     for axis in self.fig.axes:
                         line = axis.axvline(rt,
                                             gid = 'getvalue',
-                                            c = 'black',
-                                            ls = '--',
+                                            c = '#c30000',
+                                            ls = '-',
+                                            lw = 1,
                                             marker = 'd',
-                                            markerfacecolor = 'green',
-                                            markersize = 8)
+                                            markerfacecolor = '#c30000',
+                                            markersize = 6)
                         self.aux_lines.append(line)
                 self.draw()
                 
@@ -1484,6 +1506,12 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             if i == 0:
                 ax = self.fig.add_subplot(count, 1, 1)
                 first_axis = ax
+                self.set_data_picture_info(ax)
+#                ax.add_artist(AnchoredText(CONFIG.SOFTNAME,
+#                                           'upper right',
+#                                           bbox_to_anchor = [0, 0, 1, 1],
+#                                           frameon = False,
+#                                           prop = dict(fontstyle = 'italic', fontsize = 8)))
             else:
                 ax = self.fig.add_subplot(count, 1, i+1, sharex = first_axis)
             if (self._data_dict and 
@@ -1548,7 +1576,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         self.init_axes_lim = self.get_current_axes_lim()
         self.refresh_axes_status()
         self.adjust_figure()
-        
+      
 #    根据存储的坐标信息，把重画后的坐标状态还原
     def refresh_axes_status(self):
         
@@ -1702,18 +1730,18 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         
     def adjust_savefig(self):
         
-#        图注高度
-        legend_h = 18
+#        文字高度
+        text_h = 18
 #        坐标高度
         axis_h = 100
 #        画布尺寸
-        h = self.count_axes * (axis_h + legend_h) + legend_h
+        h = self.count_axes * (axis_h + text_h) + text_h
         w = 650
-        bottom_gap = round(legend_h * 2 / h, 2)
+        bottom_gap = round(text_h * 2 / h, 2)
         right_gap = round((w - 10) / w, 2)
         left_gap = round(50 / w, 2)
-        top_gap = round((h - legend_h) / h, 2)
-        hs = round(legend_h / (axis_h + legend_h), 2)
+        top_gap = round((h - text_h * 2) / h, 2)
+        hs = round(text_h / (axis_h + text_h), 2)
         self.resize(w, h)
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap, hspace = hs)
@@ -2267,21 +2295,21 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
 #        
 #    def adjust_savefig(self):
 #        
-##        图注高度
-#        legend_h = 18
+##        文字高度
+#        text_h = 18
 ##        坐标高度
 #        axis_h = 300
 ##        画布尺寸
-#        h = (axis_h + legend_h) + legend_h
+#        h = (axis_h + text_h) + text_h
 #        w = 650
-#        bottom_gap = round(legend_h * 2 / h, 2)
+#        bottom_gap = round(text_h * 2 / h, 2)
 #        right_gap = round((w - 10) / w, 2)
 #        left_gap = round(50 / w, 2)
 #        m = int(self.count_curves / 4)
 #        if self.count_curves % 4 != 0:
 #            m += 1
-#        top_gap = round((h - legend_h * m) / h, 2)
-#        hs = round(legend_h / (axis_h + legend_h), 2)
+#        top_gap = round((h - text_h * (m + 1)) / h, 2)
+#        hs = round(text_h / (axis_h + text_h), 2)
 #        self.resize(w, h)
 #        self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
 #                                 right = right_gap, top = top_gap, hspace = hs)
@@ -2293,6 +2321,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
     def __init__(self, parent = None, **sapc_args):
     
         super().__init__(parent)
+#        当前已经有一个参数选择对话框存在
         self.exit_paras_setup_dialog = False
         self.data_timerange = {'enable' : True,
                                'whole_stime' : '',
@@ -2457,6 +2486,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
         
         def slot_single_plot(signal_tuple):
         
+            self.exit_paras_setup_dialog = False
             datadict, sorted_paras = signal_tuple
             is_plot = self.process_data(datadict, sorted_paras, self.dict_filetype)
             
@@ -2469,6 +2499,10 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
                 self.data_timerange['whole_etime'] = self.data_timerange['view_etime'] = tr[1]
                 
                 self.plot_total_data()
+                
+        def slot_reject():
+            
+            self.exit_paras_setup_dialog = False
 
         self.restore_axes_info()
         if self.sorted_paralist:
@@ -2478,6 +2512,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
             uxplot_dialog = ParaSetupDialog(self, datadict, sorted_paras,
                                             cur_files, self.dict_filetype)
             uxplot_dialog.signal_accept.connect(slot_single_plot)
+            uxplot_dialog.rejected.connect(slot_reject)
             uxplot_dialog.show()
         else:
             pass
@@ -2494,6 +2529,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
             matplotlib.rcParams['axes.unicode_minus'] = False
             
             ax = self.fig.add_subplot(1, 1, 1)
+            self.set_data_picture_info(ax)
             count = len(self.sorted_paralist)
             s_paralist = self.sorted_paralist
             if count != 1:
@@ -2588,7 +2624,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
             self.adjust_figure()
         else:
             self.draw()
-            
+
     def restore_axes_info(self):
         
         axes = self.fig.axes
@@ -3010,7 +3046,7 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
         m = int(self.count_curves / 4)
         if self.count_curves % 4 != 0:
             m += 1
-        top_gap = round((h - 20 * m) / h, 2)
+        top_gap = round((h - 20 * m - 20) / h, 2)
 
         self.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                  right=right_gap,top=top_gap,hspace=0.16)
@@ -3018,21 +3054,21 @@ class SingleAxisPlotCanvas(FTDataPlotCanvasBase):
         
     def adjust_savefig(self):
         
-#        图注高度
-        legend_h = 18
+#        文字高度
+        text_h = 18
 #        坐标高度
         axis_h = 300
 #        画布尺寸
-        h = (axis_h + legend_h) + legend_h
+        h = (axis_h + text_h) + text_h
         w = 650
-        bottom_gap = round(legend_h * 2 / h, 2)
+        bottom_gap = round(text_h * 2 / h, 2)
         right_gap = round((w - 10) / w, 2)
         left_gap = round(50 / w, 2)
         m = int(self.count_curves / 4)
         if self.count_curves % 4 != 0:
             m += 1
-        top_gap = round((h - legend_h * m) / h, 2)
-        hs = round(legend_h / (axis_h + legend_h), 2)
+        top_gap = round((h - text_h * (m + 1)) / h, 2)
+        hs = round(text_h / (axis_h + text_h), 2)
         self.resize(w, h)
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap, hspace = hs)
@@ -3217,6 +3253,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
             matplotlib.rcParams['axes.unicode_minus'] = False
             
             ax = self.fig.add_subplot(1, 1, 1)
+            self.set_data_picture_info(ax)
             count = len(self.sorted_paralist)
             self.count_curves = count
         
@@ -3424,7 +3461,7 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         m = int(self.count_curves / 4)
         if self.count_curves % 4 != 0:
             m += 1
-        top_gap = round((h - 20 * m) / h, 2)
+        top_gap = round((h - 20 * m - 20) / h, 2)
 
         self.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
                                  right=right_gap,top=top_gap,hspace=0.16)
@@ -3432,21 +3469,21 @@ class SingleAxisXTimePlotCanvas(FastPlotCanvas):
         
     def adjust_savefig(self):
         
-#        图注高度
-        legend_h = 18
+#        文字高度
+        text_h = 18
 #        坐标高度
         axis_h = 300
 #        画布尺寸
-        h = (axis_h + legend_h) + legend_h
+        h = (axis_h + text_h) + text_h
         w = 650
-        bottom_gap = round(legend_h * 2 / h, 2)
+        bottom_gap = round(text_h * 2 / h, 2)
         right_gap = round((w - 10) / w, 2)
         left_gap = round(50 / w, 2)
         m = int(self.count_curves / 4)
         if self.count_curves % 4 != 0:
             m += 1
-        top_gap = round((h - legend_h * m) / h, 2)
-        hs = round(legend_h / (axis_h + legend_h), 2)
+        top_gap = round((h - text_h * (m + 1)) / h, 2)
+        hs = round(text_h / (axis_h + text_h), 2)
         self.resize(w, h)
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
                                  right = right_gap, top = top_gap, hspace = hs)
@@ -3481,10 +3518,16 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
 #        坐标设置相关的变量
         self.selected_sta_axis = None
         self.selected_sta_axis_index = 0
-        self.num_yscales = 0
-        self.num_scales_between_ylabel = 0
-        self.num_view_yscales = 0
-        self.num_yview_scales = 0
+#        不出现滚动条时的坐标最多个数
+        self.num_axes_no_scroll = 7
+#        y轴标签间间隔的刻度数
+        self.num_scales_between_ylabel = 3
+#        坐标用多少个实际刻度显示，取偶数
+        self.num_view_yscales = 4
+#        坐标单位刻度用几个实际刻度显示
+        self.num_yview_scales = 2
+#        y坐标的实际刻度数
+        self.num_yscales = self.num_scales_between_ylabel * (self.num_axes_no_scroll - 1) + self.num_view_yscales
         
     def custom_context_menu(self, event):
 #        如果重载函数内有单独使用self变量的情况，调用重载函数时需要加上self作为参数
@@ -3595,13 +3638,13 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             ax = self.selected_sta_axis
             ax_inv = ax.transData.inverted()
             x0data, self.real_init_cursor_ypos = ax_inv.transform(event.inaxes.transData.transform((event.xdata, event.ydata)))
-            y0data = (ax.get_yticks()[2] + ax.get_yticks()[0]) / 2
+            y0data = (ax.get_yticks()[int(self.num_view_yscales / self.num_yview_scales)] + ax.get_yticks()[0]) / 2
             self.init_cursor_pos = (x0data, y0data)
             self.init_xlim = ax.get_xlim()
             init_ylim = ax.get_ylim()
             x_frac = (self.init_cursor_pos[0] - self.init_xlim[0]) / (self.init_xlim[1] - self.init_xlim[0])
             y_frac = (self.real_init_cursor_ypos - init_ylim[0]) / (init_ylim[1] - init_ylim[0])
-            self.init_view_ylim = (ax.get_yticks()[0], ax.get_yticks()[2])
+            self.init_view_ylim = (ax.get_yticks()[0], ax.get_yticks()[int(self.num_view_yscales / self.num_yview_scales)])
             self.init_pos_frac = (x_frac, y_frac)
     
     def slot_move_pan(self, event):
@@ -3620,7 +3663,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                 xl -= dx
                 xr -= dx
                 yl = ax.get_yticks()[0] - dy
-                yu = ax.get_yticks()[2] - dy
+                yu = ax.get_yticks()[int(self.num_view_yscales / self.num_yview_scales)] - dy
 #            缩放
             if event.button == 3:
                 new_xpos_frac = (new_pos[0] - xl) / (xr - xl)
@@ -3746,22 +3789,11 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             self.plot_total_data()
             
     def plot_total_data(self):
-        
-#        y坐标的实际刻度数
-        self.num_yscales = 22
-#        y轴标签间间隔的刻度数
-        self.num_scales_between_ylabel = 3
-#        每个坐标用多少个实际刻度显示，取偶数
-        self.num_view_yscales = 4
-#        坐标的刻度用几个实际刻度显示，目前只显示三个刻度值，所以除以2
-        self.num_yview_scales = self.num_view_yscales / 2
                             
         self.fig.clf()
         self.color_index = 0
         count = len(self.sorted_paralist)
-        if count > 7:
-            n = count - 7
-            self.num_yscales = 22 + self.num_scales_between_ylabel * (n - 1) + self.num_view_yscales
+        self.set_num_yscales_base_curves_count(count)
         matplotlib.rcParams['xtick.direction'] = 'in' #设置刻度线向内
         matplotlib.rcParams['ytick.direction'] = 'in'
 #            支持中文显示
@@ -3771,6 +3803,11 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
 #            count = len(self.sorted_paralist)
 
         host = self.fig.add_subplot(1, 1, 1)
+#        滚动区域大小随曲线个数自适应时，由于在绘图过程中又进行自适应，draw函数被
+#        提前调用了一次，直接把没画好的部分刷新出来了。为了解决该问题，通过先隐藏
+#        host坐标，避免刷出来，等所有画完在显示出来。
+        host.set_visible(False)
+        self.set_data_picture_info(host)
         plt.setp(host.get_xticklabels(),
                  horizontalalignment = 'center',
                  rotation = 'horizontal',
@@ -3779,7 +3816,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         host.set_xlabel('时间', fontproperties = CONFIG.FONT_MSYH, labelpad = 2)
         host.grid(which='major',linestyle='--',color = '0.45')
         host.grid(which='minor',linestyle='--',color = '0.75')
-        host.xaxis.set_major_formatter(FuncFormatter(self.my_format))
+#        host.xaxis.set_major_formatter(FuncFormatter(self.my_format))
         host.xaxis.set_major_locator(MaxNLocator(nbins=6))
         host.xaxis.set_minor_locator(AutoMinorLocator(n=2))
         host.yaxis.set_major_locator(LinearLocator(numticks=self.num_yscales+1))
@@ -3837,11 +3874,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             ax.spines['bottom'].set_visible(False)
             llimit, ulimit = ax.get_ylim()
             yl, yu = self.reg_ylim(llimit, ulimit)
-            flag = i
-            if flag % 2 == 1:
-                ax.spines['left'].set_position(('axes', -0.14))
-            else:
-                ax.spines['left'].set_position(('axes', -0.03))
+            self.set_yspine_position(ax.spines['left'], i)
             self.adjust_view_axis(ax, i, yl, yu)
 
 #                一共有十种颜色可用
@@ -3849,7 +3882,8 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                 self.color_index = 0
             else:
                 self.color_index += 1
-                
+    
+        host.set_visible(True)
 #        重置
         self.init_axes_lim = {}
 #        记录
@@ -3911,30 +3945,34 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
 #        设置图四边的空白宽度 
         bottom_gap = round(50 / h, 2)
         right_gap = round((w - 40) / w, 2)       
-        left_gap = 0.21
+        left_gap = 0.16
         top_gap = round((h - 40) / h, 2)
 
-        self.fig.subplots_adjust(left=left_gap,bottom=bottom_gap,
-                                 right=right_gap,top=top_gap,hspace=0.16)
+        self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
+                                 right = right_gap, top = top_gap,
+                                 hspace = 0.16)
         self.draw()
         
     def adjust_savefig(self):
         
-#        图注高度
-        legend_h = 18
+#        文字高度
+        text_h = 18
 #        画布尺寸
-        if self.count_axes <= 7:
-            h = legend_h * 3 + (3 * (7 - 1) + 4) * 20
+        if self.count_axes <= 4:
+            h = text_h * 3 + 300
+        elif self.count_axes <= self.num_axes_no_scroll:
+            h = text_h * 3 + (self.num_scales_between_ylabel * (self.num_axes_no_scroll - 1) + self.num_view_yscales) * 20
         else:
-            h = legend_h * 3 + (3 * (self.count_axes - 1) + 4) * 20
+            h = text_h * 3 + (self.num_scales_between_ylabel * (self.count_axes - 1) + self.num_view_yscales) * 20
         w = 650
-        bottom_gap = round(legend_h * 2 / h, 2)
-        right_gap = round((w - 10) / w, 2)
-        left_gap = 0.21
-        top_gap = round((h - legend_h) / h, 2)
+        bottom_gap = round(text_h * 2 / h, 2)
+        right_gap = round((w - 40) / w, 2)
+        left_gap = 0.2
+        top_gap = round((h - text_h * 2) / h, 2)
         self.resize(w, h)
         self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
-                                 right = right_gap, top = top_gap)
+                                 right = right_gap, top = top_gap,
+                                 hspace = 0.16)
         
     def restore_axes_info(self):
 
@@ -3949,7 +3987,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                 self.axes_info[pn]['scr_index'] = scr_index
                 self.axes_info[pn]['ylabel'] = axes[i].get_ylabel()
                 self.axes_info[pn]['xlim'] = axes[i].get_xlim()
-                self.axes_info[pn]['ylim'] = (axes[i].get_yticks()[0], axes[i].get_yticks()[2])
+                self.axes_info[pn]['ylim'] = (axes[i].get_yticks()[0], axes[i].get_yticks()[int(self.num_view_yscales / self.num_yview_scales)])
                 self.axes_info[pn]['color'] = axes[i].spines['left'].get_edgecolor()
                 self.restore_axes_artist_info(self.axes_info[pn], axes[i])
         
@@ -3960,14 +3998,40 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         new_view_scale = self.reg_scale(old_view_scale)
         base_mid = int((yl + yu) / 2 / new_view_scale)
         bias_mid = (yl + yu) / 2 / new_view_scale - base_mid
-#                正数的四舍五入，实数的则要考虑负数的情况，这里bias_mid肯定是正数
-        if bias_mid > 0.5:
-            base_mid += 1
-        mid = base_mid * new_view_scale
-        lb = mid - new_view_scale
-        ub = mid + new_view_scale
+        if (self.num_view_yscales / self.num_yview_scales) % 2 == 0:
+#            正数的四舍五入，实数的则要考虑负数的情况，这里bias_mid肯定是正数
+            if bias_mid > 0.5:
+                base_mid += 1
+            mid = base_mid * new_view_scale
+            lb = mid - new_view_scale * (self.num_view_yscales / self.num_yview_scales) / 2
+            ub = mid + new_view_scale * (self.num_view_yscales / self.num_yview_scales) / 2
+#        暂时不考虑奇数的情况
+        else:
+            pass
+#        base_mid = int((yl + yu) / 2 / new_view_scale)
+#        bias_mid = (yl + yu) / 2 / new_view_scale - base_mid
+##        正数的四舍五入，实数的则要考虑负数的情况，这里bias_mid肯定是正数
+#        if bias_mid > 0.5:
+#            base_mid += 1
+#        mid = base_mid * new_view_scale
+#        lb = mid - new_view_scale
+#        ub = mid + new_view_scale
         
         return (lb, ub)
+    
+#    设置网格线个数
+    def set_num_yscales_base_curves_count(self, count):
+    
+        if count > 0:
+            self.num_yscales = self.num_scales_between_ylabel * (count - 1) + self.num_view_yscales
+        
+#    设置可视范围距离坐标的位置
+    def set_yspine_position(self, spine, index):
+        
+        if index % 2 == 1:
+            spine.set_position(('outward', 60))
+        else:
+            spine.set_position(('outward', 20))
     
     def tran_ra_va(self, ax, ax_index, yl, yu):
         
@@ -3980,14 +4044,25 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
     def adjust_view_axis(self, ax, ax_index, view_yl, view_yu):
         
         real_scale = (view_yu - view_yl) / self.num_view_yscales
-        ax.set_yticks([view_yl, (view_yl + view_yu) / 2, view_yu])
+#        设置需显示的刻度值，并垂直放置
+        list_ticks = [view_yl]
+        de = real_scale * self.num_yview_scales
+        for i in range(int(self.num_view_yscales / self.num_yview_scales)):
+            list_ticks.append(view_yl + de * (i + 1))
+        ax.set_yticks(list_ticks)
+#        设置刻度值的字体样式
+        plt.setp(ax.get_yticklabels(),
+                 rotation = 'vertical',
+                 fontproperties = CONFIG.FONT_MSYH)
+#        设置脊线
         ax.spines['left'].set_bounds(view_yl, view_yu)
+#        设置y轴标签
         ax.set_ylabel(ax.get_ylabel(),
-                      y = 1 - (self.num_scales_between_ylabel * ax_index + self.num_yview_scales) / self.num_yscales,
+                      y = 1 - (self.num_scales_between_ylabel * ax_index + self.num_view_yscales / 2) / self.num_yscales,
                       picker = 1)
+#        设置坐标轴范围
         ax.set_ylim(view_yl - (self.num_yscales - self.num_scales_between_ylabel * ax_index - self.num_view_yscales) * real_scale, 
                     view_yu + self.num_scales_between_ylabel * ax_index * real_scale)
-        plt.setp(ax.get_yticklabels(), fontproperties = CONFIG.FONT_MSYH)
         
 #    规整刻度值
     def reg_scale(self, scale):
@@ -4065,7 +4140,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             for i, ax in enumerate(self.fig.axes):
                 if i != 0:
                     label = 'axis_' + str(i)
-                    ylim = (ax.get_yticks()[0], ax.get_yticks()[2])
+                    ylim = (ax.get_yticks()[0], ax.get_yticks()[int(self.num_view_yscales / self.num_yview_scales)])
                     axes_lim[label] = (ax, i - 1, ax.get_xlim(), ylim)
                 
         return axes_lim
@@ -4089,6 +4164,87 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
 #            因为只添加了一个变化记录，所以可以这样写
             self.axes_lim_change_info = self.axes_lim_change_info[1 : self.axes_lim_info_num]
         
+class SingleAxisYSharePlotCanvas(StackAxisPlotCanvas):
+    
+    def __init__(self, parent = None):
+    
+        super().__init__(parent)
+        self.num_yview_scales = 2
+        self.action_up_axis.setText(QCoreApplication.
+                                    translate('FastPlotCanvas', '左移刻度线'))
+        self.action_down_axis.setText(QCoreApplication.
+                                      translate('FastPlotCanvas', '右移刻度线'))
+        
+#    设置网格线个数，重载函数
+    def set_num_yscales_base_curves_count(self, count):
+    
+        if count > 0:
+            self.num_yscales = self.num_view_yscales
+        
+#    设置可视刻度范围距离坐标的位置，重载函数
+    def set_yspine_position(self, spine, index):
+        
+        pos = 40 * index + 20
+#        pos = -0.03 - 0.11 * index
+#        spine.set_position(('axes', pos))
+        spine.set_position(('outward', pos))
+        
+#    显示可视坐标，重载函数
+    def adjust_view_axis(self, ax, ax_index, view_yl, view_yu):
+        
+        ax_index = 0
+        real_scale = (view_yu - view_yl) / self.num_view_yscales
+#        设置需显示的刻度值，并垂直放置
+        list_ticks = [view_yl]
+        de = real_scale * self.num_yview_scales
+        for i in range(int(self.num_view_yscales / self.num_yview_scales)):
+            list_ticks.append(view_yl + de * (i + 1))
+        ax.set_yticks(list_ticks)
+#        设置刻度值的字体样式
+        plt.setp(ax.get_yticklabels(),
+                 rotation = 'vertical',
+                 fontproperties = CONFIG.FONT_MSYH)
+#        设置脊线
+        ax.spines['left'].set_bounds(view_yl, view_yu)
+#        设置y轴标签
+        ax.set_ylabel(ax.get_ylabel(),
+                      y = 1 - (self.num_scales_between_ylabel * ax_index + self.num_view_yscales / 2) / self.num_yscales,
+                      picker = 1)
+#        设置坐标轴范围
+        ax.set_ylim(view_yl - (self.num_yscales - self.num_scales_between_ylabel * ax_index - self.num_view_yscales) * real_scale, 
+                    view_yu + self.num_scales_between_ylabel * ax_index * real_scale)
+        
+    def adjust_figure(self):
+        
+        h = self.height()
+        w = self.width()
+#        设置图四边的空白宽度 
+        bottom_gap = round(50 / h, 2)
+        right_gap = round((w - 40) / w, 2)
+        left_gap = round((80 + 60 * (self.count_axes - 1)) / w, 2)
+        top_gap = round((h - 40) / h, 2)
+
+        self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
+                                 right = right_gap, top = top_gap,
+                                 hspace = 0.16)
+        self.draw()
+        
+    def adjust_savefig(self):
+        
+#        文字高度
+        text_h = 18
+#        画布尺寸
+        h = text_h * 3 + 300
+        w = 650
+        bottom_gap = round(text_h * 2 / h, 2)
+        right_gap = round((w - 40) / w, 2)
+        left_gap = round((80 + 60 * (self.count_axes - 1)) / w, 2)
+        top_gap = round((h - text_h * 2) / h, 2)
+        self.resize(w, h)
+        self.fig.subplots_adjust(left = left_gap, bottom = bottom_gap,
+                                 right = right_gap, top = top_gap,
+                                 hspace = 0.16)
+
 #class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
 #    
 #    def __init__(self, parent = None):

@@ -32,7 +32,8 @@ OPTION = {'dir of quick import' : '',
           'plot font bbox' : True,
           'plot markline style' : '--',
           'plot markline color' : '#aa0000',
-          'plot markline marker' : 'None'}
+          'plot markline marker' : 'None',
+          'data description' : ''}
 # =============================================================================
 # 字体
 # =============================================================================
@@ -44,7 +45,7 @@ FONT_MSYH = matplotlib.font_manager.FontProperties(
 # =============================================================================
 FTCC_LOGO = SETUP_DIR + r'\lib\icon\ftcc.png'
 
-ICON_WINDOW = SETUP_DIR + r'\lib\icon\fastplot.png'
+ICON_WINDOW = SETUP_DIR + r'\lib\icon\fastplot0.png'
 
 ICON_ABOUT = SETUP_DIR + r'\lib\icon\information.ico'
 ICON_DATA_ABSTRACT = SETUP_DIR + r'\lib\icon\data_abstract.ico'
@@ -77,7 +78,7 @@ ICON_MULT_AXIS = SETUP_DIR + r'\lib\icon\mult_axis.png'
 
 ICON_OPEN_NORDATA = SETUP_DIR + r'\lib\icon\nor_data.ico'
 
-ICON_PAN = SETUP_DIR + r'\lib\icon\pan.ico'
+ICON_PAN = SETUP_DIR + r'\lib\icon\pan.png'
 ICON_PANELS = SETUP_DIR + r'\lib\icon\panels.ico'
 ICON_PARA = SETUP_DIR + r'\lib\icon\parameter.ico'
 ICON_PARA_DICT = SETUP_DIR + r'\lib\icon\para_dict.ico'
@@ -93,6 +94,7 @@ ICON_SEL_TEMP = SETUP_DIR + r'\lib\icon\use_template.ico'
 ICON_SETTING = SETUP_DIR + r'\lib\icon\setting.ico'
 ICON_SINGLE_AXIS = SETUP_DIR + r'\lib\icon\sin_axis.ico'
 ICON_SINGLE_UT_AXIS = SETUP_DIR + r'\lib\icon\sin_ut_axis.png'
+ICON_SINGLE_YS_AXIS = SETUP_DIR + r'\lib\icon\sa_ys_axis.png'
 ICON_STACK_AXIS = SETUP_DIR + r'\lib\icon\stack_axis.ico'
 
 ICON_TEMPLATE = SETUP_DIR + r'\lib\icon\template.ico'
