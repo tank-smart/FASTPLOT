@@ -45,7 +45,7 @@ import matplotlib.dates as mdates
 # Qt imports
 # =============================================================================
 from PyQt5.QtCore import (QSize, QCoreApplication, Qt, pyqtSignal, QObject,
-                          QDataStream, QIODevice)
+                          QDataStream, QIODevice, QAbstractTableModel, QRect)
 from PyQt5.QtGui import QFont, QIcon, QColor, QPalette, QPixmap
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
                              QLineEdit, QSpacerItem, QSizePolicy,
@@ -57,7 +57,7 @@ from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel,
                              QAction, QMenu, QStackedWidget, QWidget,
                              QCheckBox, QTableWidget, QTableWidgetItem,
                              QSpinBox, QGraphicsScene, QGraphicsView,
-                             QPlainTextEdit)
+                             QPlainTextEdit, QTableView, QScrollBar)
 
 # =============================================================================
 # Package models imports
@@ -4857,12 +4857,12 @@ class ImportDataFileDialog(QDialog):
         self.cb_time_format.setItemText(6, _translate('ImportDataFileDialog', '推断'))
         self.btn_confirm.setText(_translate('ImportDataFileDialog', '导入'))
         self.btn_cancel.setText(_translate('ImportDataFileDialog', '取消'))
-
+        
 class DataviewDialog(QDialog):
 
 #    signal_add_paras = pyqtSignal()
     
-    def __init__(self, parent = None, dictdata = None, sorted_paralist = []):
+    def __init__(self, parent = None, datatable = None, sorted_paralist = []):
         
         super().__init__(parent)
         
@@ -4870,20 +4870,74 @@ class DataviewDialog(QDialog):
 #        self.paraicon = QIcon(CONFIG.ICON_PARA)
         
         self.sel_mode = QAbstractItemView.ExtendedSelection
-        
+        self.table_model = DataTableModel(self, datatable)
         self.setup()
-        max_rows = 0
-        for source in dictdata:
-            datafactory = dictdata[source]
-            if len(datafactory.data)>max_rows:
-                max_rows = len(datafactory.data)
-        self.preview_widget.setColumnCount(len(sorted_paralist))
-        self.preview_widget.setRowCount(max_rows)
-        self.dictdata = dictdata
-        self.sorted_paralist = sorted_paralist
-        self.display_paras()
+    
 
     def setup(self):
+        
+        self.setObjectName("dialog")
+        self.resize(650, 655)
+        font = QFont()
+        font.setFamily("微软雅黑")
+        self.setFont(font)
+        self.verticalLayoutWidget = QWidget(self)
+        self.verticalLayoutWidget.setGeometry(QRect(10, 10, 631, 631))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+        self.verticalLayout = QVBoxLayout(self.verticalLayoutWidget)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.line_edit_search = QLineEdit(self.verticalLayoutWidget)
+        self.line_edit_search.setObjectName("lineEdit")
+        self.verticalLayout.addWidget(self.line_edit_search)
+        self.preview_widget = QTableView(self.verticalLayoutWidget)
+        self.preview_widget.setObjectName("tableView")
+        self.preview_widget.setSelectionMode(self.sel_mode)
+        self.preview_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.preview_widget.verticalHeader().setHidden(False)
+        self.preview_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.preview_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+#        self.preview_widget.horizontalHeader().setVisible(False)
+        self.preview_widget.setModel(self.table_model)
+        self.verticalLayout.addWidget(self.preview_widget)
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setContentsMargins(0, -1, -1, -1)
+        self.horizontalLayout_5.setSpacing(10)
+        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
+        self.pushButton_2 = QPushButton(self.verticalLayoutWidget)
+        font = QFont()
+        font.setFamily("微软雅黑")
+        self.pushButton_2.setFont(font)
+        self.pushButton_2.setObjectName("pushButton_2")
+        self.horizontalLayout_5.addWidget(self.pushButton_2, 0, Qt.AlignLeft)
+        self.pushButton = QPushButton(self.verticalLayoutWidget)
+        font = QFont()
+        font.setFamily("微软雅黑")
+        self.pushButton.setFont(font)
+        self.pushButton.setObjectName("pushButton")
+        self.horizontalLayout_5.addWidget(self.pushButton, 0, Qt.AlignLeft)
+        self.label = QLabel(self.verticalLayoutWidget)
+        font = QFont()
+        font.setFamily("微软雅黑")
+        font.setBold(False)
+        font.setWeight(50)
+        self.label.setFont(font)
+        self.label.setContextMenuPolicy(Qt.DefaultContextMenu)
+        self.label.setObjectName("label")
+        self.horizontalLayout_5.addWidget(self.label)
+        self.comboBox = QComboBox(self.verticalLayoutWidget)
+        self.comboBox.setMinimumSize(QSize(263, 0))
+        self.comboBox.setObjectName("comboBox")
+        self.comboBox.addItems(self.table_model.dropdown_list)
+        self.horizontalLayout_5.addWidget(self.comboBox)
+        self.verticalLayout.addLayout(self.horizontalLayout_5)
+        self.line_edit_search.textChanged.connect(self.slot_search)
+        self.comboBox.activated[int].connect(self.slot_update_page)
+        self.pushButton_2.clicked.connect(self.slot_pre_page)
+        self.pushButton.clicked.connect(self.slot_next_page)
+        self.retranslateUi()
+
+    def setup_old(self):
 
         font = QFont()
         font.setFamily('微软雅黑')
@@ -4894,12 +4948,16 @@ class DataviewDialog(QDialog):
         self.line_edit_search.setMinimumSize(QSize(0, 24))
         self.line_edit_search.setMaximumSize(QSize(16777215, 24))
         self.verticalLayout.addWidget(self.line_edit_search)
-        self.preview_widget = QTableWidget(self)
+        self.preview_widget = QTableView(self)
         self.preview_widget.setSelectionMode(self.sel_mode)
         self.preview_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.preview_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.preview_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.preview_widget.horizontalHeader().setVisible(False)
+#        self.preview_widget.horizontalHeader().setVisible(False)
+        self.preview_widget.setModel(self.table_model)
+        self.preview_widget.verticalScrollBar().setMinimum(0)
+        self.preview_widget.verticalScrollBar().setMaximum(self.table_model.rows)
+        self.preview_widget.verticalScrollBar().setPageStep(2)
         self.verticalLayout.addWidget(self.preview_widget)
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setSpacing(10)
@@ -4928,22 +4986,29 @@ class DataviewDialog(QDialog):
             self.btn_add.clicked.connect(self.signal_add_paras)
         if self.sel_mode == QAbstractItemView.SingleSelection:
             self.preview_widget.itemDoubleClicked.connect(self.accept)
-        self.line_edit_search.textChanged.connect(self.slot_search_func)
-        
+#        self.line_edit_search.textChanged.connect(self.slot_search)
+#        self.preview_widget.verticalScrollBar().valueChanged.connect(self.table_model.update_vscrollbar)
+        self.preview_widget.verticalScrollBar().valueChanged.connect(self.slot_update_vscrollbar)
+#        self.scrollbar.valueChanged.connect(self.slot_update_vscrollbar)
 #        self.load_desc()
         self.retranslateUi()
     
-    def slot_search_func(self, func_name):
+    def slot_search(self, search_str):
         
         if self.preview_widget:
-            pattern = re.compile('.*' + func_name + '.*')
-            count = self.preview_widget.rowCount()
+            pattern = re.compile('.*' + search_str + '.*')
+#            count = self.preview_widget.rowHeight()
+            self.table_model.datatable
+            count = self.table_model.get_rowCount()
             for i in range(count):
-                item = self.preview_widget.item(i,0)
-                funcname = item.data(Qt.UserRole)
-                func_alias = item.text()
-                if re.match(pattern, funcname) or re.match(pattern, func_alias):
-                    self.preview_widget.setRowHidden(i, False)
+                item = self.table_model.data(self.table_model.index(i,0), Qt.DisplayRole)
+#                item = self.preview_widget.item(i,0)
+#                funcname = item.data(Qt.UserRole)
+#                func_alias = item.text()
+                if re.match(pattern, item):
+#                    self.preview_widget.setRowHidden(i, False)
+#                    self.preview_widget.hideRow(i)
+                    pass
                 else:
                     self.preview_widget.setRowHidden(i, True)
 
@@ -4961,7 +5026,7 @@ class DataviewDialog(QDialog):
             for i, para_tuple in enumerate(self.sorted_paralist):
                 paraname, index = para_tuple
                 viewdata = self.dictdata[index].data[paraname]
-                print(viewdata)
+#                print(viewdata)
                 for j in range(len(viewdata)):
 #                    不同数据类型需要统一的索引方式
                     print('-'+str(viewdata.iat[j]))
@@ -4977,26 +5042,102 @@ class DataviewDialog(QDialog):
             item = self.preview_widget.item(i)
             preview_widget.append(item.data(Qt.UserRole))
         return preview_widget
-    
-    def load_desc(self):
         
-        try:
-            filedir = CONFIG.SETUP_DIR + r'\data\func_desc.txt'
-            funcfile = DataFile(filedir, sep='\t')
-            df_func = funcfile.all_input()
-            self.df_func = df_func
-        except:
-            pass
+    def slot_update_page(self, page_index):
+        if self.table_model.page_index != page_index:
+#            更新table数据时先断开刷新，model变后再一起更新
+            self.preview_widget.setUpdatesEnabled(False)
+            self.table_model.page_index = page_index
+            self.preview_widget.setModel(self.table_model)
+            self.preview_widget.setUpdatesEnabled(True)
+#            print(self.table_model.page_index)
+#            self.preview_widget.update()
+
+    def slot_pre_page(self):
+        if self.table_model.page_index>0:
+            self.preview_widget.setUpdatesEnabled(False)
+            self.table_model.page_index -= 1
+            self.preview_widget.setUpdatesEnabled(True)
+            
+    def slot_next_page(self):
+        if self.table_model.page_index<self.table_model.page-1:
+            self.preview_widget.setUpdatesEnabled(False)
+            self.table_model.page_index += 1
+            self.preview_widget.setUpdatesEnabled(True)
 
     def retranslateUi(self):
         _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate('SelfuncsDialog', '数据查看器'))
+        self.setWindowTitle(_translate("dialog", "数据查看器"))
+#        dialog.setWhatsThis(_translate("dialog", "<html><head/><body><p><br/></p></body></html>"))
         self.line_edit_search.setPlaceholderText(_translate('SelParasDialog', '过滤器'))
-        self.btn_confirm.setText(_translate('SelfuncsDialog', '确定'))
-#        暂时屏蔽添加按钮，预留！！！！！！！！！,同上
-        if self.sel_mode == QAbstractItemView.ExtendedSelection and 0==1:
-            self.btn_add.setText(_translate('SelfuncsDialog', '添加'))
-        self.btn_cancel.setText(_translate('SelfuncsDialog', '取消'))
+        self.pushButton_2.setText(_translate("dialog", "上一页"))
+        self.pushButton.setText(_translate("dialog", "下一页"))
+        self.label.setText(_translate("dialog", "      选择时间段"))
+        
+class DataTableModel(QAbstractTableModel):
+#    重写QAbstractTableModel的关键函数
+    def __init__(self, parent, datatable, *args):
+        QAbstractTableModel.__init__(self, parent, *args)
+        self.datatable = datatable
+#        self.header = header
+        self.maxload = 10000
+        self.page_index = 0
+        if isinstance(self.datatable, pd.DataFrame):
+            self.rows = len(self.datatable)
+            self.cols = len(self.datatable.columns)
+            self.header = self.datatable.columns
+            self.rowheader = self.datatable.index
+            self.page = int(self.rows/self.maxload)+1
+            self.setup_page()
+            
+    def setup_page(self):
+        dropdown_list = []
+        for index in range(self.page):
+            if index<self.page-1:
+                start = '{0}'.format(self.datatable.iat[index*self.maxload,0])
+                end = '{0}'.format(self.datatable.iat[(index+1)*self.maxload-1,0])
+                dropdown_str = start + '-' + end
+                dropdown_list.append(dropdown_str)
+            else:
+                start = '{0}'.format(self.datatable.iat[index*self.maxload,0])
+                end = '{0}'.format(self.datatable.iat[-1,0])
+                dropdown_str = start + '-' + end
+                dropdown_list.append(dropdown_str)
+        self.dropdown_list = dropdown_list
+ 
+    def rowCount(self, parent):
+        if self.page_index<self.page-1:
+            return self.maxload
+        else:
+            return self.rows%self.maxload
+#        return self.rows
+#        return self.maxload
+ 
+    def columnCount(self, parent):
+        return self.cols
+ 
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+        elif role != Qt.DisplayRole:
+            return None
+        i = index.row()+self.page_index*self.maxload
+        j = index.column()
+        if isinstance(self.datatable, pd.DataFrame):  
+            return '{0}'.format(self.datatable.iat[i,j])
+ 
+    def headerData(self, col, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return self.header[col]
+        if orientation == Qt.Vertical and role == Qt.DisplayRole:
+            return self.rowheader[col]
+        return None
+    
+    def get_rowCount(self):
+        if self.page_index<self.page-1:
+            return self.maxload
+        else:
+            return self.rows%self.maxload
 
         
 #测试用     

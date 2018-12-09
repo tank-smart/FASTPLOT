@@ -168,23 +168,26 @@ class MathematicsWindow(QWidget):
     def slot_viewdata(self):
         items = self.tree_widget_result_paras.selectedItems()
         dsp = {}
-        paras = []
         for item in items:
             name = item.text(0)
             if name in self.dict_result_paras:
                 dsp[name] = self.dict_result_paras[name]
                 paralist = self.dict_result_paras[name].get_paralist()
-                for paraname in paralist:
-                    paras.append((paraname, name))
+                print(dsp[name].data)
+                self.dataview_dialog = DataviewDialog(self, dsp[name].data, paralist)
+                self.dataview_dialog.show()
+                
+#                for paraname in paralist:
+#                    paras.append((paraname, name))
             else:   
                 QMessageBox.information(self,
                             QCoreApplication.translate("MathematicsWindow","提示"),
                             QCoreApplication.translate("MathematicsWindow","无法对选中的常数绘图"))
-        if dsp and paras:
-            self.dataview_dialog = DataviewDialog(self, dsp, paras)
-            return_signal = self.dataview_dialog.exec_()
-            if (return_signal == QDialog.Accepted):
-                pass
+#        if dsp and paras:
+#            self.dataview_dialog = DataviewDialog(self, dsp, paras)
+#            return_signal = self.dataview_dialog.exec_()
+#            if (return_signal == QDialog.Accepted):
+#                pass
 
     def slot_delete(self):
         
@@ -257,7 +260,7 @@ class MathematicsWindow(QWidget):
         else:
 #            self.dict_result_paras[paraname] = result
 #!!!!            单值不加入self.dict_result_paras，也不进行绘图和分析
-            item.setText(1, str(result[col_list[1]].values[0]))        
+            item.setText(1, result[col_list[1]].values[0])        
 #            yanhua修改结束
 
 #yanhua改，现实现方法，需要使用类方法实现qt界面上的clear    

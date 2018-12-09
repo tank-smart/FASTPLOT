@@ -375,10 +375,10 @@ class MathematicsEditor(QPlainTextEdit):
                             df_result = pd.DataFrame({'Vector' : range(len(result)), 
                                                       result_name: result}, columns = ['Vector', result_name])
                         else:
-                            
+#                            将result提前转为str，以免某些情况不能组成dataframe
                             df_result = pd.DataFrame({'Label' : [1],
-                                                      result_name: result}, columns = ['Label', result_name])
-    #                            print(df_result)
+                                                      result_name: str(result)}, columns = ['Label', result_name])
+                            
                         self.signal_compute_result.emit(df_result)
                     else:
                         pass
@@ -549,36 +549,48 @@ class MathematicsEditor(QPlainTextEdit):
             result=df_series.set_index(df_series.columns[0]).iloc[:,0]
         return result  
     
-    def sin(self, series):
-        if isinstance(series, pd.Series):
-            return np.sin(series)
+    def sin(self, variable):
+        if isinstance(variable, pd.Series):
+            return np.sin(variable)
+        else:
+            return np.sin(variable)
         
-    def cos(self, series):
-        if isinstance(series, pd.Series):
-            return np.cos(series)
+    def cos(self, variable):
+        if isinstance(variable, pd.Series):
+            return np.cos(variable)
+        else:
+            return np.cos(variable)
         
-    def tan(self, series):
-        if isinstance(series, pd.Series):
-            return np.tan(series)
+    def tan(self, variable):
+        if isinstance(variable, pd.Series):
+            return np.tan(variable)
+        else:
+            return np.tan(variable)
         
-    def arcsin(self, series):
-        if isinstance(series, pd.Series):
-            return np.arcsin(series)
+    def arcsin(self, variable):
+        if isinstance(variable, pd.Series):
+            return np.arcsin(variable)
+        else:
+            return np.arcsin(variable)
         
-    def arccos(self, series):
-        if isinstance(series, pd.Series):
-            return np.arccos(series)
+    def arccos(self, variable):
+        if isinstance(variable, pd.Series):
+            return np.arccos(variable)
+        else:
+            return np.arccos(variable)
         
-    def arctan(self, series):
-        if isinstance(series, pd.Series):
-            return np.arctan(series)
+    def arctan(self, variable):
+        if isinstance(variable, pd.Series):
+            return np.arctan(variable)
+        else:
+            return np.arctan(variable)
         
     def fft(self, series):
         if isinstance(series, pd.Series):
             return np.fft.fft(series)
 
     def output(self, result_name = None):
-        result = eval(result_name,self.scope)
+        result = eval(result_name, self.scope)
         if result is not None:
 #            result_name = list(dict(result = result).keys())[0]
             
@@ -598,7 +610,7 @@ class MathematicsEditor(QPlainTextEdit):
             else:
                 
                 df_result = pd.DataFrame({'Label' : [1],
-                                          result_name: result}, columns = ['Label', result_name])
+                                          result_name: str(result)}, columns = ['Label', result_name])
 #                            print(df_result)
             self.signal_compute_result.emit(df_result)
         else:
@@ -730,7 +742,8 @@ class MathematicsEditor(QPlainTextEdit):
 #            self.pre_exper = exec_text
 #            解析exec_text，如果满足要求，则执行运算
 #            if self.lex(exec_text) and self.paras_on_expr:
-            flag=self.lex(self.script_dialog.script)
+#            判断脚本字符串，并hash处理，得到flag和exec_text新字符串
+            flag, exec_text=self.lex(self.script_dialog.script)
             if flag!=-1:
                 if flag==1:
                     self.read_paras()
@@ -745,7 +758,7 @@ class MathematicsEditor(QPlainTextEdit):
 #                        exec(exper,self.scope)
                 try:
                     
-                    exec(self.script_dialog.script, self.scope)
+                    exec(exec_text, self.scope)
                     
                             
 #                       判断结果是否仍然是时间序列
