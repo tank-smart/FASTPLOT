@@ -342,7 +342,7 @@ class MathematicsWindow(QWidget):
             else:   
                 QMessageBox.information(self,
                             QCoreApplication.translate("MathematicsWindow","提示"),
-                            QCoreApplication.translate("MathematicsWindow","无法对选中的常数绘图"))
+                            QCoreApplication.translate("MathematicsWindow","无法查看选中的常数"))
 #        if dsp and paras:
 #            self.dataview_dialog = DataviewDialog(self, dsp, paras)
 #            return_signal = self.dataview_dialog.exec_()

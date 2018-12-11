@@ -12,6 +12,7 @@
 
 # =============================================================================
 import re
+import keyword
 import pandas as pd
 import numpy as np
 
@@ -35,9 +36,9 @@ from models.analysis_model import DataAnalysis
 from views.custom_dialog import SelParasDialog, MathScriptDialog, SelfuncDialog
 
 #用于将特定字符加高亮
-class Highlighter(QSyntaxHighlighter):
+class Highlighterold(QSyntaxHighlighter):
    
-    def __init__(self, parent = None, paras : list = None, funcs : list = None):
+    def __init__(self, parent = None, paras : list = None, funcs : list = None, keywords : list = None):
         
         super().__init__(parent)
         
@@ -48,6 +49,9 @@ class Highlighter(QSyntaxHighlighter):
         self.func_format = QTextCharFormat()
         self.func_format.setForeground(Qt.magenta)
         
+        self.keyword_format = QTextCharFormat()
+        self.keyword_format.setForeground(Qt.red)
+        
         self.highlight_rules = []
 #        定义需要高亮的参数字符
         for para in paras:
@@ -57,6 +61,46 @@ class Highlighter(QSyntaxHighlighter):
         for func in funcs:
             pattern = QRegExp(r'\b' + func + r'\b')
             self.highlight_rules.append((pattern, self.func_format))
+            
+        for keyword in keywords:
+            pattern = QRegExp(r'\b' + keyword + r'\b')
+            self.highlight_rules.append((pattern, self.keyword_format))
+
+#    重载函数  
+    def highlightBlock(self, text : str):
+
+        for rule in self.highlight_rules:
+            expr = QRegExp(rule[0])
+            index = expr.indexIn(text)
+            while index >= 0:
+                length = expr.matchedLength()
+                self.setFormat(index, length, rule[1])
+                index = expr.indexIn(text, index + length)
+                
+class Highlighter(QSyntaxHighlighter):
+   
+    def __init__(self, parent = None, objs : list = None, color = Qt.blue):
+        
+        super().__init__(parent)
+        
+#        定义参数这类字符的高亮格式
+        self.obj_format = QTextCharFormat()
+        self.obj_format.setForeground(color)
+        
+        self.highlight_rules = []
+#        定义需要高亮的参数字符
+        for obj in objs:
+            pattern = QRegExp(r'\b' + obj + r'\b')
+            self.highlight_rules.append((pattern, self.obj_format))
+            
+    def update_highlight(self, objs : list = None, color = Qt.blue):
+        self.obj_format = QTextCharFormat()
+        self.obj_format.setForeground(color)
+#        定义需要高亮的参数字符
+        for obj in objs:
+            pattern = QRegExp(r'\b' + obj + r'\b')
+            self.highlight_rules.append((pattern, self.obj_format))
+ 
 
 #    重载函数  
     def highlightBlock(self, text : str):
@@ -89,6 +133,7 @@ class MathematicsEditor(QPlainTextEdit):
         self.count=0
 #        self.script_dialog = MathScriptDialog(self)
 #----------       yanhua 加结束
+        self.keywords = keyword.kwlist
         self.pre_exper = ''
         self.RESERVED = 'RESERVED'
         self.PARA = 'PARA'
@@ -123,11 +168,14 @@ class MathematicsEditor(QPlainTextEdit):
         self.paras_on_expr = []
         self.load_desc()
         self.script_dialog = MathScriptDialog(self, df_func = self.df_func)
+        self.highlighter = Highlighter(self.document(), self.keywords, Qt.red)
+        self.dialog_highlighter = Highlighter(self.script_dialog.script_edit_win.document(), self.keywords, Qt.red)
         self.setup()
 #---------   yanhua 加
         self.scope_setup()
 #---------   yanhua 加
-    
+        self.highlighter.update_highlight(self.funcs, Qt.magenta)
+        self.dialog_highlighter.update_highlight(self.funcs, Qt.magenta)
     def setup(self):
         
 #        添加输入标志，并把光标移动到最后
@@ -441,10 +489,13 @@ class MathematicsEditor(QPlainTextEdit):
         self.scope['arccos']=self.arccos
         self.scope['arctan']=self.arctan
         self.scope['lg']=self.lg
+        self.scope['ln']=self.ln
+        self.scope['pi']=np.pi
         self.scope['fft']=self.fft
 #        函数名称列表，用于高亮显示
         if self.df_func is not None:
             self.funcs = self.df_func.iloc[:,0].tolist()
+#            导入pandas和numpy
         exec('import pandas as pd', self.scope)
         exec('import numpy as np', self.scope)
         
@@ -595,6 +646,12 @@ class MathematicsEditor(QPlainTextEdit):
         else:
             return np.log10(variable)
         
+    def ln(self, variable):
+        if isinstance(variable, pd.Series):
+            return np.log(variable)
+        else:
+            return np.log(variable)
+        
     def fft(self, series):
         if isinstance(series, pd.Series):
             return np.fft.fft(series)
@@ -715,8 +772,10 @@ class MathematicsEditor(QPlainTextEdit):
         
         if paras:
 #            更新需要高亮的参数
-            self.highlighter = Highlighter(self.document(), paras, self.funcs)
-            self.dialog_highlighter = Highlighter(self.script_dialog.script_edit_win.document(), paras, self.funcs)
+#            self.highlighter = Highlighter(self.document(), paras, self.funcs)
+            self.highlighter.update_highlight(paras, Qt.blue)
+#            self.dialog_highlighter = Highlighter(self.script_dialog.script_edit_win.document(), paras, self.funcs)
+            self.dialog_highlighter.update_highlight(paras, Qt.blue)
 #        if self.funcs:
 #            
 #            self.func_highlighter = Highlighter(self.document(), self.funcs, Qt.magenta)

@@ -4923,7 +4923,9 @@ class DataviewDialog(QDialog):
         self.preview_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.preview_widget.verticalHeader().setHidden(False)
         self.preview_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.preview_widget.verticalHeader().setFixedWidth(80)
         self.preview_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+#        self.preview_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
 #        self.preview_widget.horizontalHeader().setVisible(False)
         self.preview_widget.setModel(self.table_model)
         self.verticalLayout.addWidget(self.preview_widget)
@@ -4980,6 +4982,7 @@ class DataviewDialog(QDialog):
         self.preview_widget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.preview_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.preview_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+#        self.preview_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
 #        self.preview_widget.horizontalHeader().setVisible(False)
         self.preview_widget.setModel(self.table_model)
         self.preview_widget.verticalScrollBar().setMinimum(0)
@@ -5075,6 +5078,7 @@ class DataviewDialog(QDialog):
 #            更新table数据时先断开刷新，model变后再一起更新
             self.preview_widget.setUpdatesEnabled(False)
             self.table_model.page_index = page_index
+#            self.preview_widget.reset()
             self.preview_widget.setModel(self.table_model)
             self.preview_widget.setUpdatesEnabled(True)
 #            print(self.table_model.page_index)
@@ -5157,7 +5161,8 @@ class DataTableModel(QAbstractTableModel):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             return self.header[col]
         if orientation == Qt.Vertical and role == Qt.DisplayRole:
-            return self.rowheader[col]
+            if col+self.page_index*self.maxload<self.rows:
+                return self.rowheader[col+self.page_index*self.maxload]
         return None
     
     def get_rowCount(self):

@@ -910,7 +910,7 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                 self.aux_line = ax.axvline(rt, 
                                            gid = 'getvalue',
                                            c = '#c30000',
-                                           ls = '-',
+                                           ls = '--',
                                            lw = 1,
                                            marker = 'd',
                                            markerfacecolor = '#c30000',
@@ -952,7 +952,7 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                         self.aux_line = event.inaxes.axvline(rt,
                                                              gid = 'getvalue',
                                                              c = '#c30000',
-                                                             ls = '-',
+                                                             ls = '--',
                                                              lw = 1,
                                                              marker = 'd',
                                                              markerfacecolor = '#c30000',
@@ -961,7 +961,7 @@ class FTDataPlotCanvasBase(PlotCanvasBase):
                     self.aux_line = event.inaxes.axvline(rt,
                                                          gid = 'getvalue',
                                                          c = '#c30000',
-                                                         ls = '-',
+                                                         ls = '--',
                                                          lw = 1,
                                                          marker = 'd',
                                                          markerfacecolor = '#c30000',
@@ -1411,7 +1411,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                     line = axis.axvline(rt,
                                         gid = 'getvalue',
                                         c = '#c30000',
-                                        ls = '-',
+                                        ls = '--',
                                         lw = 1,
                                         marker = 'd',
                                         markerfacecolor = '#c30000',
@@ -1455,7 +1455,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
                         line = axis.axvline(rt,
                                             gid = 'getvalue',
                                             c = '#c30000',
-                                            ls = '-',
+                                            ls = '--',
                                             lw = 1,
                                             marker = 'd',
                                             markerfacecolor = '#c30000',
@@ -4169,7 +4169,7 @@ class SingleAxisYSharePlotCanvas(StackAxisPlotCanvas):
     def __init__(self, parent = None):
     
         super().__init__(parent)
-        self.num_yview_scales = 2
+        self.num_yview_scales = 1
         self.action_up_axis.setText(QCoreApplication.
                                     translate('FastPlotCanvas', '左移刻度线'))
         self.action_down_axis.setText(QCoreApplication.
