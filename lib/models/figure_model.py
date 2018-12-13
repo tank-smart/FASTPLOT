@@ -1049,7 +1049,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         self._count_value_mark = 0
         self.vaule_mark_container = {}
 #        数据选段
-        self.data_span = None
+        self.data_span = []
         self.cid_drag_data_inter = None
         self.cid_release_data_inter = None
         
@@ -1348,15 +1348,17 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
         
         if event.inaxes and event.button == 1:
             if self.data_span:
-#                返回四个点的位置N×2的numpy
-                xy = self.data_span.get_xy()
-                xy[2][0] = event.xdata
-                xy[3][0] = event.xdata
-                self.data_span.set_xy(xy)
+                for vspan in self.data_span:
+#                    返回四个点的位置N×2的numpy
+                    xy = vspan.get_xy()
+                    xy[2][0] = event.xdata
+                    xy[3][0] = event.xdata
+                    vspan.set_xy(xy)
                 self.draw()
             else:
-                self.data_span = self.current_axes.axvspan(event.xdata, event.xdata,
-                                                           facecolor = 'g', alpha = 0.5)
+                for ax in self.fig.axes:
+                    self.data_span.append(ax.axvspan(event.xdata, event.xdata,
+                                                     facecolor = 'g', alpha = 0.5))
 #                self.data_span = self.current_axes.axvspan(event.xdata, event.xdata,
 #                                                           facecolor = 'g', alpha = 0.5, hatch = '/')
     
@@ -1376,7 +1378,7 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
             self.cid_drag_data_inter = None
             if self.data_span:
 #                返回四个点的位置N×2的numpy
-                xy = self.data_span.get_xy()
+                xy = self.data_span[0].get_xy()
                 st = xy[0][0]
                 et = xy[3][0]
                 if st > et:
@@ -1386,8 +1388,9 @@ class FastPlotCanvas(FTDataPlotCanvasBase):
 #                                                    mdates.num2date(et).replace(tzinfo=None))
                 self.slot_export_tinterval_data_fig(mdates.num2date(st),
                                                     mdates.num2date(et))
-                self.data_span.remove()
-                self.data_span = None
+                for vspan in self.data_span:
+                    vspan.remove()
+                self.data_span = []
                 self.signal_added_artist.emit('vspan')
                 self.draw()
 
@@ -3771,6 +3774,22 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
             if self.axes_lim_change_index > -1 and self.axes_lim_change_index < (l - 1):
                 self.set_axes_lim(self.axes_lim_change_info[self.axes_lim_change_index + 1])
                 self.axes_lim_change_index += 1
+                
+    def slot_onmove_data_inter(self, event):
+        
+        if event.inaxes and event.button == 1:
+            if self.data_span:
+                for vspan in self.data_span:
+#                    返回四个点的位置N×2的numpy
+                    xy = vspan.get_xy()
+                    xy[2][0] = event.xdata
+                    xy[3][0] = event.xdata
+                    vspan.set_xy(xy)
+                self.draw()
+            else:
+                if len(self.fig.axes) > 1:
+                    self.data_span.append(self.fig.axes[1].axvspan(event.xdata, event.xdata,
+                                          facecolor = 'g', alpha = 0.5))
         
     def slot_clear_canvas(self):
         
@@ -4008,14 +4027,6 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
 #        暂时不考虑奇数的情况
         else:
             pass
-#        base_mid = int((yl + yu) / 2 / new_view_scale)
-#        bias_mid = (yl + yu) / 2 / new_view_scale - base_mid
-##        正数的四舍五入，实数的则要考虑负数的情况，这里bias_mid肯定是正数
-#        if bias_mid > 0.5:
-#            base_mid += 1
-#        mid = base_mid * new_view_scale
-#        lb = mid - new_view_scale
-#        ub = mid + new_view_scale
         
         return (lb, ub)
     
@@ -4069,7 +4080,7 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
         
         base_values = [1, 2, 5]
         digits = 0
-        init_value = scale
+#        init_value = scale
         result = 0
         abs_scale = scale = abs(scale)
         if scale >= 1:
@@ -4102,8 +4113,8 @@ class StackAxisPlotCanvas(SingleAxisXTimePlotCanvas):
                         result =  base * pow(10, -digits)
         else:
             result = 0
-        if init_value < 0:
-            result = -1 * result
+#        if init_value < 0:
+#            result = -1 * result
             
         return result
     
@@ -4214,6 +4225,40 @@ class SingleAxisYSharePlotCanvas(StackAxisPlotCanvas):
         ax.set_ylim(view_yl - (self.num_yscales - self.num_scales_between_ylabel * ax_index - self.num_view_yscales) * real_scale, 
                     view_yu + self.num_scales_between_ylabel * ax_index * real_scale)
         
+#    规整刻度值
+    def reg_scale(self, scale):
+        
+        base_values = [1, 2, 5]
+#        init_value = scale
+        result = 0
+        abs_scale = scale = abs(scale)
+        if scale >= 1:
+            i = 0
+            delta = -1
+            while delta < 0:
+                for base in base_values:
+                    delta = base * pow(10, i) - abs_scale
+                    if delta >= 0:
+                        result =  base * pow(10, i)
+                        break
+                i += 1
+        elif scale != 0:
+            i = 0
+            delta = 1
+            while delta > 0:
+                for base in base_values:
+                    delta = base * pow(10, -1 * i) - abs_scale
+                    if delta >= 0:
+                        result =  base * pow(10, -1 * i)
+                        break
+                i += 1
+        else:
+            result = 0
+#        if init_value < 0:
+#            result = -1 * result
+            
+        return result
+    
     def adjust_figure(self):
         
         h = self.height()
