@@ -16,7 +16,7 @@
 # =============================================================================
 from PyQt5.QtCore import (QSize, QCoreApplication, Qt, pyqtSignal,
                           QDataStream, QIODevice)
-from PyQt5.QtGui import QIcon, QDragEnterEvent, QDropEvent
+from PyQt5.QtGui import QIcon, QDragEnterEvent, QDropEvent, QFont
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpacerItem, 
                              QSizePolicy, QMessageBox, QTreeWidget,
                              QTreeWidgetItem, QDialog, QToolButton, 
@@ -25,10 +25,10 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpacerItem,
 # =============================================================================
 # Package models imports
 # =============================================================================
-from views.custom_dialog import (SelectTemplateDialog, SaveTemplateDialog,
+from views.custom_dialog import (SelectParasTemplateDialog, SaveTemplateDialog,
                                  ParameterExportDialog)
-from models.datafile_model import Normal_DataFile
-import views.constant as CONSTANT
+from models.datafile_model import Normal_DataFile, DataFile_Factory
+import views.config_info as CONFIG
 
 # =============================================================================
 # ParasListWithDropEvent
@@ -41,6 +41,8 @@ class ParasListWithDropEvent(QTreeWidget):
         super().__init__(parent)
 #        接受拖放
         self.setAcceptDrops(True)
+        
+        self._data_dict = None
 
 #    重写拖放相关的事件
 #    设置部件可接受的MIME type列表，此处的类型是自定义的
@@ -76,6 +78,7 @@ class DataProcessWindow(QWidget):
     signal_request_temps = pyqtSignal(str)
     signal_save_temp = pyqtSignal(dict)
     signal_send_status = pyqtSignal(str, int)
+    signal_close_dock = pyqtSignal()
 # =============================================================================
 # 初始化    
 # =============================================================================    
@@ -86,15 +89,19 @@ class DataProcessWindow(QWidget):
 #        计算产生的数据
         self.dict_data = {}
         self.count_imported_data = 0
+        self._dict_filetype = None
         
-        self.paraicon = QIcon(CONSTANT.ICON_PARA)
-        self.math_icon = QIcon(CONSTANT.ICON_MATH_RESULT)
+        self.paraicon = QIcon(CONFIG.ICON_PARA)
+        self.math_icon = QIcon(CONFIG.ICON_MATH_RESULT)
 
 # =============================================================================
 # UI模块
 # =============================================================================        
     def setup(self):
 
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.verticalLayout_9 = QVBoxLayout(self)
         self.verticalLayout_9.setContentsMargins(2, 0, 2, 0)
         self.verticalLayout_9.setSpacing(2)
@@ -104,43 +111,43 @@ class DataProcessWindow(QWidget):
         self.tool_btn_sel_temp.setMinimumSize(QSize(30, 30))
         self.tool_btn_sel_temp.setMaximumSize(QSize(30, 30))
         self.tool_btn_sel_temp.setIconSize(QSize(22, 22))
-        self.tool_btn_sel_temp.setIcon(QIcon(CONSTANT.ICON_SEL_TEMP))
+        self.tool_btn_sel_temp.setIcon(QIcon(CONFIG.ICON_SEL_TEMP))
         self.horizontalLayout_2.addWidget(self.tool_btn_sel_temp)
         self.tool_btn_save_temp = QToolButton(self)
         self.tool_btn_save_temp.setMinimumSize(QSize(30, 30))
         self.tool_btn_save_temp.setMaximumSize(QSize(30, 30))
         self.tool_btn_save_temp.setIconSize(QSize(22, 22))
-        self.tool_btn_save_temp.setIcon(QIcon(CONSTANT.ICON_SAVE_TEMP))
+        self.tool_btn_save_temp.setIcon(QIcon(CONFIG.ICON_SAVE_TEMP))
         self.horizontalLayout_2.addWidget(self.tool_btn_save_temp)
         self.tool_btn_plot = QToolButton(self)
         self.tool_btn_plot.setMinimumSize(QSize(30, 30))
         self.tool_btn_plot.setMaximumSize(QSize(30, 30))
         self.tool_btn_plot.setIconSize(QSize(22, 22))
-        self.tool_btn_plot.setIcon(QIcon(CONSTANT.ICON_PLOT))
+        self.tool_btn_plot.setIcon(QIcon(CONFIG.ICON_PLOT))
         self.horizontalLayout_2.addWidget(self.tool_btn_plot)
         self.tool_btn_data_abstract = QToolButton(self)
         self.tool_btn_data_abstract.setMinimumSize(QSize(30, 30))
         self.tool_btn_data_abstract.setMaximumSize(QSize(30, 30))
         self.tool_btn_data_abstract.setIconSize(QSize(22, 22))
-        self.tool_btn_data_abstract.setIcon(QIcon(CONSTANT.ICON_DATA_ABSTRACT))
+        self.tool_btn_data_abstract.setIcon(QIcon(CONFIG.ICON_DATA_ABSTRACT))
         self.horizontalLayout_2.addWidget(self.tool_btn_data_abstract)
         self.tool_btn_up = QToolButton(self)
         self.tool_btn_up.setMinimumSize(QSize(30, 30))
         self.tool_btn_up.setMaximumSize(QSize(30, 30))
         self.tool_btn_up.setIconSize(QSize(22, 22))
-        self.tool_btn_up.setIcon(QIcon(CONSTANT.ICON_UP))
+        self.tool_btn_up.setIcon(QIcon(CONFIG.ICON_UP))
         self.horizontalLayout_2.addWidget(self.tool_btn_up)
         self.tool_btn_down = QToolButton(self)
         self.tool_btn_down.setMinimumSize(QSize(30, 30))
         self.tool_btn_down.setMaximumSize(QSize(30, 30))
         self.tool_btn_down.setIconSize(QSize(22, 22))
-        self.tool_btn_down.setIcon(QIcon(CONSTANT.ICON_DOWN))
+        self.tool_btn_down.setIcon(QIcon(CONFIG.ICON_DOWN))
         self.horizontalLayout_2.addWidget(self.tool_btn_down)
         self.tool_btn_delete = QToolButton(self)
         self.tool_btn_delete.setMinimumSize(QSize(30, 30))
         self.tool_btn_delete.setMaximumSize(QSize(30, 30))
         self.tool_btn_delete.setIconSize(QSize(22, 22))
-        self.tool_btn_delete.setIcon(QIcon(CONSTANT.ICON_DEL))
+        self.tool_btn_delete.setIcon(QIcon(CONFIG.ICON_DEL))
         self.horizontalLayout_2.addWidget(self.tool_btn_delete)
         spacerItem1 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem1)
@@ -190,12 +197,25 @@ class DataProcessWindow(QWidget):
                 else:
 #                    避免重复创建文件对象
                     if not (file_dir in norfile_list):
-                        norfile_list[file_dir] = Normal_DataFile(file_dir)
+                        norfile_list[file_dir] = DataFile_Factory(file_dir, **self._dict_filetype[file_dir])
+#                        norfile_list[file_dir] = Normal_DataFile(file_dir)
                     file = norfile_list[file_dir]
                     filename = file.filename
                     item_para = QTreeWidgetItem(self.tree_widget_paralist)
                     item_para.setIcon(0, self.paraicon)
-                    item_para.setText(0, paraname)
+                    if (self._data_dict and 
+                        CONFIG.OPTION['data dict scope paralist'] and
+                        paraname in self._data_dict):
+                        if CONFIG.OPTION['data dict scope style'] == 0:
+                            temp_str = self._data_dict[paraname][0]
+                        if CONFIG.OPTION['data dict scope style'] == 1:
+                            temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                        if CONFIG.OPTION['data dict scope style'] == 2:
+                            temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                        item_para.setText(0, temp_str)
+                    else:
+                        item_para.setText(0, paraname)
+                    item_para.setData(0, Qt.UserRole, paraname)
                     item_para.setText(1, filename)
                     item_para.setData(1, Qt.UserRole, file_dir)
                     item_para.setText(2, file.time_range[0])
@@ -230,7 +250,19 @@ class DataProcessWindow(QWidget):
             for paraname in paralist:
                 item_para = QTreeWidgetItem(self.tree_widget_paralist)
                 item_para.setIcon(0, self.math_icon)
-                item_para.setText(0, paraname)
+                if (self._data_dict and 
+                    CONFIG.OPTION['data dict scope paralist'] and
+                    paraname in self._data_dict):
+                    if CONFIG.OPTION['data dict scope style'] == 0:
+                        temp_str = self._data_dict[paraname][0]
+                    if CONFIG.OPTION['data dict scope style'] == 1:
+                        temp_str = paraname + '(' + self._data_dict[paraname][0] + ')'
+                    if CONFIG.OPTION['data dict scope style'] == 2:
+                        temp_str = self._data_dict[paraname][0] + '(' + paraname + ')'
+                    item_para.setText(0, temp_str)
+                else:
+                    item_para.setText(0, paraname)
+                item_para.setData(0, Qt.UserRole, paraname)
                 item_para.setText(1, 'Data in memory')
                 item_para.setData(1, Qt.UserRole, data_label)
                 item_para.setText(2, data_factory.time_range[0])
@@ -249,7 +281,7 @@ class DataProcessWindow(QWidget):
             input_paras = []
             paras_noexist = []
             isexist = False
-            dialog = SelectTemplateDialog(self, templates)
+            dialog = SelectParasTemplateDialog(self, templates)
             return_signal = dialog.exec_()
             if (return_signal == QDialog.Accepted):
                 if dict_files:
@@ -304,7 +336,7 @@ class DataProcessWindow(QWidget):
                 if temp_name:
                     temp[temp_name] = []
                     for i in range(count):
-                        paraname = self.tree_widget_paralist.topLevelItem(i).text(0)
+                        paraname = self.tree_widget_paralist.topLevelItem(i).data(0, Qt.UserRole)
                         if not(paraname in temp[temp_name]):
                             temp[temp_name].append(paraname)
                     self.signal_save_temp.emit(temp)
@@ -324,6 +356,7 @@ class DataProcessWindow(QWidget):
     def slot_plot(self):
         
         if self.tree_widget_paralist:
+            self.signal_close_dock.emit()
             items = self.tree_widget_paralist.selectedItems()
             if items:
                 self.signal_para_for_plot.emit(self.get_sel_paras_in_tuple())
@@ -343,7 +376,7 @@ class DataProcessWindow(QWidget):
         para_tuple = self.get_paras_in_tuple()
         dict_paras, sorted_paras = para_tuple
         if dict_paras :
-            dialog = ParameterExportDialog(self, dict_paras)
+            dialog = ParameterExportDialog(self, dict_paras, self._dict_filetype)
             dialog.signal_send_status.connect(self.slot_send_status)
             return_signal = dialog.exec_()
             if return_signal == QDialog.Accepted:
@@ -388,7 +421,7 @@ class DataProcessWindow(QWidget):
         if len(sel_items):
             message = QMessageBox.warning(self,
                           QCoreApplication.translate('DataAnalysisWindow', '删除参数'),
-                          QCoreApplication.translate('DataAnalysisWindow', '确定要删除这些参数吗'),
+                          QCoreApplication.translate('DataAnalysisWindow', '确定要删除所选参数吗'),
                           QMessageBox.Yes | QMessageBox.No)
             if (message == QMessageBox.Yes):
                 for item in sel_items:
@@ -403,7 +436,7 @@ class DataProcessWindow(QWidget):
         count = self.tree_widget_paralist.topLevelItemCount()
         for i in range(count):
             item = self.tree_widget_paralist.topLevelItem(i)
-            paraname = item.text(0)
+            paraname = item.data(0, Qt.UserRole)
             fd = item.data(1, Qt.UserRole)
             if para == paraname and fd == file_dir:
                 return True
@@ -418,20 +451,20 @@ class DataProcessWindow(QWidget):
             count = self.tree_widget_paralist.topLevelItemCount()
             for i in range(count):
                 item = self.tree_widget_paralist.topLevelItem(i)
-                sorted_paras.append((item.text(0), item.data(1, Qt.UserRole)))
+                sorted_paras.append((item.data(0, Qt.UserRole), item.data(1, Qt.UserRole)))
                 file_dir = item.data(1, Qt.UserRole)
                 if file_dir[0] == '_':
                     if file_dir in dict_df:
-                        dict_df[file_dir].append(item.text(0))
+                        dict_df[file_dir].append(item.data(0, Qt.UserRole))
                     else:
                         dict_df[file_dir] = []
-                        dict_df[file_dir].append(item.text(0))
+                        dict_df[file_dir].append(item.data(0, Qt.UserRole))
                 else:
                     if file_dir in result:
-                        result[file_dir].append(item.text(0))
+                        result[file_dir].append(item.data(0, Qt.UserRole))
                     else:
                         result[file_dir] = []
-                        result[file_dir].append(item.text(0))
+                        result[file_dir].append(item.data(0, Qt.UserRole))
             for name in dict_df:
                 result[name] = self.dict_data[name].get_sub_data(dict_df[name])
         return (result, sorted_paras)
@@ -444,20 +477,20 @@ class DataProcessWindow(QWidget):
         items = self.tree_widget_paralist.selectedItems()
         if items:
             for item in items:
-                sorted_paras.append((item.text(0), item.data(1, Qt.UserRole)))
+                sorted_paras.append((item.data(0, Qt.UserRole), item.data(1, Qt.UserRole)))
                 file_dir = item.data(1, Qt.UserRole)
                 if file_dir[0] == '_':
                     if file_dir in dict_df:
-                        dict_df[file_dir].append(item.text(0))
+                        dict_df[file_dir].append(item.data(0, Qt.UserRole))
                     else:
                         dict_df[file_dir] = []
-                        dict_df[file_dir].append(item.text(0))
+                        dict_df[file_dir].append(item.data(0, Qt.UserRole))
                 else:
                     if file_dir in result:
-                        result[file_dir].append(item.text(0))
+                        result[file_dir].append(item.data(0, Qt.UserRole))
                     else:
                         result[file_dir] = []
-                        result[file_dir].append(item.text(0))
+                        result[file_dir].append(item.data(0, Qt.UserRole))
             for name in dict_df:
                 result[name] = self.dict_data[name].get_sub_data(dict_df[name])
         return (result, sorted_paras)

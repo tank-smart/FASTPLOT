@@ -1,0 +1,1 @@
+"def sift_range(parameter):\n    result = parameter.between(10,20)\n\n    return result\na=FADEC_LA_Corrected_N1_Speed\nb = sift_range(a)\noutput('b')"

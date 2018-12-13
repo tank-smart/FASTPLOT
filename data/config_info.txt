@@ -1,3 +1,0 @@
-========
-INIT DIR OF IMPORTING FILES
-D:\flightdata

@@ -1,0 +1,42 @@
+abs|abs(a)：取绝对值函数，a可以是参数时间序列向量、数值或矩阵，对a中所有元素取绝对值，返回a的原类型
+add|add(left, right)：强制加法运算，left,right为加法左右变量，除一般的加法功能外还适用于时间序列不同的参数间的强制相加，取较长范围的参数时间序列为结果时间序列，返回原参数类型
+arccos|arccos(a): 反余弦函数，a为参数序列或数值，返回函数计算后的序列或数值
+arcsin|arcsin(a): 反正弦函数，a为参数序列或数值，返回函数计算后的序列或数值
+arctan|arctan(a): 反正切函数，a为参数序列或数值，返回函数计算后的序列或数值
+clear|clear()：清除内存，清除所有内存中的变量，并清除计算结果参数栏内容
+combine|combine(left, right, func)：通过自定义函数组合两个参数序列向量，func形式为2个input，1个output，返回新参数序列
+cos|cos(a): 余弦函数，a为参数序列或数值，返回函数计算后的序列或数值
+describe|describe(a)：获取参数序列快速描述信息，a为参数序列，返回信息字符串
+div|div(left, right)：强制除法运算，同add函数
+fft|fft(a): 快速傅里叶变换，返回fft后的ndarray类型向量
+init_time|init_time(a)：时间初始化函数，将参数时间序列的时间索引初始化为从0开始，返回新参数序列
+lg|lg(a)：对数函数，a为参数序列或数值，返回函数计算后的序列或数值
+ln|ln(a)：自然对数函数，a为参数序列或数值，返回函数计算后的序列或数值
+mul|mul(left, right)：强制乘法运算，同add函数
+output|output(result_name : str = None)：输出变量，注意result_name为变量名的字符串，即例如变量a, result_name='a';结果将显示在计算结果参数栏，可供继续进行绘图或添加到分析参数界面
+pow|pow(a, e)：求幂函数，对a序列的每个元素e次幂，即a^e，返回结果序列
+resample|resample(a, freq)：升降频函数，a为参数序列，freq为新频率数值，返回a参数序列经过升降频后的新序列
+sin|sin(a): 正弦函数，a为参数序列或数值，返回函数计算后的序列或数值
+sqrt|sqrt(a)：平方根函数，对a序列每个值求平方根，返回结果序列
+tan|tan(a): 正切函数，a为参数序列或数值，返回函数计算后的序列或数值
+.append|.append(other)：参数序列对象的拼接函数，将other和本参数序列对象按时间索引拼接，包含重复时间索引，返回新参数序列向量
+.between|.between(left, right)：参数序列中所有值的范围筛选，left<=parameter<=right，返回与原序列索引相同的bool向量，在序列原位置对范围内的数值置为True，否则为False
+.clip|.clip(lower, upper)：参数序列对象的限幅函数，通过lower，upper设定上下限，返回参数序列对象本身
+.corr|.corr(other)：相关系数函数，计算本参数序列与other序列的相关系数，返回相关系数值
+.cov|.cov(other)：协方差函数，计算本参数序列与other序列的协方差，返回协方差值
+.diff|.diff(period=1)：差分函数，计算间隔为period的序列差分，period可以为任意整数默认为1，返回新序列
+.dot|.dot(other)；向量内积计算，返回内积值
+.interpolate|.interpolate(method='linear')：插值函数，用于对参数序列无效值的插值运算，method指定插值方法默认为线性插值，返回插值后的新序列
+.isna|.isna()：判断序列中值是否为无效值，无效值位置将置为True，其他位置为False，返回bool序列向量
+.max|.max()：最大值函数，返回序列中的最大值
+.min|.min()：最小值函数，返回序列中的最小值
+.mean|.mean()：均值函数，返回序列中的均值
+.median|.median()：中位数函数，返回序列的中位数
+.nlargest|.nlargest()：最大n个值函数，返回序列中最大的n个值
+.std|.std()：标准差函数，返回序列的标准差值
+.sum|.sum()：求和函数，返回序列所有数值之和
+.to_csv|.to_csv(filepath, mode='w')：写文本文件函数，将参数序列保存到文本文件，filepath为写文件路径，mode='w'会覆盖文件原有内容，mode='a'会追加写入文件
+.to_excel|.to_excel(filepath)：写excel文件函数，将参数序列保存到excel文件，filepath为写文件路径
+.iat[]|.iat[index]：序列索引，快速获取序列中第index个元素，并可以进行修改，如parameter.iat[0] = 1
+.iloc[]|.iloc[a, b]：序列切片索引，获取第a到b-1个元素，并可以修改，如parameter.iloc[1,3]
+

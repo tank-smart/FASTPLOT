@@ -18,18 +18,23 @@ import pandas as pd
 # =============================================================================
 # Package views imports
 # =============================================================================
-from models.datafile_model import Normal_DataFile
+from models.datafile_model import Normal_DataFile, DataFile_Factory
 import models.time_model as Time_Model
+import numpy as np
 
 class DataFactory(object):
     
 #    通过文件路径+参数列表或者DataFrame初始化
-    def __init__(self, data_source = None, sel_para = []):
-        
-        if type(data_source) == str:
+    def __init__(self, data_source = None, sel_para = [], file_kwargs = None):
+
+# yanhua modified        
+        self.filedir = None
+        if type(data_source) == str and file_kwargs is not None :
 #            确定数据类型
             self.data_type = 'DataFile'
-            file = Normal_DataFile(data_source)
+            self.filedir = data_source
+#            file = Normal_DataFile(data_source)
+            file = DataFile_Factory(data_source, **file_kwargs)
             if sel_para:
 #                参数列表是包括时间参数的
                 self.data_paralist = [file.paras_in_file[0]] + sel_para
@@ -42,6 +47,7 @@ class DataFactory(object):
             self.time_range = file.time_range
 #            确定采样频率
             self.sample_frequency = file.sample_frequency
+            self.time_format = file.time_format
         elif type(data_source) == pd.DataFrame:
 #            确定数据类型
             self.data_type = 'DataFrame'
@@ -73,9 +79,68 @@ class DataFactory(object):
             if not get_fre:
                 fre = 0
             self.sample_frequency = fre
+            self.time_format = Time_Model.time_format(first_time)
+#            使用时间作为索引的series数据
+        elif type(data_source) == pd.Series:
+#            确定数据类型
+            self.data_type = 'Series'
+#            确定数据
+            
+            self.data = data_source.reset_index()
+#            确定数据中的参数列表
+            self.data_paralist = self.data.columns.values.tolist()
+#            确定起止时间
+            stime = Time_Model.timestr_to_stdtimestr(data_source.iloc[0, 0])
+            etime = Time_Model.timestr_to_stdtimestr(data_source.iloc[-1, 0])
+            self.time_range = [stime, etime]
+#            确定采样频率
+            get_fre = False
+            fre = 1
+            first_time = self.data.iloc[0, 0]
+            length_time = len(self.data)
+            while (not get_fre) and fre <= length_time:
+                next_time = self.data.iloc[fre, 0]
+                count = Time_Model.count_between_time(first_time, next_time, 1)
+                if count == 1:
+                    get_fre = True
+                else:
+                    fre += 1
+            if not get_fre:
+                fre = 0
+            self.sample_frequency = fre
+            
+        elif type(data_source) == np.ndarray:
+#            确定数据类型
+            self.data_type = 'Vector'
+#            确定数据
+            
+            self.data = data_source
+#            确定数据中的参数列表
+            self.data_paralist = None
+#            确定起止时间
+            self.lenth = len(data_source)
+#            stime = Time_Model.timestr_to_stdtimestr(data_source.iloc[0, 0])
+#            etime = Time_Model.timestr_to_stdtimestr(data_source.iloc[-1, 0])
+#            self.time_range = [stime, etime]
+#            确定采样频率
+#            get_fre = False
+#            fre = 1
+#            first_time = self.data.iloc[0, 0]
+#            length_time = len(self.data)
+#            while (not get_fre) and fre <= length_time:
+#                next_time = self.data.iloc[fre, 0]
+#                count = Time_Model.count_between_time(first_time, next_time, 1)
+#                if count == 1:
+#                    get_fre = True
+#                else:
+#                    fre += 1
+#            if not get_fre:
+#                fre = 0
+#            self.sample_frequency = fre
 
 #    time为datatime类型或字符串时间
-#    若paraname不为空，返回参数值；若为空，返回一个元组型的列表，第一个元素是时间
+#    返回一个元组（时间，参数值列表）
+#    对于参数值列表，若paraname不为空，返回参数值；若为空，返回一个元组型的列表，第一个元素是时间
     def get_time_paravalue(self, time = None, paraname = None):
         
         if Time_Model.is_in_range(self.time_range[0], self.time_range[1], time):
@@ -83,15 +148,16 @@ class DataFactory(object):
                                                        time, 
                                                        self.sample_frequency)
             para_data = self.data.iloc[time_index, :]
+            time_str = Time_Model.timestr_to_stdtimestr(para_data[0])
             if paraname:
-                return para_data[paraname]
+                return (time_str, para_data[paraname])
             else:
                 paravalue = []
                 for paraname in self.data_paralist:
                     paravalue.append((paraname, para_data[paraname]))
-                return paravalue
+                return (time_str, paravalue)
         else:
-            return None
+            return ('', None)
         
     def get_paralist(self):
         
@@ -145,7 +211,8 @@ class DataFactory(object):
         else:
             return False
         
-    def get_trange_data(self, stime = None, etime = None, paralist = [], is_with_time = True):
+#    返回的是实际时间段及其数据
+    def get_trange_data_wxl(self, stime = None, etime = None, paralist = [], is_with_time = True):
         
         if stime and etime:
             bool_re = Time_Model.compare(stime, etime)
@@ -163,50 +230,170 @@ class DataFactory(object):
                 if Time_Model.compare(st, lim_stime) == -1:
                     st = lim_stime
                     if Time_Model.compare(et, lim_stime) == -1:
-                        return None
+                        return (None, None)
                     else:
                         if Time_Model.compare(et, lim_etime) == 1:
                             et = lim_etime
                 else:
                     if Time_Model.compare(st, lim_etime) == 1:
-                        return None
+                        return (None, None)
                     else:
                         if Time_Model.compare(et, lim_etime) == 1:
                             et = lim_etime
-            stime_index = Time_Model.count_between_time(lim_stime,
-                                                        st,
-                                                        self.sample_frequency)
-            etime_index = Time_Model.count_between_time(lim_stime,
-                                                        et,
-                                                        self.sample_frequency)
-            if paralist:
-                if is_with_time:
-                    paralist.insert(0, self.get_time_index())
-#                按下面的dataframe访问方式是左闭右开，所以右边要加1
-                return self.data[paralist][stime_index : (etime_index + 1)]
-            else:
-                if is_with_time:
-                    return self.data[stime_index : (etime_index + 1)]
+#                因为是以采样点为起始时间，则得到的index是最靠近且小于终止时间的那个采样点的index
+                stime_index = Time_Model.count_between_time(lim_stime,
+                                                            st,
+                                                            self.sample_frequency)
+                etime_index = Time_Model.count_between_time(lim_stime,
+                                                            et,
+                                                            self.sample_frequency)
+  
+#                更新起始时间，保证只取在选择时间范围的数据
+                getted_stime = self.data.iloc[stime_index, 0]
+                if Time_Model.compare(getted_stime, st) == -1:
+                    stime_index += 1
+                std_stime = Time_Model.timestr_to_stdtimestr(self.data.iloc[stime_index, 0])
+                std_etime = Time_Model.timestr_to_stdtimestr(self.data.iloc[etime_index, 0])
+                if paralist:
+                    if is_with_time:
+                        paralist.insert(0, self.get_time_index())
+    #                按下面的dataframe访问方式是左闭右开，所以右边要加1
+                    return ((std_stime, std_etime), 
+                            self.data[paralist][stime_index : (etime_index + 1)])
                 else:
-                    return self.data[self.get_paralist()][stime_index : (etime_index + 1)]
+                    if is_with_time:
+                        return ((std_stime, std_etime), 
+                                self.data[stime_index : (etime_index + 1)])
+                    else:
+                        return ((std_stime, std_etime), 
+                                self.data[self.get_paralist()][stime_index : (etime_index + 1)])
+            else:
+                return (None, None)
+        else:
+            return (None, None)
+        
+    def get_trange_data_old(self, stime = None, etime = None, paralist = [], is_with_time = True):
+        if stime and etime:
+#            bool_re = Time_Model.compare(stime, etime)
+            sdatetime = Time_Model.str_to_datetime(stime)
+            edatetime = Time_Model.str_to_datetime(etime)
+            self.data.iloc[:,0] = pd.to_datetime(self.data.iloc[:,0], format=self.time_format)
+            timelabel = self.data.columns[0]
+            result = self.data[(self.data[timelabel]>=sdatetime) & (self.data[timelabel]<=edatetime)]
+            result.iloc[:,0] = result.iloc[:,0].dt.strftime(self.time_format)
+        return ((stime, etime), result)
+    
+    def get_trange_data(self, stime = None, etime = None, paralist = [], is_with_time = True):
+        if stime and etime:
+#            if isinstance(stime, str):
+#                sdatetime = Time_Model.str_to_datetime(stime)
+#            else:
+#                sdatetime = stime
+#            if isinstance(stime, str):
+#                edatetime = Time_Model.str_to_datetime(etime)
+#            else:
+#                edatetime = etime
+            sdatetime = Time_Model.to_datetime(stime)
+            edatetime = Time_Model.to_datetime(etime)
+            left = 0
+            right = len(self.data)-1
+            left_time = Time_Model.str_to_datetime(self.data.iat[left,0])
+            right_time = Time_Model.str_to_datetime(self.data.iat[right,0])
+            if sdatetime<left_time:
+                sdatetime = left_time
+            if edatetime>right_time:
+                edatetime = right_time
+            if sdatetime<=edatetime:
+                sloc = self.binary_search(left, right, sdatetime, self.data.iloc[:,0], 'start')
+                eloc = self.binary_search(left, right, edatetime, self.data.iloc[:,0], 'end')
+                if sloc is not None and eloc is not None:
+                    std_stime = Time_Model.timestr_to_stdtimestr(self.data.iloc[sloc, 0])
+                    std_etime = Time_Model.timestr_to_stdtimestr(self.data.iloc[eloc, 0])
+                    if paralist:
+                        if is_with_time:
+                            paralist.insert(0, self.get_time_index())
+        #                按下面的dataframe访问方式是左闭右开，所以右边要加1
+                        return ((std_stime, std_etime), 
+                                self.data[paralist][sloc : (eloc + 1)])
+                    else:
+                        if is_with_time:
+                            return ((std_stime, std_etime), 
+                                    self.data[sloc : (eloc + 1)])
+#                                    self.data[sloc : (eloc + 1)])
+                        else:
+                            return ((std_stime, std_etime), 
+                                    self.data[self.get_paralist()][sloc : (eloc + 1)])
+                else:
+                    return(None, None)
+            else:
+                return(None, None)
+        else:
+            return(None, None)
+    
+    def binary_search(self, left, right, value, timeserie, position):
+#        print(timeserie)
+#        print(str(left)+'--'+str(right))
+        if Time_Model.str_to_datetime(timeserie.iloc[left])<= value and Time_Model.str_to_datetime(timeserie.iloc[right])>= value:
+            if right-left>1:
+                mid = int((left+right)/2)
+                if Time_Model.str_to_datetime(timeserie.iloc[mid])>value:
+                    return self.binary_search(left, mid, value, timeserie, position)
+                elif Time_Model.str_to_datetime(timeserie.iloc[mid])<value:
+                    return self.binary_search(mid, right, value, timeserie, position)
+                else:
+                    return mid
+            else:
+                if position == 'start':
+                    if Time_Model.str_to_datetime(timeserie.iloc[left])==value:
+                        return left
+                    else:
+                        return right
+                if position =='end':
+                    if Time_Model.str_to_datetime(timeserie.iloc[right])==value:
+                        return right
+                    else:
+                        return left
+                else:
+                    return None
         else:
             return None
+        
+    def delete_col(self, index : str):
+        
+        if type(index) == str and index != '':
+            para_list = self.get_paralist()
+            if para_list and (index in para_list):
+                self.data = self.data.drop(index, axis = 1)
+                self.data_paralist = self.data.columns.values.tolist()
 
 #---------yanhua加        
     def get_shape(self):
         return self.data.shape
     
+#    def _add_(self, other):
+#        if isinstance(other, self):
+#            if self.is_extended_by(self, other):
+#                data = self.data.iloc[:,1]+other.data.iloc[:,1]
+#                time = self.data.iloc[:,0]
+#                df = pd.Dataframe({'Time' : time, 'Result' : data})
+#                result = DataFactory(df)
+#                return result
+#            elif self.data.shape == other.data.shape:
+                
+            
+    
 #---------yanhua          
         
 if __name__ == '__main__':
     
-    file_dir = 'E:\Test.txt'
+    file_dir = r'D:\flightdata\FTPD-C919-10101-PD-170318-G-02-CAOWEN-664002-16.txt'
     file = Normal_DataFile(file_dir)
     
-    d = DataFactory(file_dir, ['FCM1_Voted_Mach'])
+#    d = DataFactory(file_dir, ['FCM1_Voted_Mach'])
     
-    df = file.cols_input(file_dir, ['TIME','FCM1_Voted_Mach'])
+    df = file.cols_input(file_dir, [file.paras_in_file[0]])
     dd = DataFactory(df)
+    print(dd.time_format)
     
 #    print('Dt: %s' % d.data_type)
 #    print(d.get_time_index())
@@ -216,5 +403,5 @@ if __name__ == '__main__':
 #    print(d.get_time_paravalue('10:59'))
 #    c = d.get_trange_data(None,None,[],False)
 #    print(c.columns)
-    dd.extend_data(d)
-    print(dd.data_paralist)
+#    dd.extend_data(d)
+#    print(dd.data_paralist)

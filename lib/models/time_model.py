@@ -11,6 +11,7 @@
 # 
 # =============================================================================
 from datetime import datetime as Pytime
+import pandas as pd
 
 #将datatime格式或符合标准的时间字符串转换成列表，如果不满足则抛出异常
 def to_intlist(time):
@@ -20,16 +21,21 @@ def to_intlist(time):
     return [result_time.hour, result_time.minute, result_time.second, result_time.microsecond]
 
 #可计算datatime类型或时间字符串，若计算不成功则抛出异常
+#起始若为采样点，那么计数到以最靠近且小于终止时间的那个采样点结束
 def count_between_time(start_time, stop_time, fre):
     
     start = to_datetime(start_time)
-        
     stop = to_datetime(stop_time)
-    
-    return abs(int(((stop.hour - start.hour) * 3600 +
-                    (stop.minute - start.minute) * 60 +
-                    (stop.second - start.second) +
-                    (stop.microsecond - start.microsecond) / 1000000) * fre))
+
+    abs_delta = ((stop.hour - start.hour) * 3600 +
+                 (stop.minute - start.minute) * 60 +
+                 (stop.second - start.second) +
+                 (stop.microsecond - start.microsecond) / 1000000) * fre
+
+    if abs_delta >= 0:
+        return int(abs_delta)
+    else:
+        return -1
 
 #可判断datatime类型或时间字符串
 #比较两个时间的大小，time1大于time2返回1，等于返回0，小于返回-1
@@ -74,7 +80,7 @@ def is_in_range(start, stop, time):
     
 def is_std_format(time : str):
     
-    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S']
+    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S', '%H-%M-%S.%f', '%H-%M-%S-%f', '%H-%M-%S']
     for format_time in tran_format:
         try:
             Pytime.strptime(time, format_time)
@@ -85,9 +91,23 @@ def is_std_format(time : str):
             pass
     return False
 
+def time_format(time : str):
+    
+    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S', '%H-%M-%S.%f', '%H-%M-%S-%f', '%H-%M-%S']
+    for format_time in tran_format:
+        try:
+#            Pytime.strptime(time, format_time)
+            pd.to_datetime(time, format = format_time)
+            return format_time
+        except:
+            pass
+        finally:
+            pass
+    return None
+
 def str_to_datetime(time : str):
     
-    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S']
+    tran_format = ['%H:%M:%S:%f', '%H:%M:%S.%f', '%H', '%H:%M', '%H:%M:%S', '%H-%M-%S.%f', '%H-%M-%S-%f', '%H-%M-%S']
     for format_time in tran_format:
         try:
             return Pytime.strptime(time, format_time)
@@ -102,7 +122,8 @@ def to_datetime(time):
     
     result_time = None
     if type(time) == Pytime:
-        result_time = time
+#        转换为无时区datetime
+        result_time = time.replace(tzinfo=None)
     elif type(time) == str:
         result_time = str_to_datetime(time)
     else:
@@ -116,7 +137,11 @@ def to_datetime(time):
 def datetime_to_timestr(dt : Pytime):
     
     if dt:
-        return dt.time().isoformat(timespec='milliseconds')
+        re = dt.microsecond % 1000
+        if re == 0:
+            return dt.time().isoformat(timespec = 'milliseconds')
+        else:
+            return dt.time().isoformat(timespec = 'microseconds')
     else:
         return None
     
@@ -145,6 +170,37 @@ def and_time_intervals(tar_t : tuple, scr_t : tuple):
             if compare(etime, lim_etime) == 1:
                 result_et = lim_etime
     return (result_st, result_et)
+
+def datetime_to_origintime(dt : Pytime):
+    if dt:
+        strtime = dt.time().isoformat(timespec='milliseconds')
+        strtime = strtime.replace('.', ':')
+        return strtime
+    else:
+        return None
+    
+def str_time_delta(time2, time1):
+    
+    if compare(time1, time2) == 1:
+        t = time1
+        time1 = time2
+        time2 = t
+    td = to_datetime(time2) - to_datetime(time1)
+    h = int(td.seconds / 3600)
+    m = int((td.seconds % 3600) / 60)
+    s = td.seconds % 60
+    i = 0
+    temp = td.microseconds
+    while temp:
+        temp = int(temp / 10)
+        i += 1
+    insert = ''
+    if i != 0:
+        for j in range(6 - i):
+            insert += '0'
+    ms = insert + str(td.microseconds)
+    str_td = str(h) + ':' + str(m) + ':' + str(s) + '.' + ms
+    return timestr_to_stdtimestr(str_td)
     
 if __name__ == '__main__':
 #    print(is_in_range('6:13','12:13:47.291','6:14:47.291'))
@@ -153,7 +209,10 @@ if __name__ == '__main__':
 #    print(is_in_range(t,'12 13:47.291','6:14:47.291'))
 #    print(count_between_time(t, '12:13:47.291', 16))
 #    print(datetime_to_timestr(t))
-    print(and_time_intervals(('6:13','12:13:47.291'),('14:13','16:13')))
+#    print(and_time_intervals(('6:13','12:13:47.291'),('14:13','16:13')))
+#    print(time_format('5:57:15'))
+    print(str_time_delta('7:13:12:12', '6:13:12:120'))
+
     
     
     

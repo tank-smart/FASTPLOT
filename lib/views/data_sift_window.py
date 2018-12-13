@@ -14,8 +14,8 @@
 # =============================================================================
 # Qt imports
 # =============================================================================
-from PyQt5.QtCore import (QSize, QCoreApplication, Qt, QObject)
-from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import (QSize, QCoreApplication, Qt, QObject, pyqtSignal)
+from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
                              QTabWidget, QPushButton, QGroupBox,
                              QPlainTextEdit, QMessageBox, QTreeWidget, 
@@ -28,7 +28,8 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox,
 # =============================================================================
 from views.custom_dialog import SelParasDialog
 from models.analysis_model import DataAnalysis
-import views.constant as CONSTANT
+import views.config_info as CONFIG
+import models.time_model as Time_Model
 
 class SiftResultViewWidget(QWidget):
 
@@ -41,6 +42,9 @@ class SiftResultViewWidget(QWidget):
         
     def setup(self):
 
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.verticalLayout_8 = QVBoxLayout(self)
         self.verticalLayout_8.setContentsMargins(2, 2, 2, 2)
         self.verticalLayout_8.setSpacing(2)
@@ -82,6 +86,7 @@ class SiftResultViewWidget(QWidget):
 
 class DataSiftWindow(QWidget):
     
+    signal_close_ds_dock = pyqtSignal()
 # =============================================================================
 # 初始化    
 # =============================================================================    
@@ -98,14 +103,17 @@ class DataSiftWindow(QWidget):
         
         self.tab_result_count = 0
         
-        self.file_icon = QIcon(CONSTANT.ICON_FILE)
-        self.time_icon = QIcon(CONSTANT.ICON_TIME)
+        self.file_icon = QIcon(CONFIG.ICON_FILE)
+        self.time_icon = QIcon(CONFIG.ICON_TIME)
 
 # =============================================================================
 # UI模块
 # =============================================================================        
     def setup(self):
         
+        font = QFont()
+        font.setFamily('微软雅黑')
+        self.setFont(font)
         self.verticalLayout = QVBoxLayout(self)
         self.verticalLayout.setContentsMargins(2, 0, 2, 0)
         self.verticalLayout.setSpacing(2)
@@ -160,6 +168,10 @@ class DataSiftWindow(QWidget):
         self.btn_cancel.setMinimumSize(QSize(0, 24))
         self.btn_cancel.setMaximumSize(QSize(16777215, 24))
         self.hlayout_btn_sc.addWidget(self.btn_cancel)
+        self.btn_close = QPushButton(self.group_box_expression)
+        self.btn_close.setMinimumSize(QSize(0, 24))
+        self.btn_close.setMaximumSize(QSize(16777215, 24))
+        self.hlayout_btn_sc.addWidget(self.btn_close)
         self.verticalLayout_4.addLayout(self.hlayout_btn_sc)
         
         self.verticalLayout_4.setStretch(0, 2)
@@ -177,6 +189,7 @@ class DataSiftWindow(QWidget):
 #        self.button_box_sift.rejected.connect(self.slot_sift_cancel)
         self.btn_confirm.clicked.connect(self.slot_sift_ok)
         self.btn_cancel.clicked.connect(self.slot_sift_cancel)
+        self.btn_close.clicked.connect(self.slot_close)
         
         self.plain_text_edit_expression.customContextMenuRequested.connect(
                 self.expression_context_menu)
@@ -193,30 +206,36 @@ class DataSiftWindow(QWidget):
         list_files = self._current_files
         str_condition = self.plain_text_edit_expression.toPlainText()
         if list_files and str_condition:
+
             sift_object = DataAnalysis()
 #            result_tuple = sift_object.condition_sift_class(list_files,
 #                                                            str_condition,
 #                                                            self.sift_search_paras)
             
-            result_dict = sift_object.condition_sift_wxl(list_files,
+            result_dict = sift_object.condition_sift_wxl(list_files, self._dict_filetype,
                                                           str_condition,
                                                           self.sift_search_paras)
-            
+#            if result_tuple:
+#                sift_results=result_tuple[0]
             if result_dict:
-                
 
 #                创建一个结果显示窗口
                 self.tab_result_count += 1
                 tab_sift_result = SiftResultViewWidget(self.tab_widget_datasift,  str_condition)
+                
 #                for file in list_files:
                 for key_file in result_dict:
-                    sift_results=result_dict[key_file]#a list
+                    sift_results=result_dict[key_file]
+                    
                     item = None
+                    total_time = None
                     first_hit = True
                     for result in sift_results:
+#                        if result.filedir == file:
                         if first_hit:
                             item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
                             tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
+#                            filedir = result.filedir
                             filedir = key_file
                             pos = filedir.rindex('\\')
                             filename = filedir[pos+1:]
@@ -224,22 +243,36 @@ class DataSiftWindow(QWidget):
                             item.setIcon(0, self.file_icon)
                             item.setText(1, 'Hit')
                             child = QTreeWidgetItem(item)
-                            child.setIcon(0, self.time_icon)
+                            child.setIcon(2, self.time_icon)
+#                            child.setText(2, result.begin_time + ' - ' + result.end_time)
+#                            child.setText(3, result.period_time)
                             child.setText(2, result[0] + ' - ' + result[1])
                             child.setText(3, result[2])
                             first_hit = False
+#                            total_time = Time_Model.str_to_datetime(result.end_time) - Time_Model.str_to_datetime(result.begin_time)
+                            total_time = Time_Model.str_to_datetime(result[1]) - Time_Model.str_to_datetime(result[0])
                         else:
                             child = QTreeWidgetItem(item)
-                            child.setIcon(0, self.time_icon)
+                            child.setIcon(2, self.time_icon)
+#                            child.setText(2, result.begin_time + ' - ' + result.end_time)
+#                            child.setText(3, result.period_time)
                             child.setText(2, result[0] + ' - ' + result[1])
                             child.setText(3, result[2])
+#                            total_time = total_time + Time_Model.str_to_datetime(result.end_time) - Time_Model.str_to_datetime(result.begin_time)
+                            total_time = total_time + Time_Model.str_to_datetime(result[1]) - Time_Model.str_to_datetime(result[0])
                     if first_hit:
-                            item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
-                            tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
-                            pos = key_file.rindex('\\')
-                            filename = key_file[pos+1:]
-                            item.setText(0, filename)
-                            item.setText(1, 'No Fit')
+                        item = QTreeWidgetItem(tab_sift_result.tree_widget_sift_result)
+                        tab_sift_result.tree_widget_sift_result.addTopLevelItem(item)
+#                        pos = file.rindex('\\')
+                        pos = key_file.rindex('\\')
+#                        filename = file[pos+1:]
+                        filename = key_file[pos+1:]
+#                        item.setText(0, file)
+                        item.setIcon(0, self.file_icon)
+                        item.setText(0, filename)
+                        item.setText(1, 'No Fit')
+                    if item and total_time:
+                        item.setText(3, str(total_time))
                 self.tab_widget_datasift.addTab(
                         tab_sift_result, 
                         QCoreApplication.translate('DataAnalysisWindow',
@@ -248,8 +281,8 @@ class DataSiftWindow(QWidget):
                         self.tab_widget_datasift.indexOf(tab_sift_result))
             else:
                 QMessageBox.information(self,
-                        QCoreApplication.translate("DataAnalysisWindow", "提示"),
-                        QCoreApplication.translate("DataAnalysisWindow", '语法错误'))
+                        QCoreApplication.translate('DataAnalysisWindow', '提示'),
+                        QCoreApplication.translate('DataAnalysisWindow', '语法错误'))
         else:
             QMessageBox.information(self,
                     QCoreApplication.translate('DataAnalysisWindow', '提示'),
@@ -261,6 +294,10 @@ class DataSiftWindow(QWidget):
         self.plain_text_edit_expression.clear()
 #        self.tree_widget_aggragate_para.clear()
         self.sift_search_paras = []
+        
+    def slot_close(self):
+        
+        self.signal_close_ds_dock.emit()
         
     def expression_context_menu(self, pos):
 
@@ -313,20 +350,23 @@ class DataSiftWindow(QWidget):
 #        self.tree_widget_aggragate_para.takeTopLevelItem(
 #                self.tree_widget_aggragate_para.indexOfTopLevelItem(item))
         
-    def slot_update_current_files(self, files : list):
+    def slot_update_current_files(self, files : list, dict_filetype : dict):
         
         self._current_files = files
+        self._dict_filetype = dict_filetype
     
     def slot_add_para(self):
         
 #        采用单选模式
-        dialog = SelParasDialog(self, self._current_files, 0)
+        dialog = SelParasDialog(self, self._current_files, 0, self._dict_filetype)
         return_signal = dialog.exec_()
         if (return_signal == QDialog.Accepted):
             paras = dialog.get_list_sel_paras()
             if paras:
                 self.plain_text_edit_expression.insertPlainText(paras[0])
-                self.sift_search_paras.append(paras[0])
+#                添加判断，防止重复
+                if paras[0] not in self.sift_search_paras:
+                    self.sift_search_paras.append(paras[0])
                 
     def slot_close_tab(self, index : int):
         
@@ -351,5 +391,6 @@ class DataSiftWindow(QWidget):
 #        self.tree_widget_aggragate_para.headerItem().setText(0, _translate('DataAnalysisWindow', '条件'))
 #        self.tree_widget_aggragate_para.headerItem().setText(1, _translate('DataAnalysisWindow', '参数'))
         self.tab_widget_datasift.setTabText(self.tab_widget_datasift.indexOf(self.tab_sift), _translate('DataAnalysisWindow', '数据筛选'))
-        self.btn_confirm.setText(_translate("DataManageWindow", "确定"))
-        self.btn_cancel.setText(_translate("DataManageWindow", "取消"))
+        self.btn_confirm.setText(_translate('DataManageWindow', '确定'))
+        self.btn_cancel.setText(_translate('DataManageWindow', '清空输入'))
+        self.btn_close.setText(_translate('DataManageWindow', '关闭窗口'))
