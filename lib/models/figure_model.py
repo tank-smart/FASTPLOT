@@ -618,11 +618,11 @@ class PlotCanvasBase(FigureCanvas):
         
         if CONFIG.OPTION['data description']:
             if CONFIG.OPTION['data description'] != 'whosyourdaddy':
-                s = CONFIG.OPTION['data description'] + '\n' + CONFIG.SOFTNAME
+                s = CONFIG.OPTION['data description'] + '\n' + 'FTCC ' + CONFIG.SOFTNAME
             else:
                 s = ''
         else:
-            s = CONFIG.SOFTNAME
+            s = 'FTCC ' + CONFIG.SOFTNAME
         ax.set_title(s,
                      loc = 'right',
                      pad = 3,
