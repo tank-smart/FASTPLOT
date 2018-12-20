@@ -27,7 +27,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QSpacerItem,
 # =============================================================================
 from views.custom_dialog import (SelectParasTemplateDialog, SaveTemplateDialog,
                                  ParameterExportDialog)
-from models.datafile_model import Normal_DataFile, DataFile_Factory
+from models.datafile_model import DataFile_Factory
 import views.config_info as CONFIG
 
 # =============================================================================

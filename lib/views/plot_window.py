@@ -1095,6 +1095,12 @@ class PlotWindow(QWidget):
 #        框选缩放（Ctrl+Q）
         if event.key() == Qt.Key_Q and event.modifiers() == Qt.ControlModifier:
             self.button_zoom.click()
+        if event.key() == Qt.Key_U and event.modifiers() == Qt.ControlModifier:
+            if type(self.current_canva) == StackAxisPlotCanvas:
+                self.current_canva.action_up_axis.trigger()
+        if event.key() == Qt.Key_D and event.modifiers() == Qt.ControlModifier:
+            if type(self.current_canva) == StackAxisPlotCanvas:
+                self.current_canva.action_down_axis.trigger()
 
 # =============================================================================
 # 功能函数模块

@@ -178,7 +178,8 @@ def datetime_to_origintime(dt : Pytime):
         return strtime
     else:
         return None
-    
+
+# 取时间差的绝对值！！！
 def str_time_delta(time2, time1):
     
     if compare(time1, time2) == 1:

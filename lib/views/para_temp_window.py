@@ -16,7 +16,7 @@ import os, json
 # =============================================================================
 from PyQt5.QtCore import (QSize, QCoreApplication, pyqtSignal, Qt,
                           QDataStream, QIODevice)
-from PyQt5.QtGui import QIcon, QDragEnterEvent, QDropEvent, QFont
+from PyQt5.QtGui import QIcon, QDragEnterEvent, QDropEvent, QFont, QKeyEvent
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QAction,
                              QMenu, QListWidget, QListWidgetItem,
                              QLineEdit, QAbstractItemView, QGroupBox,
@@ -105,6 +105,32 @@ class ParasListWithDropEvent(QListWidget):
             event.acceptProposedAction()
         else:
             event.ignore()
+            
+    def keyPressEvent(self, event : QKeyEvent):
+        
+        if event.key() == Qt.Key_Up:
+            if self.count():
+                loc = self.currentRow()
+                item = self.takeItem(loc)
+                if loc == 0:
+                    self.insertItem(0, item)
+                    self.setCurrentItem(item)
+                else:
+                    self.insertItem(loc - 1, item)
+                    self.setCurrentItem(item)
+                self.signal_paras_change.emit()
+        if event.key() == Qt.Key_Down:
+            if self.count():    
+                count = self.count()
+                loc = self.currentRow()
+                item = self.takeItem(loc)
+                if loc == count - 1:
+                    self.insertItem(count - 1, item)
+                    self.setCurrentItem(item)
+                else:
+                    self.insertItem(loc + 1, item)
+                    self.setCurrentItem(item)
+                self.signal_paras_change.emit()
 # =============================================================================
 # ParaTempWindow
 # =============================================================================
@@ -268,6 +294,7 @@ class ParaTempWindow(QWidget):
                     new_name = name + '(copy ' + str(i) + ')'
                     i += 1
                 self.paras_temps[new_name] = template[name]
+                self.output_temps()
                 self.redisplay_para_templates()
 
 #    显示模板信息
@@ -327,11 +354,15 @@ class ParaTempWindow(QWidget):
                 else:
                     self.line_edit_paras_template_name.clear()
                     self.list_parameters_for_ana.clear()
+                self.output_temps()
         
     def slot_change_temp_name(self):
         
         temp_name = self.line_edit_paras_template_name.text()
         if temp_name != self.current_temp.text():
+#            一旦改变模板，模板名的字体变粗
+            self.item_font_set_bold(self.current_temp, True)
+            
             if temp_name in self.paras_temps:
                 QMessageBox.information(self,
                                 QCoreApplication.translate('ParaTempWindow', '模板名提示'),
@@ -348,7 +379,15 @@ class ParaTempWindow(QWidget):
         if paralist:
             ex_paras = []
             for paraname in paralist:
-                if self.list_parameters_for_ana.findItems(paraname, Qt.MatchExactly):
+                
+                count = self.list_parameters_for_ana.count()
+                is_ex = False
+                if count > 0:
+                    for i in range(count):
+                        if self.list_parameters_for_ana.item(i).data(Qt.UserRole) == paraname:
+                            is_ex = True
+                            break
+                if is_ex:
                     ex_paras.append(paraname)
                 else:
                     item = QListWidgetItem(paraname, self.list_parameters_for_ana)
@@ -374,6 +413,7 @@ class ParaTempWindow(QWidget):
                         QCoreApplication.translate('ParaTempWindow', '导入参数提示'),
                         QCoreApplication.translate('ParaTempWindow', print_para))
             if len(ex_paras) != len(paralist):
+                self.item_font_set_bold(self.current_temp, True)
                 self.current_temp_change_status = True
             else:
                 self.current_temp_change_status = False
@@ -390,7 +430,9 @@ class ParaTempWindow(QWidget):
             for i in range(count):
                 paras.append(self.list_parameters_for_ana.item(i).data(Qt.UserRole))
             self.paras_temps[result_tempname] = paras
+            self.output_temps()
             self.current_temp.setText(result_tempname)
+            self.item_font_set_bold(self.current_temp, False)
             QMessageBox.information(self,
                             QCoreApplication.translate('ParaTempWindow', '保存提示'),
                             QCoreApplication.translate('ParaTempWindow', '保存成功'))
@@ -417,6 +459,8 @@ class ParaTempWindow(QWidget):
     
     def slot_cancel_save_temp(self):
         
+        self.current_temp_change_status = False
+        self.item_font_set_bold(self.current_temp, False)
         if self.is_creating:
             target_temp = self.current_temp.text()
             self.paras_temps.pop(target_temp)
@@ -432,7 +476,6 @@ class ParaTempWindow(QWidget):
             self.is_creating = False
         else:
             self.slot_display_template(self.current_temp)
-        self.current_temp_change_status = False
         
     def slot_create_temp(self):
         
@@ -446,6 +489,8 @@ class ParaTempWindow(QWidget):
         item.setIcon(self.tempicon)
         self.paras_temps[temp_name] = []
         self.slot_display_template(item)
+#        一旦改变模板，模板名的字体变粗
+        self.item_font_set_bold(item, True)
         self.current_temp_change_status = True
         
     def slot_import_temps(self):
@@ -510,7 +555,9 @@ class ParaTempWindow(QWidget):
         
     def slot_para_deled(self):
         
+        self.item_font_set_bold(self.current_temp, True)
         self.current_temp_change_status = True
+        
 # =============================================================================
 # 功能函数模块
 # =============================================================================
@@ -588,6 +635,13 @@ class ParaTempWindow(QWidget):
             self.list_para_templates.setCurrentRow(0)
             item = self.list_para_templates.currentItem()
             self.slot_display_template(item)
+            
+    def item_font_set_bold(self, item : QListWidgetItem, isbold : bool):
+        
+        font = item.font()
+        font.setBold(isbold)
+        item.setFont(font)
+        
 # =============================================================================
 # 汉化
 # =============================================================================

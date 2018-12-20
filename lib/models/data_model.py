@@ -147,15 +147,32 @@ class DataFactory(object):
             time_index = Time_Model.count_between_time(self.time_range[0],
                                                        time, 
                                                        self.sample_frequency)
-            para_data = self.data.iloc[time_index, :]
-            time_str = Time_Model.timestr_to_stdtimestr(para_data[0])
-            if paraname:
-                return (time_str, para_data[paraname])
+#            print(len(self.data))
+            if time_index >= 0 and time_index <= len(self.data):
+                para_data = self.data.iloc[time_index, :]
+                time_str = Time_Model.timestr_to_stdtimestr(para_data[0])
+                
+                delta = Time_Model.count_between_time(time_str,
+                                                      time,
+                                                      self.sample_frequency)
+                if delta == -1:
+                    delta = Time_Model.count_between_time(time,
+                                                          time_str,
+                                                          self.sample_frequency)
+#                print(delta)
+#                如果误差在(2/f)s内，认为是可接受的
+                if delta < 2:
+                    if paraname:
+                        return (time_str, para_data[paraname])
+                    else:
+                        paravalue = []
+                        for paraname in self.data_paralist:
+                            paravalue.append((paraname, para_data[paraname]))
+                        return (time_str, paravalue)
+                else:
+                    return ('', None)
             else:
-                paravalue = []
-                for paraname in self.data_paralist:
-                    paravalue.append((paraname, para_data[paraname]))
-                return (time_str, paravalue)
+                return ('', None)
         else:
             return ('', None)
         
